@@ -201,7 +201,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
 
   const stream = client.messages.stream({
     model: 'claude-sonnet-4-5',
-    max_tokens: 1024,
+    max_tokens: 4096,
     system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile. IMPORTANT: Pour toutes les équations mathématiques, utilise TOUJOURS la notation LaTeX : $...$ pour les équations inline et $$...$$ pour les équations centrées sur leur propre ligne. N'utilise JAMAIS de blocs code pour les équations mathématiques.",
     messages: messages,
   });
