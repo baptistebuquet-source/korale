@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Korale</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <link rel="stylesheet" href="/hljs/github-dark.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
   <script src="/hljs/highlight.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -179,10 +179,10 @@
 
     /* CODE */
     .code-block { margin: 12px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: #1e2030; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .code-lang { font-size: 11px; color: rgba(255,255,255,0.4); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; }
-    .copy-btn { font-size: 11px; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; padding: 3px 8px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-    .copy-btn:hover { color: white; background: rgba(255,255,255,0.15); }
+    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: #f0ede8; border-bottom: 1px solid var(--border2); }
+    .code-lang { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; }
+    .copy-btn { font-size: 11px; color: var(--text2); background: var(--surface); border: 1px solid var(--border2); border-radius: 5px; padding: 3px 8px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
     .copy-btn.copied { color: #3ecf8e; border-color: rgba(62,207,142,0.4); }
     .bubble pre { margin: 0 !important; border: none !important; border-radius: 0 !important; }
     .bubble pre code.hljs { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.6; padding: 14px; display: block; overflow-x: auto; }
