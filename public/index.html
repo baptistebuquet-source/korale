@@ -4,76 +4,114 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Korale</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0f0f12; color: #eeeae4; font-family: system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; }
+    body { background: #09090c; color: #e8e4de; font-family: 'Inter', system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; font-size: 14px; }
 
-    #auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; }
-    .auth-box { background: #17171c; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 40px; width: 360px; }
-    .auth-logo { font-size: 28px; font-weight: 700; color: #b0a4f9; margin-bottom: 8px; }
-    .auth-sub { font-size: 13px; color: rgba(238,234,228,0.45); margin-bottom: 28px; }
-    .auth-tabs { display: flex; margin-bottom: 24px; background: #0f0f12; border-radius: 8px; padding: 3px; }
-    .auth-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer; border-radius: 6px; color: rgba(238,234,228,0.45); transition: all 0.2s; }
-    .auth-tab.active { background: #8b7cf6; color: white; }
-    .auth-input { width: 100%; background: #0f0f12; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; color: #eeeae4; font-size: 13px; margin-bottom: 10px; outline: none; }
-    .auth-input:focus { border-color: #8b7cf6; }
-    .auth-btn { width: 100%; background: #8b7cf6; border: none; color: white; padding: 11px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 6px; }
-    .auth-btn:hover { opacity: 0.85; }
-    .auth-error { font-size: 12px; color: #f06a6a; margin-top: 8px; }
+    #auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 0%, rgba(139,124,246,0.08) 0%, transparent 70%); }
+    .auth-box { background: #111116; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 44px; width: 380px; box-shadow: 0 24px 80px rgba(0,0,0,0.4); }
+    .auth-logo { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; background: linear-gradient(135deg, #c4b8ff, #8b7cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .auth-sub { font-size: 13px; color: rgba(232,228,222,0.4); margin-bottom: 32px; font-weight: 300; }
+    .auth-tabs { display: flex; margin-bottom: 24px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 3px; gap: 3px; }
+    .auth-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer; border-radius: 8px; color: rgba(232,228,222,0.4); transition: all 0.2s; }
+    .auth-tab.active { background: #8b7cf6; color: white; font-weight: 500; }
+    .auth-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 11px 14px; color: #e8e4de; font-size: 13px; margin-bottom: 10px; outline: none; font-family: inherit; transition: border-color 0.2s; }
+    .auth-input:focus { border-color: rgba(139,124,246,0.5); }
+    .auth-btn { width: 100%; background: #8b7cf6; border: none; color: white; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; font-family: inherit; transition: all 0.2s; }
+    .auth-btn:hover { background: #9d8ff8; }
+    .auth-error { font-size: 12px; color: #f06a6a; margin-top: 10px; }
 
     #chat-screen { flex: 1; display: none; flex-direction: column; overflow: hidden; }
-    header { padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-    .logo { font-size: 20px; font-weight: 700; color: #b0a4f9; }
-    .user-info { margin-left: auto; font-size: 12px; color: rgba(238,234,228,0.45); }
-    .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.1); color: rgba(238,234,228,0.45); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; margin-left: 10px; }
-    .logout-btn:hover { border-color: #8b7cf6; color: #b0a4f9; }
+    header { padding: 0 28px; height: 52px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .logo { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; background: linear-gradient(135deg, #c4b8ff, #8b7cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .user-badge { margin-left: auto; font-size: 12px; color: rgba(232,228,222,0.35); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); padding: 4px 10px; border-radius: 20px; }
+    .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.08); color: rgba(232,228,222,0.35); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.2s; margin-left: 6px; }
+    .logout-btn:hover { border-color: rgba(139,124,246,0.4); color: #b0a4f9; }
 
-    .main { display: grid; grid-template-columns: 1fr 280px; flex: 1; overflow: hidden; }
-
-    .chat-area { display: flex; flex-direction: column; overflow: hidden; }
-    #messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .main { display: grid; grid-template-columns: 1fr 260px; flex: 1; overflow: hidden; }
+    .chat-area { display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid rgba(255,255,255,0.06); }
+    #messages { flex: 1; overflow-y: auto; padding: 32px 28px; display: flex; flex-direction: column; gap: 24px; }
     #messages::-webkit-scrollbar { width: 3px; }
-    #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-    .msg { display: flex; gap: 10px; animation: up 0.3s ease; }
-    .msg.user { flex-direction: row-reverse; }
-    @keyframes up { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-    .av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
-    .av.ai { background: #8b7cf6; color: white; }
-    .av.user { background: #1f1f26; color: #888; }
-    .bubble { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
-    .msg.ai .bubble { background: #17171c; border: 1px solid rgba(255,255,255,0.08); border-top-left-radius: 3px; }
-    .msg.user .bubble { background: #8b7cf6; color: white; border-top-right-radius: 3px; }
-    footer { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 10px; flex-shrink: 0; }
-    #inp { flex: 1; background: #17171c; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; color: #eeeae4; font-size: 13px; outline: none; }
-    #inp:focus { border-color: #8b7cf6; }
-    .send-btn { background: #8b7cf6; border: none; color: white; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+    #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
 
-    /* PROFIL LATENT */
-    .profile-panel { background: #17171c; border-left: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; overflow: hidden; }
-    .profile-header { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .profile-label { font-size: 10px; color: rgba(238,234,228,0.4); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px; }
-    .profile-title { font-size: 14px; font-weight: 500; }
-    .profile-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
-    .profile-body::-webkit-scrollbar { width: 3px; }
-    .profile-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-    .sec-label { font-size: 10px; color: rgba(238,234,228,0.4); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; }
+    .msg { display: flex; gap: 12px; animation: fadeUp 0.25s ease; }
+    .msg.user { flex-direction: row-reverse; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .av { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
+    .av.ai { background: linear-gradient(135deg, #8b7cf6, #6b5ce7); color: white; }
+    .av.user { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(232,228,222,0.5); }
+
+    .bubble { max-width: 78%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.7; overflow: hidden; }
+    .msg.ai .bubble { background: #13131a; border: 1px solid rgba(255,255,255,0.06); border-top-left-radius: 4px; color: #e8e4de; }
+    .msg.user .bubble { background: linear-gradient(135deg, #8b7cf6, #7b6de6); color: white; border-top-right-radius: 4px; }
+
+    .bubble h1,.bubble h2,.bubble h3 { font-weight: 600; margin: 14px 0 6px; line-height: 1.3; }
+    .bubble h1 { font-size: 16px; }
+    .bubble h2 { font-size: 15px; }
+    .bubble h3 { font-size: 14px; color: #b0a4f9; }
+    .bubble p { margin-bottom: 8px; }
+    .bubble p:last-child { margin-bottom: 0; }
+    .bubble ul,.bubble ol { padding-left: 18px; margin-bottom: 8px; }
+    .bubble li { margin-bottom: 3px; }
+    .bubble strong { font-weight: 600; }
+    .bubble code { background: rgba(139,124,246,0.12); border: 1px solid rgba(139,124,246,0.2); border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 12px; color: #c4b8ff; }
+    .bubble pre { background: #0d0d14; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; overflow-x: auto; margin: 10px 0; }
+    .bubble pre code { background: none; border: none; padding: 0; font-size: 12px; color: #c4b8ff; }
+    .bubble pre::-webkit-scrollbar { height: 3px; }
+    .bubble pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    .bubble blockquote { border-left: 2px solid #8b7cf6; padding-left: 12px; color: rgba(232,228,222,0.5); margin: 8px 0; }
+    .bubble table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+    .bubble th { background: rgba(139,124,246,0.12); padding: 7px 11px; text-align: left; border: 1px solid rgba(255,255,255,0.08); font-weight: 500; color: #b0a4f9; }
+    .bubble td { padding: 7px 11px; border: 1px solid rgba(255,255,255,0.06); }
+
+    /* KaTeX — pas de scrollbar, centrage propre */
+    .bubble .katex-display { margin: 14px 0; overflow: visible; text-align: center; }
+    .bubble .katex-display > .katex { display: inline-block; }
+    .bubble .katex { font-size: 1em; color: #e8e4de; }
+    .katex-html { overflow: visible !important; }
+
+    /* Curseur streaming */
+    .cursor { display: inline-block; width: 2px; height: 14px; background: #8b7cf6; margin-left: 2px; animation: blink 0.7s infinite; vertical-align: middle; border-radius: 1px; }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+    footer { padding: 16px 28px 20px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 10px; flex-shrink: 0; }
+    #inp { flex: 1; background: #13131a; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 11px 16px; color: #e8e4de; font-size: 14px; outline: none; font-family: inherit; transition: border-color 0.2s; }
+    #inp:focus { border-color: rgba(139,124,246,0.4); }
+    #inp::placeholder { color: rgba(232,228,222,0.25); }
+    .send-btn { background: #8b7cf6; border: none; color: white; padding: 11px 20px; border-radius: 12px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all 0.2s; }
+    .send-btn:hover { background: #9d8ff8; }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .profile-panel { background: #0d0d12; display: flex; flex-direction: column; overflow: hidden; }
+    .profile-header { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .profile-label { font-size: 9px; color: rgba(232,228,222,0.3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .profile-title { font-size: 13px; font-weight: 500; }
+    .profile-body { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 20px; }
+    .profile-body::-webkit-scrollbar { width: 2px; }
+    .profile-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); }
+    .sec-label { font-size: 9px; color: rgba(232,228,222,0.3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
     .skill-grid { display: flex; flex-wrap: wrap; gap: 5px; }
-    .stag { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: rgba(139,124,246,0.12); border: 1px solid rgba(139,124,246,0.25); color: #b0a4f9; animation: pop 0.4s ease; }
-    @keyframes pop { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
-    .trait { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
-    .trait-name { font-size: 12px; color: #eeeae4; min-width: 90px; }
-    .bar-bg { flex: 1; height: 3px; background: rgba(255,255,255,0.08); border-radius: 3px; }
-    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.25,1,0.5,1); }
-    .bar-fill.v { background: #b0a4f9; }
-    .bar-fill.t { background: #3ecf8e; }
-    .bar-fill.e { background: #f5a623; }
-    .trait-pct { font-size: 11px; color: rgba(238,234,228,0.4); min-width: 26px; text-align: right; }
-    .proj-tag { font-size: 11px; padding: 5px 10px; border-radius: 8px; background: #1f1f26; border: 1px solid rgba(255,255,255,0.08); color: #eeeae4; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-    .proj-dot { width: 6px; height: 6px; border-radius: 50%; background: #3ecf8e; flex-shrink: 0; }
-    .profile-footer { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 7px; }
-    .f-dot { width: 6px; height: 6px; border-radius: 50%; background: #3ecf8e; }
-    .f-text { font-size: 11px; color: rgba(238,234,228,0.4); }
-    .empty-profile { font-size: 12px; color: rgba(238,234,228,0.3); font-style: italic; }
+    .stag { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: rgba(139,124,246,0.1); border: 1px solid rgba(139,124,246,0.2); color: #b0a4f9; }
+    .trait { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .trait-name { font-size: 11px; color: rgba(232,228,222,0.6); min-width: 88px; }
+    .bar-bg { flex: 1; height: 2px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+    .bar-fill { height: 100%; border-radius: 2px; transition: width 1s cubic-bezier(0.25,1,0.5,1); }
+    .bar-fill.v { background: linear-gradient(90deg, #8b7cf6, #b0a4f9); }
+    .bar-fill.t { background: linear-gradient(90deg, #3ecf8e, #5de8a5); }
+    .bar-fill.e { background: linear-gradient(90deg, #f5a623, #f7b84b); }
+    .trait-pct { font-size: 10px; color: rgba(232,228,222,0.3); min-width: 26px; text-align: right; }
+    .proj-tag { font-size: 11px; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); color: rgba(232,228,222,0.7); margin-bottom: 5px; display: flex; align-items: center; gap: 7px; line-height: 1.4; }
+    .proj-dot { width: 5px; height: 5px; border-radius: 50%; background: #3ecf8e; flex-shrink: 0; }
+    .profile-footer { padding: 12px 18px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 7px; }
+    .f-dot { width: 5px; height: 5px; border-radius: 50%; background: #3ecf8e; box-shadow: 0 0 6px #3ecf8e; }
+    .f-text { font-size: 10px; color: rgba(232,228,222,0.25); }
+    .empty-state { font-size: 11px; color: rgba(232,228,222,0.2); font-style: italic; }
   </style>
 </head>
 <body>
@@ -99,7 +137,7 @@
 <div id="chat-screen">
   <header>
     <div class="logo">Korale</div>
-    <div class="user-info" id="user-label"></div>
+    <div class="user-badge" id="user-label"></div>
     <button class="logout-btn" onclick="logout()">Déconnexion</button>
   </header>
   <div class="main">
@@ -107,15 +145,14 @@
       <div id="messages">
         <div class="msg ai">
           <div class="av ai">K</div>
-          <div class="bubble">Bonjour ! Je suis Korale. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div>
+          <div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div>
         </div>
       </div>
       <footer>
-        <input type="text" id="inp" placeholder="Écrivez votre message…" onkeydown="if(event.key==='Enter') send()" />
-        <button class="send-btn" onclick="send()">Envoyer</button>
+        <input type="text" id="inp" placeholder="Écrivez votre message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey) send()" />
+        <button class="send-btn" id="send-btn" onclick="send()">Envoyer</button>
       </footer>
     </div>
-
     <div class="profile-panel">
       <div class="profile-header">
         <div class="profile-label">profil latent</div>
@@ -124,9 +161,7 @@
       <div class="profile-body">
         <div>
           <div class="sec-label">compétences</div>
-          <div class="skill-grid" id="skill-grid">
-            <span class="empty-profile">en attente…</span>
-          </div>
+          <div class="skill-grid" id="skill-grid"><span class="empty-state">en attente…</span></div>
         </div>
         <div>
           <div class="sec-label">profil de travail</div>
@@ -136,7 +171,7 @@
         </div>
         <div>
           <div class="sec-label">projets détectés</div>
-          <div id="proj-list"><span class="empty-profile">aucun projet identifié</span></div>
+          <div id="proj-list"><span class="empty-state">aucun projet identifié</span></div>
         </div>
       </div>
       <div class="profile-footer">
@@ -148,21 +183,23 @@
 </div>
 
 <script>
+  marked.setOptions({ breaks: true, gfm: true });
+
   let token = localStorage.getItem('korale_token');
   let user = JSON.parse(localStorage.getItem('korale_user') || 'null');
   let history = [];
   let conversationId = null;
   let authMode = 'login';
-  let msgCount = 0;
+  let isStreaming = false;
 
   if (token && user) showChat();
 
   function switchTab(mode) {
     authMode = mode;
     document.querySelectorAll('.auth-tab').forEach((t, i) => {
-      t.classList.toggle('active', (mode === 'login' && i === 0) || (mode === 'register' && i === 1));
+      t.classList.toggle('active', (mode==='login'&&i===0)||(mode==='register'&&i===1));
     });
-    document.getElementById('name-field').style.display = mode === 'register' ? 'block' : 'none';
+    document.getElementById('name-field').style.display = mode==='register' ? 'block' : 'none';
     document.getElementById('auth-error').textContent = '';
   }
 
@@ -170,17 +207,12 @@
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value;
     const name = document.getElementById('auth-name').value.trim();
-    const endpoint = authMode === 'login' ? '/api/login' : '/api/register';
-    const body = authMode === 'login' ? { email, password } : { email, password, name };
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    const endpoint = authMode==='login' ? '/api/login' : '/api/register';
+    const body = authMode==='login' ? {email,password} : {email,password,name};
+    const res = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) { document.getElementById('auth-error').textContent = data.error; return; }
-    token = data.token;
-    user = data.user;
+    token = data.token; user = data.user;
     localStorage.setItem('korale_token', token);
     localStorage.setItem('korale_user', JSON.stringify(user));
     showChat();
@@ -190,10 +222,7 @@
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('chat-screen').style.display = 'flex';
     document.getElementById('user-label').textContent = user.name || user.email;
-    const res = await fetch('/api/conversations', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
-    });
+    const res = await fetch('/api/conversations', { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'} });
     const data = await res.json();
     conversationId = data.id;
     loadProfile();
@@ -206,7 +235,7 @@
   }
 
   async function loadProfile() {
-    const res = await fetch('/api/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+    const res = await fetch('/api/profile', { headers:{'Authorization':'Bearer '+token} });
     const profile = await res.json();
     if (profile.skills) renderProfile(profile);
   }
@@ -215,78 +244,95 @@
     const skills = Array.isArray(profile.skills) ? profile.skills : [];
     const projects = Array.isArray(profile.projects) ? profile.projects : [];
     const traits = profile.traits || {};
-
-    const grid = document.getElementById('skill-grid');
     if (skills.length > 0) {
-      grid.innerHTML = skills.map(s => `<span class="stag">${s}</span>`).join('');
+      document.getElementById('skill-grid').innerHTML = skills.map(s=>`<span class="stag">${s}</span>`).join('');
+      document.getElementById('profile-title').textContent = skills[0]+'…';
     }
-
-    if (traits.vision !== undefined) {
-      document.getElementById('bv').style.width = traits.vision + '%';
-      document.getElementById('pv').textContent = traits.vision + '%';
-    }
-    if (traits.technicite !== undefined) {
-      document.getElementById('bt').style.width = traits.technicite + '%';
-      document.getElementById('pt').textContent = traits.technicite + '%';
-    }
-    if (traits.entrepreneuriat !== undefined) {
-      document.getElementById('be').style.width = traits.entrepreneuriat + '%';
-      document.getElementById('pe').textContent = traits.entrepreneuriat + '%';
-    }
-
-    const projList = document.getElementById('proj-list');
+    [['vision','bv','pv'],['technicite','bt','pt'],['entrepreneuriat','be','pe']].forEach(([k,b,p]) => {
+      if (traits[k] !== undefined) {
+        document.getElementById(b).style.width = traits[k]+'%';
+        document.getElementById(p).textContent = traits[k]+'%';
+      }
+    });
     if (projects.length > 0) {
-      projList.innerHTML = projects.map(p => `<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('');
-    }
-
-    if (skills.length > 0) {
-      document.getElementById('profile-title').textContent = skills[0] + '…';
+      document.getElementById('proj-list').innerHTML = projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('');
     }
   }
 
+  function renderContent(bubble, text) {
+    bubble.innerHTML = marked.parse(text);
+    renderMathInElement(bubble, {
+      delimiters: [
+        {left:'$$',right:'$$',display:true},
+        {left:'$',right:'$',display:false},
+        {left:'\\(',right:'\\)',display:false},
+        {left:'\\[',right:'\\]',display:true}
+      ],
+      throwOnError: false
+    });
+  }
+
   async function send() {
+    if (isStreaming) return;
     const inp = document.getElementById('inp');
     const text = inp.value.trim();
     if (!text) return;
     inp.value = '';
-    addMsg('user', text);
-    history.push({ role: 'user', content: text });
-    msgCount++;
-    const aiDiv = addMsg('ai', '…');
+    isStreaming = true;
+    document.getElementById('send-btn').disabled = true;
+
+    // Message utilisateur
+    const msgs = document.getElementById('messages');
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg user';
+    userDiv.innerHTML = `<div class="av user">${user.name?.[0]?.toUpperCase()||'V'}</div><div class="bubble">${text}</div>`;
+    msgs.appendChild(userDiv);
+    history.push({role:'user', content:text});
+
+    // Bulle IA avec curseur
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'msg ai';
+    aiDiv.innerHTML = `<div class="av ai">K</div><div class="bubble"><span class="cursor"></span></div>`;
+    msgs.appendChild(aiDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+    const bubble = aiDiv.querySelector('.bubble');
+
     const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ messages: history, conversationId })
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({messages:history, conversationId})
     });
+
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let full = '';
+
     while (true) {
-      const { done, value } = await reader.read();
+      const {done, value} = await reader.read();
       if (done) break;
       const lines = decoder.decode(value).split('\n');
       for (const line of lines) {
         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
           try {
             const data = JSON.parse(line.slice(6));
-            if (data.text) { full += data.text; aiDiv.textContent = full; }
+            if (data.text) {
+              full += data.text;
+              // Rendu markdown en temps réel pendant le streaming
+              bubble.innerHTML = marked.parse(full) + '<span class="cursor"></span>';
+              msgs.scrollTop = msgs.scrollHeight;
+            }
           } catch {}
         }
       }
     }
-    history.push({ role: 'assistant', content: full });
-    document.getElementById('messages').scrollTop = 99999;
-    setTimeout(loadProfile, 3000);
-  }
 
-  function addMsg(role, text) {
-    const msgs = document.getElementById('messages');
-    const div = document.createElement('div');
-    div.className = 'msg ' + role;
-    div.innerHTML = `<div class="av ${role}">${role === 'ai' ? 'K' : user.name?.[0]?.toUpperCase() || 'V'}</div><div class="bubble">${text}</div>`;
-    msgs.appendChild(div);
-    msgs.scrollTop = 99999;
-    return div.querySelector('.bubble');
+    // Rendu final avec LaTeX
+    renderContent(bubble, full);
+    msgs.scrollTop = msgs.scrollHeight;
+    history.push({role:'assistant', content:full});
+    isStreaming = false;
+    document.getElementById('send-btn').disabled = false;
+    setTimeout(loadProfile, 6000);
   }
 </script>
 </body>
