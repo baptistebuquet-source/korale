@@ -249,5 +249,73 @@ app.post('/api/conversations', authMiddleware, async (req, res) => {
   res.json({ id: result.rows[0].id });
 });
 
+
+app.get('/api/matching', authMiddleware, async (req, res) => {
+  const { context } = req.query;
+  
+  // Récupérer le profil de l'utilisateur
+  const userProfile = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [req.user.id]);
+  const myProfile = userProfile.rows[0];
+  if (!myProfile) return res.json([]);
+
+  // Récupérer tous les autres profils
+  const others = await pool.query(
+    'SELECT p.*, u.name, u.id as user_id FROM profiles p JOIN users u ON p.user_id = u.id WHERE p.user_id != $1',
+    [req.user.id]
+  );
+
+  if (others.rows.length === 0) return res.json([]);
+
+  const mySkills = Array.isArray(myProfile.skills) ? myProfile.skills : [];
+  const myTraits = myProfile.traits || {};
+
+  // Demander à Claude de calculer les compatibilités
+  const profilesText = others.rows.map(p => {
+    const skills = Array.isArray(p.skills) ? p.skills : [];
+    const traits = p.traits || {};
+    return `- ${p.name}: compétences=[${skills.join(', ')}], vision=${traits.vision||0}%, technicité=${traits.technicite||0}%, entrepreneuriat=${traits.entrepreneuriat||0}%`;
+  }).join('\n');
+
+  const analysis = await client.messages.create({
+    model: 'claude-sonnet-4-5',
+    max_tokens: 1024,
+    messages: [{
+      role: 'user',
+      content: `Tu es un moteur de matching pour Korale, une plateforme de collaboration.
+
+Profil de l'utilisateur:
+- Compétences: ${mySkills.join(', ')}
+- Vision: ${myTraits.vision||0}%, Technicité: ${myTraits.technicite||0}%, Entrepreneuriat: ${myTraits.entrepreneuriat||0}%
+
+Contexte de la conversation actuelle: "${context || 'général'}"
+
+Profils disponibles:
+${profilesText}
+
+Calcule un score de compatibilité (0-100) pour chaque profil en tenant compte:
+1. De la complémentarité des compétences (pas la similarité)
+2. De l'équilibre des traits de personnalité
+3. Du contexte de la conversation
+
+Réponds UNIQUEMENT en JSON:
+[
+  {"name": "prénom", "score": 85, "reason": "raison courte en 5 mots max"},
+  ...
+]
+Trie par score décroissant. Ne réponds qu'avec le JSON.`
+    }]
+  });
+
+  try {
+    let text = analysis.content[0].text.trim();
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const matches = JSON.parse(text);
+    res.json(matches.slice(0, 3));
+  } catch(e) {
+    res.json([]);
+  }
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Korale running on port ${PORT}`));

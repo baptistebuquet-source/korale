@@ -122,6 +122,11 @@
     .f-dot { width: 5px; height: 5px; border-radius: 50%; background: #3ecf8e; box-shadow: 0 0 6px #3ecf8e; }
     .f-text { font-size: 10px; color: rgba(232,228,222,0.25); }
     .empty-state { font-size: 11px; color: rgba(232,228,222,0.2); font-style: italic; }
+    .match-card { padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); margin-bottom: 5px; cursor: pointer; transition: border-color 0.2s; }
+    .match-card:hover { border-color: rgba(139,124,246,0.3); }
+    .match-name { font-size: 12px; font-weight: 500; color: #e8e4de; }
+    .match-reason { font-size: 11px; color: rgba(232,228,222,0.4); margin-top: 2px; }
+    .match-score { font-size: 11px; color: #3ecf8e; font-weight: 500; float: right; }
   </style>
 </head>
 <body>
@@ -187,6 +192,10 @@
         <div>
           <div class="sec-label">projets détectés</div>
           <div id="proj-list"><span class="empty-state">aucun projet identifié</span></div>
+        </div>
+        <div>
+          <div class="sec-label">compatibilités</div>
+          <div id="match-list"><span class="empty-state">analyse en cours…</span></div>
         </div>
       </div>
       <div class="profile-footer">
@@ -369,6 +378,24 @@
     });
   }
 
+  async function loadMatching() {
+    const context = history.length > 0 ? history[history.length-1].content.slice(0, 200) : '';
+    const res = await fetch(`/api/matching?context=${encodeURIComponent(context)}`, {
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    if (!res.ok) return;
+    const matches = await res.json();
+    const list = document.getElementById('match-list');
+    if (matches.length === 0) return;
+    list.innerHTML = matches.map(m => `
+      <div class="match-card">
+        <span class="match-score">${m.score}%</span>
+        <div class="match-name">${m.name}</div>
+        <div class="match-reason">${m.reason}</div>
+      </div>
+    `).join('');
+  }
+
   async function send() {
     if (isStreaming) return;
     const inp = document.getElementById('inp');
@@ -417,6 +444,7 @@
     document.getElementById('send-btn').disabled = false;
     setTimeout(loadProfile, 3000);
     setTimeout(loadConversations, 1000);
+    setTimeout(loadMatching, 7000);
   }
 </script>
 </body>
