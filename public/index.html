@@ -88,6 +88,7 @@
     .bubble pre code.hljs { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.6; padding: 14px; display: block; overflow-x: auto; }
     .bubble pre code.hljs::-webkit-scrollbar { height: 3px; }
     .bubble pre code.hljs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    .streaming-text { white-space: pre-wrap; font-family: inherit; }
     .cursor { display: inline-block; width: 2px; height: 14px; background: #8b7cf6; margin-left: 2px; animation: blink 0.7s infinite; vertical-align: middle; border-radius: 1px; }
     @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
     footer { padding: 14px 24px 18px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 10px; flex-shrink: 0; }
@@ -108,13 +109,16 @@
     .sec-label { font-size: 9px; color: rgba(232,228,222,0.3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
     .skill-grid { display: flex; flex-wrap: wrap; gap: 5px; }
     .stag { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: rgba(139,124,246,0.1); border: 1px solid rgba(139,124,246,0.2); color: #b0a4f9; }
-    .trait { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .trait { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
     .trait-name { font-size: 11px; color: rgba(232,228,222,0.6); min-width: 80px; }
     .bar-bg { flex: 1; height: 2px; background: rgba(255,255,255,0.06); border-radius: 2px; }
     .bar-fill { height: 100%; border-radius: 2px; transition: width 1s cubic-bezier(0.25,1,0.5,1); }
     .bar-fill.v { background: linear-gradient(90deg, #8b7cf6, #b0a4f9); }
     .bar-fill.t { background: linear-gradient(90deg, #3ecf8e, #5de8a5); }
     .bar-fill.e { background: linear-gradient(90deg, #f5a623, #f7b84b); }
+    .bar-fill.c { background: linear-gradient(90deg, #f06a9e, #f09ac4); }
+    .bar-fill.col { background: linear-gradient(90deg, #6ab4f0, #9ad0f7); }
+    .bar-fill.l { background: linear-gradient(90deg, #f0c06a, #f7d89a); }
     .trait-pct { font-size: 10px; color: rgba(232,228,222,0.3); min-width: 26px; text-align: right; }
     .proj-tag { font-size: 11px; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); color: rgba(232,228,222,0.7); margin-bottom: 5px; display: flex; align-items: center; gap: 7px; line-height: 1.4; }
     .proj-dot { width: 5px; height: 5px; border-radius: 50%; background: #3ecf8e; flex-shrink: 0; }
@@ -188,6 +192,9 @@
           <div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>
           <div class="trait"><span class="trait-name">Technicité</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>
           <div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>
+          <div class="trait"><span class="trait-name">Créativité</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>
+          <div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>
+          <div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div>
         </div>
         <div>
           <div class="sec-label">projets détectés</div>
@@ -206,9 +213,7 @@
   </div>
 </div>
 <script>
-  // Setup marked avec renderer custom pour coloration syntaxique
   marked.setOptions({ breaks: true, gfm: true });
-
   const renderer = new marked.Renderer();
   renderer.code = function(token) {
     const code = typeof token === 'object' ? token.text : token;
@@ -216,10 +221,12 @@
     const language = lang || 'plaintext';
     let highlighted = code;
     try {
-      if (lang && hljs.getLanguage(lang)) {
-        highlighted = hljs.highlight(code, { language: lang }).value;
-      } else {
-        highlighted = hljs.highlightAuto(code).value;
+      if (typeof hljs !== 'undefined') {
+        if (lang && hljs.getLanguage(lang)) {
+          highlighted = hljs.highlight(code, { language: lang }).value;
+        } else {
+          highlighted = hljs.highlightAuto(code).value;
+        }
       }
     } catch(e) {}
     return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyCode(this)">Copier</button></div><pre><code class="hljs">${highlighted}</code></pre></div>`;
@@ -275,7 +282,9 @@
     document.getElementById('chat-screen').style.display = 'flex';
     document.getElementById('user-label').textContent = user.name || user.email;
     await loadConversations();
-    await newConversation();
+    // Ne pas créer de conversation au chargement — seulement au premier message
+    conversationId = null;
+    history = [];
     loadProfile();
   }
 
@@ -313,11 +322,11 @@
   }
 
   async function newConversation() {
-    const res = await fetch('/api/conversations', { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'} });
-    const data = await res.json();
-    conversationId = data.id; activeConvId = data.id; history = [];
+    conversationId = null;
+    activeConvId = null;
+    history = [];
     document.getElementById('messages').innerHTML = `<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>`;
-    await loadConversations();
+    renderConversationList();
   }
 
   async function loadConversation(id) {
@@ -354,10 +363,19 @@
       document.getElementById('skill-grid').innerHTML = skills.map(s=>`<span class="stag">${s}</span>`).join('');
       document.getElementById('profile-title').textContent = skills[0]+'…';
     }
-    [['vision','bv','pv'],['technicite','bt','pt'],['entrepreneuriat','be','pe']].forEach(([k,b,p]) => {
-      if (traits[k] !== undefined) {
-        document.getElementById(b).style.width = traits[k]+'%';
-        document.getElementById(p).textContent = traits[k]+'%';
+    [
+      ['vision','bv','pv'],
+      ['technicite','bt','pt'],
+      ['entrepreneuriat','be','pe'],
+      ['creativite','bc','pc'],
+      ['collaboration','bcol','pcol'],
+      ['leadership','bl','pl']
+    ].forEach(([k,b,p]) => {
+      const el = document.getElementById(b);
+      const pel = document.getElementById(p);
+      if (el && pel && traits[k] !== undefined) {
+        el.style.width = traits[k]+'%';
+        pel.textContent = traits[k]+'%';
       }
     });
     if (projects.length > 0) {
@@ -404,39 +422,66 @@
     inp.value = '';
     isStreaming = true;
     document.getElementById('send-btn').disabled = true;
+
+    // Créer la conversation en base au premier message seulement
+    if (!conversationId) {
+      const res = await fetch('/api/conversations', {
+        method:'POST',
+        headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+      });
+      const data = await res.json();
+      conversationId = data.id;
+      activeConvId = data.id;
+    }
+
     const msgs = document.getElementById('messages');
     const userDiv = document.createElement('div');
     userDiv.className = 'msg user';
     userDiv.innerHTML = `<div class="av user">${user.name?.[0]?.toUpperCase()||'V'}</div><div class="bubble">${text}</div>`;
     msgs.appendChild(userDiv);
     history.push({role:'user', content:text});
+
     const aiDiv = document.createElement('div');
     aiDiv.className = 'msg ai';
-    aiDiv.innerHTML = `<div class="av ai">K</div><div class="bubble"><span class="cursor"></span></div>`;
+    aiDiv.innerHTML = `<div class="av ai">K</div><div class="bubble"><span class="streaming-text"></span><span class="cursor"></span></div>`;
     msgs.appendChild(aiDiv);
     msgs.scrollTop = msgs.scrollHeight;
+    const streamingEl = aiDiv.querySelector('.streaming-text');
+    const cursorEl = aiDiv.querySelector('.cursor');
     const bubble = aiDiv.querySelector('.bubble');
+
     const res = await fetch('/api/chat', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({messages:history, conversationId})
     });
+
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let full = '';
+    let buffer = '';
+
     while (true) {
       const {done, value} = await reader.read();
       if (done) break;
-      const lines = decoder.decode(value).split('\n');
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
       for (const line of lines) {
         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
           try {
             const data = JSON.parse(line.slice(6));
-            if (data.text) { full += data.text; bubble.textContent = full; msgs.scrollTop = msgs.scrollHeight; }
+            if (data.text) {
+              full += data.text;
+              streamingEl.textContent = full;
+              msgs.scrollTop = msgs.scrollHeight;
+            }
           } catch {}
         }
       }
     }
+
+    cursorEl.remove();
     renderContent(bubble, full);
     msgs.scrollTop = msgs.scrollHeight;
     history.push({role:'assistant', content:full});

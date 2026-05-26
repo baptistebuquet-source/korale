@@ -117,34 +117,34 @@ async function analyzeProfile(userId, messages) {
   
   const analysis = await client.messages.create({
     model: 'claude-sonnet-4-5',
-    max_tokens: 1024,
+    max_tokens: 4096,
     messages: [{
       role: 'user',
-      content: `Tu analyses une conversation pour enrichir le profil d'un utilisateur.
+      content: `Analyse cette conversation et extrais les informations sur l'utilisateur.
 
-Profil actuel de l'utilisateur:
-- Compétences: ${currentSkills.join(', ') || 'aucune encore'}
-- Projets: ${currentProjects.join(', ') || 'aucun encore'}
-- Traits: vision=${currentTraits.vision||0}%, technicité=${currentTraits.technicite||0}%, entrepreneuriat=${currentTraits.entrepreneuriat||0}%
+      Profil actuel:
+      - Compétences: ${currentSkills.join(', ') || 'aucune encore'}
+      - Projets: ${currentProjects.join(', ') || 'aucun encore'}
 
-Nouvelle conversation à analyser:
-${conversation}
+      Nouvelle conversation:
+      ${conversation}
 
-Génère un profil ENRICHI qui combine l'existant avec les nouvelles informations. Ne supprime pas les compétences existantes, ajoute-en de nouvelles si pertinent. Les traits sont des moyennes pondérées.
+      Réponds UNIQUEMENT en JSON valide:
+      {
+        "skills": ["compétence1", "compétence2"],
+        "projects": ["projet1", "projet2"],
+        "traits": {
+          "vision": 0,
+          "technicite": 0,
+          "entrepreneuriat": 0,
+          "creativite": 0,
+          "collaboration": 0,
+          "leadership": 0
+        },
+        "summary": "résumé en une phrase"
+      }
 
-Réponds UNIQUEMENT en JSON valide:
-{
-  "skills": ["liste complète des compétences"],
-  "projects": ["liste complète des projets"],
-  "traits": {
-    "vision": 0,
-    "technicite": 0,
-    "entrepreneuriat": 0
-  },
-  "summary": "résumé du profil global en une phrase"
-}
-
-Maximum 8 compétences et 5 projets. Ne réponds qu'avec le JSON.`
+      Maximum 8 compétences, 5 projets. Scores entre 0 et 100. JSON uniquement.`
     }]
   });
 
