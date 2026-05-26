@@ -29,6 +29,7 @@ async function initDB() {
     CREATE TABLE IF NOT EXISTS conversations (
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id),
+      title VARCHAR(255),
       messages JSONB DEFAULT '[]',
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
@@ -42,6 +43,8 @@ async function initDB() {
       updated_at TIMESTAMP DEFAULT NOW()
     );
   `);
+  // Ajouter colonne title si elle n'existe pas
+  await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS title VARCHAR(255)`);
   console.log('Base de données initialisée');
 }
 
@@ -95,7 +98,6 @@ app.post('/api/login', async (req, res) => {
 });
 
 async function analyzeProfile(userId, messages) {
-  console.log('Analyse profil déclenchée pour user:', userId);
   const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
   const analysis = await client.messages.create({
     model: 'claude-sonnet-4-5',
@@ -103,10 +105,8 @@ async function analyzeProfile(userId, messages) {
     messages: [{
       role: 'user',
       content: `Analyse cette conversation et extrais les informations sur l'utilisateur.
-
 Conversation:
 ${conversation}
-
 Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
 {
   "skills": ["compétence1", "compétence2"],
@@ -118,24 +118,52 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
   },
   "summary": "résumé en une phrase"
 }
-
 Les scores traits sont entre 0 et 100. Ne réponds qu'avec le JSON, rien d'autre.`
     }]
   });
   try {
-      let text = analysis.content[0].text.trim();
-      console.log('Réponse analyse brute:', text);
-      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      return JSON.parse(text);
-    } catch(e) {
-      console.log('Erreur parsing JSON:', e.message);
-      return null;
-    }
+    let text = analysis.content[0].text.trim();
+    text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(text);
+  } catch(e) {
+    console.log('Erreur parsing JSON:', e.message);
+    return null;
+  }
+}
+
+async function generateTitle(messages) {
+  if (messages.length < 2) return null;
+  const first = messages.slice(0, 2).map(m => `${m.role}: ${m.content}`).join('\n');
+  const result = await client.messages.create({
+    model: 'claude-sonnet-4-5',
+    max_tokens: 50,
+    messages: [{ role: 'user', content: `Génère un titre court (4 mots max) pour cette conversation:\n${first}\nRéponds uniquement avec le titre, rien d'autre.` }]
+  });
+  return result.content[0].text.trim();
 }
 
 app.get('/api/profile', authMiddleware, async (req, res) => {
   const result = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [req.user.id]);
   res.json(result.rows[0] || {});
+});
+
+// Liste des conversations
+app.get('/api/conversations/list', authMiddleware, async (req, res) => {
+  const result = await pool.query(
+    'SELECT id, title, created_at, updated_at FROM conversations WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 50',
+    [req.user.id]
+  );
+  res.json(result.rows);
+});
+
+// Charger une conversation
+app.get('/api/conversations/:id', authMiddleware, async (req, res) => {
+  const result = await pool.query(
+    'SELECT * FROM conversations WHERE id = $1 AND user_id = $2',
+    [req.params.id, req.user.id]
+  );
+  if (!result.rows[0]) return res.status(404).json({ error: 'Non trouvée' });
+  res.json(result.rows[0]);
 });
 
 app.post('/api/chat', authMiddleware, async (req, res) => {
@@ -160,23 +188,27 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   }
 
   if (conversationId) {
+    const allMessages = messages.concat([{ role: 'assistant', content: fullResponse }]);
     await pool.query(
       'UPDATE conversations SET messages = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3',
-      [JSON.stringify(messages.concat([{ role: 'assistant', content: fullResponse }])), conversationId, req.user.id]
+      [JSON.stringify(allMessages), conversationId, req.user.id]
     );
+    // Générer titre si première réponse
+    if (messages.length === 1) {
+      generateTitle(allMessages).then(title => {
+        if (title) pool.query('UPDATE conversations SET title = $1 WHERE id = $2', [title, conversationId]);
+      }).catch(console.error);
+    }
+    analyzeProfile(req.user.id, allMessages)
+      .then(async (profile) => {
+        if (profile) {
+          await pool.query(
+            `UPDATE profiles SET skills = $1, projects = $2, traits = $3, updated_at = NOW() WHERE user_id = $4`,
+            [JSON.stringify(profile.skills), JSON.stringify(profile.projects), JSON.stringify(profile.traits), req.user.id]
+          );
+        }
+      }).catch(e => console.log('Erreur analyse:', e.message));
   }
-
-  analyzeProfile(req.user.id, messages.concat([{ role: 'assistant', content: fullResponse }]))
-    .then(async (profile) => {
-      console.log('Profil analysé:', JSON.stringify(profile));
-      if (profile) {
-        await pool.query(
-          `UPDATE profiles SET skills = $1, projects = $2, traits = $3, updated_at = NOW() WHERE user_id = $4`,
-          [JSON.stringify(profile.skills), JSON.stringify(profile.projects), JSON.stringify(profile.traits), req.user.id]
-        );
-        console.log('Profil sauvegardé en base');
-      }
-    }).catch(e => console.log('Erreur analyse:', e.message));
 
   res.write('data: [DONE]\n\n');
   res.end();
