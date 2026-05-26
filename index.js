@@ -72,8 +72,14 @@ app.post('/api/register', async (req, res) => {
     await pool.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
     res.json({ token, user });
-  } catch (e) {
-    res.status(400).json({ error: 'Email déjà utilisé' });
+  } 
+ catch (e) {
+    console.log('Erreur inscription:', e.message);
+    if (e.code === '23505') {
+      res.status(400).json({ error: 'Email déjà utilisé' });
+    } else {
+      res.status(500).json({ error: 'Erreur: ' + e.message });
+    }
   }
 });
 
