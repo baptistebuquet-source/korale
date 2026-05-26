@@ -47,7 +47,6 @@ async function initDB() {
 
 initDB();
 
-// Middleware auth
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Non autorisé' });
@@ -59,7 +58,6 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// Inscription
 app.post('/api/register', async (req, res) => {
   const { email, password, name } = req.body;
   try {
@@ -72,8 +70,7 @@ app.post('/api/register', async (req, res) => {
     await pool.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
     res.json({ token, user });
-  } 
- catch (e) {
+  } catch (e) {
     console.log('Erreur inscription:', e.message);
     if (e.code === '23505') {
       res.status(400).json({ error: 'Email déjà utilisé' });
@@ -83,7 +80,6 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Connexion
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -98,7 +94,45 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Chat
+async function analyzeProfile(userId, messages) {
+  const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+  const analysis = await client.messages.create({
+    model: 'claude-sonnet-4-5',
+    max_tokens: 1024,
+    messages: [{
+      role: 'user',
+      content: `Analyse cette conversation et extrais les informations sur l'utilisateur.
+      
+Conversation:
+${conversation}
+
+Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
+{
+  "skills": ["compétence1", "compétence2"],
+  "projects": ["projet1", "projet2"],
+  "traits": {
+    "vision": 0,
+    "technicite": 0,
+    "entrepreneuriat": 0
+  },
+  "summary": "résumé en une phrase"
+}
+
+Les scores traits sont entre 0 et 100. Ne réponds qu'avec le JSON, rien d'autre.`
+    }]
+  });
+  try {
+    return JSON.parse(analysis.content[0].text.trim());
+  } catch(e) {
+    return null;
+  }
+}
+
+app.get('/api/profile', authMiddleware, async (req, res) => {
+  const result = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [req.user.id]);
+  res.json(result.rows[0] || {});
+});
+
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { messages, conversationId } = req.body;
   res.setHeader('Content-Type', 'text/event-stream');
@@ -120,7 +154,6 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     }
   }
 
-  // Sauvegarde conversation
   if (conversationId) {
     await pool.query(
       'UPDATE conversations SET messages = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3',
@@ -128,11 +161,23 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     );
   }
 
+  // Analyse profil en arrière-plan toutes les 3 réponses
+  if (messages.length % 3 === 0) {
+    analyzeProfile(req.user.id, messages.concat([{ role: 'assistant', content: fullResponse }]))
+      .then(async (profile) => {
+        if (profile) {
+          await pool.query(
+            `UPDATE profiles SET skills = $1, projects = $2, traits = $3, updated_at = NOW() WHERE user_id = $4`,
+            [JSON.stringify(profile.skills), JSON.stringify(profile.projects), JSON.stringify(profile.traits), req.user.id]
+          );
+        }
+      }).catch(console.error);
+  }
+
   res.write('data: [DONE]\n\n');
   res.end();
 });
 
-// Nouvelle conversation
 app.post('/api/conversations', authMiddleware, async (req, res) => {
   const result = await pool.query(
     'INSERT INTO conversations (user_id, messages) VALUES ($1, $2) RETURNING id',
