@@ -276,7 +276,7 @@
     }
     history.push({ role: 'assistant', content: full });
     document.getElementById('messages').scrollTop = 99999;
-    if (msgCount % 3 === 0) setTimeout(loadProfile, 3000);
+    setTimeout(loadProfile, 3000);
   }
 
   function addMsg(role, text) {

@@ -95,6 +95,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 async function analyzeProfile(userId, messages) {
+  console.log('Analyse profil déclenchée pour user:', userId);
   const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
   const analysis = await client.messages.create({
     model: 'claude-sonnet-4-5',
@@ -102,7 +103,7 @@ async function analyzeProfile(userId, messages) {
     messages: [{
       role: 'user',
       content: `Analyse cette conversation et extrais les informations sur l'utilisateur.
-      
+
 Conversation:
 ${conversation}
 
@@ -122,10 +123,14 @@ Les scores traits sont entre 0 et 100. Ne réponds qu'avec le JSON, rien d'autre
     }]
   });
   try {
-    return JSON.parse(analysis.content[0].text.trim());
-  } catch(e) {
-    return null;
-  }
+      let text = analysis.content[0].text.trim();
+      console.log('Réponse analyse brute:', text);
+      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      return JSON.parse(text);
+    } catch(e) {
+      console.log('Erreur parsing JSON:', e.message);
+      return null;
+    }
 }
 
 app.get('/api/profile', authMiddleware, async (req, res) => {
@@ -161,18 +166,17 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     );
   }
 
-  // Analyse profil en arrière-plan toutes les 3 réponses
-  if (messages.length % 3 === 0) {
-    analyzeProfile(req.user.id, messages.concat([{ role: 'assistant', content: fullResponse }]))
-      .then(async (profile) => {
-        if (profile) {
-          await pool.query(
-            `UPDATE profiles SET skills = $1, projects = $2, traits = $3, updated_at = NOW() WHERE user_id = $4`,
-            [JSON.stringify(profile.skills), JSON.stringify(profile.projects), JSON.stringify(profile.traits), req.user.id]
-          );
-        }
-      }).catch(console.error);
-  }
+  analyzeProfile(req.user.id, messages.concat([{ role: 'assistant', content: fullResponse }]))
+    .then(async (profile) => {
+      console.log('Profil analysé:', JSON.stringify(profile));
+      if (profile) {
+        await pool.query(
+          `UPDATE profiles SET skills = $1, projects = $2, traits = $3, updated_at = NOW() WHERE user_id = $4`,
+          [JSON.stringify(profile.skills), JSON.stringify(profile.projects), JSON.stringify(profile.traits), req.user.id]
+        );
+        console.log('Profil sauvegardé en base');
+      }
+    }).catch(e => console.log('Erreur analyse:', e.message));
 
   res.write('data: [DONE]\n\n');
   res.end();
