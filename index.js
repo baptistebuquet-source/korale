@@ -9,6 +9,14 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
+const path = require('path');
+app.get('/hljs/highlight.min.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'node_modules/highlight.js/lib/core.js'));
+});
+app.get('/hljs/github-dark.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'node_modules/highlight.js/styles/github-dark.css'));
+});
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const JWT_SECRET = process.env.JWT_SECRET || 'korale_secret_key';
 
@@ -98,29 +106,48 @@ app.post('/api/login', async (req, res) => {
 });
 
 async function analyzeProfile(userId, messages) {
+  // Récupérer le profil existant
+  const existing = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [userId]);
+  const currentProfile = existing.rows[0] || {};
+  const currentSkills = Array.isArray(currentProfile.skills) ? currentProfile.skills : [];
+  const currentProjects = Array.isArray(currentProfile.projects) ? currentProfile.projects : [];
+  const currentTraits = currentProfile.traits || {};
+
   const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+  
   const analysis = await client.messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 1024,
     messages: [{
       role: 'user',
-      content: `Analyse cette conversation et extrais les informations sur l'utilisateur.
-Conversation:
+      content: `Tu analyses une conversation pour enrichir le profil d'un utilisateur.
+
+Profil actuel de l'utilisateur:
+- Compétences: ${currentSkills.join(', ') || 'aucune encore'}
+- Projets: ${currentProjects.join(', ') || 'aucun encore'}
+- Traits: vision=${currentTraits.vision||0}%, technicité=${currentTraits.technicite||0}%, entrepreneuriat=${currentTraits.entrepreneuriat||0}%
+
+Nouvelle conversation à analyser:
 ${conversation}
-Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
+
+Génère un profil ENRICHI qui combine l'existant avec les nouvelles informations. Ne supprime pas les compétences existantes, ajoute-en de nouvelles si pertinent. Les traits sont des moyennes pondérées.
+
+Réponds UNIQUEMENT en JSON valide:
 {
-  "skills": ["compétence1", "compétence2"],
-  "projects": ["projet1", "projet2"],
+  "skills": ["liste complète des compétences"],
+  "projects": ["liste complète des projets"],
   "traits": {
     "vision": 0,
     "technicite": 0,
     "entrepreneuriat": 0
   },
-  "summary": "résumé en une phrase"
+  "summary": "résumé du profil global en une phrase"
 }
-Les scores traits sont entre 0 et 100. Ne réponds qu'avec le JSON, rien d'autre.`
+
+Maximum 8 compétences et 5 projets. Ne réponds qu'avec le JSON.`
     }]
   });
+
   try {
     let text = analysis.content[0].text.trim();
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
