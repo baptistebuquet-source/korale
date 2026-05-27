@@ -419,33 +419,26 @@
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
 
   <header>
-    <!-- Gauche : hamburger -->
-    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">☰</button>
-    <!-- Logo -->
+    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique des conversations">☰</button>
     <div class="logo" onclick="switchView('ai')">Korale</div>
-    <!-- Nav tabs juste après le logo (desktop) -->
     <div class="nav-tabs">
       <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
       <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Connexions</button>
     </div>
-    <!-- + Nouvelle juste après les tabs (desktop) -->
     <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
-    <!-- Spacer -->
     <div class="header-spacer"></div>
-    <!-- Droite : badge user, cloche, profil, quitter -->
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
-      <button class="header-icon-btn" id="tab-connexions" onclick="switchView('connexions')" title="Connexions">🤝</button>
-      <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifs()" title="Notifications">
+      <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifs()" title="Demandes reçues">
         🔔
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
-      <button class="header-icon-btn profile-btn" onclick="toggleProfile()" title="Profil">◎</button>
+      <button class="header-icon-btn" onclick="toggleProfile()" title="Analyse de la conversation">◈</button>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
   </header>
 
-  <!-- BOTTOM NAV MOBILE — affiché seulement sur mobile via CSS -->
+  <!-- BOTTOM NAV MOBILE -->
   <div class="mobile-nav" id="mobile-nav">
     <button class="mobile-nav-btn" id="mob-tab-ai" onclick="switchView('ai')">
       <span class="mobile-nav-icon">💬</span>
@@ -455,9 +448,13 @@
       <span class="mobile-nav-icon">＋</span>
       Nouveau
     </button>
+    <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
+      <span class="mobile-nav-icon">🤝</span>
+      Connexions
+    </button>
     <button class="mobile-nav-btn" onclick="toggleProfile()">
-      <span class="mobile-nav-icon">◎</span>
-      Profil
+      <span class="mobile-nav-icon">◈</span>
+      Analyse
     </button>
   </div>
 
@@ -602,24 +599,22 @@
     document.getElementById('notif-panel').classList.toggle('active');
   }
 
-  function updateMobileNav(view) {
+function updateMobileNav(view) {
     document.getElementById('mob-tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('mob-tab-connexions').classList.toggle('active', view === 'connexions');
     const mobNew = document.getElementById('mob-new');
     if (mobNew) mobNew.style.display = view === 'ai' ? '' : 'none';
   }
 
-function switchView(view) {
+  function switchView(view) {
     currentView = view;
     document.getElementById('tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
-    const tabConnTop = document.getElementById('tab-connexions-top');
-    if (tabConnTop) tabConnTop.classList.toggle('active', view === 'connexions');
     document.getElementById('new-conv-btn').style.display = view === 'ai' ? '' : 'none';
     updateMobileNav(view);
     if (view === 'ai') {
       document.getElementById('history-label-text').textContent = 'Conversations';
-      document.getElementById('profile-panel-label').textContent = 'profil de cette conversation';
+      document.getElementById('profile-panel-label').textContent = 'analyse de cette conversation';
       document.getElementById('profile-footer-text').textContent = 'analyse en continu';
       renderConversationList();
       if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
