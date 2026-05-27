@@ -435,11 +435,11 @@
     <!-- Droite : badge user, cloche, profil, quitter -->
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
+      <button class="header-icon-btn" id="tab-connexions" onclick="switchView('connexions')" title="Connexions">🤝</button>
       <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifs()" title="Notifications">
         🔔
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
-      <button class="header-icon-btn" id="tab-connexions" onclick="switchView('connexions')" title="Connexions">🤝</button>
       <button class="header-icon-btn profile-btn" onclick="toggleProfile()" title="Profil">◎</button>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
@@ -454,10 +454,6 @@
     <button class="mobile-nav-btn mobile-nav-new" id="mob-new" onclick="newConversation()">
       <span class="mobile-nav-icon">＋</span>
       Nouveau
-    </button>
-    <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
-      <span class="mobile-nav-icon">🤝</span>
-      Connexions
     </button>
     <button class="mobile-nav-btn" onclick="toggleProfile()">
       <span class="mobile-nav-icon">◎</span>
