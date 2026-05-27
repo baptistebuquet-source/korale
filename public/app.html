@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Korale</title>
+  <title>Korale — Application</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
   <script src="/hljs/highlight.min.js"></script>
@@ -26,18 +26,29 @@
     body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; font-size: 14px; overflow: hidden; }
 
     /* AUTH */
-    #auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eef4ff 0%, #f7f5f2 50%, #eaf4ef 100%); position: relative; overflow: hidden; }
-    #auth-screen::before { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 400px; height: 400px; background: radial-gradient(circle, rgba(91,141,238,0.12) 0%, transparent 70%); top: -100px; right: -80px; }
-    #auth-screen::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 300px; height: 300px; background: radial-gradient(circle, rgba(46,204,138,0.1) 0%, transparent 70%); bottom: -60px; left: -60px; }
+    #auth-screen {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #eef4ff 0%, #f7f5f2 50%, #eaf4ef 100%);
+      position: relative; overflow: hidden;
+    }
+    #auth-screen::before { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 500px; height: 500px; background: radial-gradient(circle, rgba(91,141,238,0.1) 0%, transparent 70%); top: -120px; right: -100px; }
+    #auth-screen::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 350px; height: 350px; background: radial-gradient(circle, rgba(46,204,138,0.08) 0%, transparent 70%); bottom: -80px; left: -80px; }
     .bubble-deco { position: absolute; border-radius: 50%; pointer-events: none; }
-    .bd1 { width: 180px; height: 180px; background: radial-gradient(circle, rgba(91,141,238,0.08) 0%, transparent 70%); top: 20%; left: 8%; }
-    .bd2 { width: 80px; height: 80px; background: radial-gradient(circle, rgba(91,141,238,0.15) 0%, transparent 70%); top: 60%; right: 12%; }
-    .bd3 { width: 120px; height: 120px; background: radial-gradient(circle, rgba(232,107,138,0.08) 0%, transparent 70%); bottom: 20%; left: 20%; }
-    .bd4 { width: 60px; height: 60px; background: radial-gradient(circle, rgba(46,204,138,0.12) 0%, transparent 70%); top: 15%; right: 25%; }
-    .bd5 { width: 220px; height: 220px; background: radial-gradient(circle, rgba(91,141,238,0.06) 0%, transparent 70%); bottom: 10%; right: 5%; }
-    .auth-box { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.9); border-radius: 24px; padding: 48px 44px; width: 400px; box-shadow: 0 8px 40px rgba(91,141,238,0.12), 0 2px 8px rgba(0,0,0,0.06); position: relative; z-index: 1; }
-    .auth-logo { font-family: 'Lora', serif; font-size: 30px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; color: var(--accent2); }
-    .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-weight: 300; }
+    .bd1 { width: 200px; height: 200px; background: radial-gradient(circle, rgba(91,141,238,0.07) 0%, transparent 70%); top: 25%; left: 6%; }
+    .bd2 { width: 90px; height: 90px; background: radial-gradient(circle, rgba(91,141,238,0.13) 0%, transparent 70%); top: 55%; right: 10%; }
+    .bd3 { width: 130px; height: 130px; background: radial-gradient(circle, rgba(232,107,138,0.07) 0%, transparent 70%); bottom: 18%; left: 18%; }
+    .bd4 { width: 65px; height: 65px; background: radial-gradient(circle, rgba(46,204,138,0.11) 0%, transparent 70%); top: 18%; right: 22%; }
+    .bd5 { width: 240px; height: 240px; background: radial-gradient(circle, rgba(91,141,238,0.05) 0%, transparent 70%); bottom: 8%; right: 4%; }
+
+    .auth-box {
+      background: rgba(255,255,255,0.88); backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.95); border-radius: 24px;
+      padding: 48px 44px; width: 400px;
+      box-shadow: 0 8px 48px rgba(91,141,238,0.13), 0 2px 8px rgba(0,0,0,0.05);
+      position: relative; z-index: 1;
+    }
+    .auth-logo { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 5px; color: var(--accent2); }
+    .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-weight: 300; line-height: 1.5; }
     .auth-tabs { display: flex; margin-bottom: 24px; background: var(--bg2); border-radius: 10px; padding: 3px; gap: 3px; }
     .auth-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer; border-radius: 8px; color: var(--muted); transition: all 0.2s; }
     .auth-tab.active { background: var(--accent); color: white; font-weight: 500; box-shadow: 0 2px 8px rgba(91,141,238,0.3); }
@@ -45,34 +56,46 @@
     .auth-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,141,238,0.1); }
     .auth-input::placeholder { color: var(--muted); }
     .auth-btn { width: 100%; background: var(--accent); border: none; color: white; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; font-family: inherit; transition: all 0.2s; box-shadow: 0 4px 16px rgba(91,141,238,0.3); }
-    .auth-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+    .auth-btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,141,238,0.4); }
     .auth-error { font-size: 12px; color: var(--rose); margin-top: 10px; }
+    .auth-back { display: block; text-align: center; margin-top: 20px; font-size: 12px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .auth-back:hover { color: var(--accent); }
 
     /* CHAT SCREEN */
     #chat-screen { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--bg); position: relative; }
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 40; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 40; backdrop-filter: blur(2px); }
     .overlay.active { display: block; }
 
-    header { padding: 0 16px; height: 52px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 10; }
-    .logo { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; color: var(--accent2); letter-spacing: -0.3px; cursor: pointer; }
-    .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-    .header-btn { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+    /* HEADER */
+    header {
+      padding: 0 20px; height: 54px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(16px);
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0; position: relative; z-index: 10;
+    }
+    .logo { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; color: var(--accent2); letter-spacing: -0.3px; cursor: pointer; flex-shrink: 0; }
+    .header-center { display: flex; align-items: center; gap: 6px; margin: 0 auto; }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .header-btn { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 11px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
     .header-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-    .new-conv-btn { background: var(--accent-soft); border-color: rgba(91,141,238,0.3); color: var(--accent); }
-    .new-conv-btn:hover { background: var(--accent-soft2); }
-    .user-badge { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .notif-btn { position: relative; }
-    .notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: var(--rose); border-radius: 50%; font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+    .header-icon-btn { background: none; border: 1px solid var(--border2); color: var(--muted); width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; position: relative; flex-shrink: 0; }
+    .header-icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .nav-tab { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .nav-tab.active { background: var(--accent-soft); border-color: rgba(91,141,238,0.35); color: var(--accent); font-weight: 500; }
+    .nav-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+    .new-conv-btn { background: var(--accent); border-color: var(--accent); color: white; box-shadow: 0 2px 8px rgba(91,141,238,0.25); }
+    .new-conv-btn:hover { background: var(--accent2); border-color: var(--accent2); color: white; }
+    .user-badge { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+    .notif-badge { position: absolute; top: -4px; right: -4px; width: 15px; height: 15px; background: var(--rose); border-radius: 50%; font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
-    /* NAV TABS */
-    .nav-tabs { display: flex; gap: 4px; }
-    .nav-tab { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-    .nav-tab.active { background: var(--accent-soft); border-color: rgba(91,141,238,0.3); color: var(--accent); font-weight: 500; }
-    .nav-tab:hover { border-color: var(--accent); color: var(--accent); }
+    /* MOBILE BOTTOM NAV */
+    .mobile-nav { display: none; }
 
     .main { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-    /* HISTORIQUE */
+    /* HISTORY PANEL */
     .history-panel { width: 230px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; transition: width 0.25s ease; flex-shrink: 0; }
     .history-panel.collapsed { width: 0; }
     .history-header { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
@@ -126,12 +149,12 @@
     .katex-html { overflow: visible !important; }
     .msg-sender { font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 500; }
 
-    .code-block { margin: 12px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .code-block { margin: 12px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .code-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: #f0ede8; border-bottom: 1px solid var(--border2); }
     .code-lang { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; }
     .copy-btn { font-size: 11px; color: var(--text2); background: var(--surface); border: 1px solid var(--border2); border-radius: 5px; padding: 3px 8px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .copy-btn.copied { color: #3ecf8e; border-color: rgba(62,207,142,0.4); }
+    .copy-btn.copied { color: var(--green); border-color: rgba(46,204,138,0.4); }
     .bubble pre { margin: 0 !important; border: none !important; border-radius: 0 !important; }
     .bubble pre code.hljs { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.6; padding: 14px; display: block; overflow-x: auto; }
     .bubble pre code.hljs::-webkit-scrollbar { height: 3px; }
@@ -141,15 +164,15 @@
     .cursor { display: inline-block; width: 2px; height: 14px; background: var(--accent); margin-left: 2px; animation: blink 0.7s infinite; vertical-align: middle; border-radius: 1px; }
     @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
 
-    footer { padding: 12px 16px 16px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); display: flex; gap: 8px; flex-shrink: 0; }
+    footer { padding: 12px 20px 16px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); display: flex; gap: 8px; flex-shrink: 0; }
     #inp { flex: 1; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 11px 16px; color: var(--text); font-size: 14px; outline: none; font-family: inherit; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
     #inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,141,238,0.1); }
     #inp::placeholder { color: var(--muted); }
-    .send-btn { background: var(--accent); border: none; color: white; padding: 11px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); white-space: nowrap; }
-    .send-btn:hover { background: var(--accent2); }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .send-btn { background: var(--accent); border: none; color: white; padding: 11px 20px; border-radius: 12px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); white-space: nowrap; }
+    .send-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-    /* PROFIL */
+    /* PROFILE PANEL */
     .profile-panel { width: 260px; background: var(--surface); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; transition: width 0.25s ease; }
     .profile-panel.collapsed { width: 0; }
     .profile-header { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; }
@@ -176,92 +199,138 @@
     .proj-tag { font-size: 11px; padding: 6px 10px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); margin-bottom: 5px; display: flex; align-items: center; gap: 7px; line-height: 1.4; }
     .proj-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
     .profile-footer { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
-    .f-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .f-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
     .f-text { font-size: 10px; color: var(--muted); }
     .empty-state { font-size: 11px; color: var(--muted); font-style: italic; }
-    .profile-summary { font-size: 11px; color: var(--text2); line-height: 1.5; padding: 8px 10px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); font-style: italic; }
+    .profile-summary { font-size: 11px; color: var(--text2); line-height: 1.55; padding: 8px 10px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); font-style: italic; }
     .match-card { padding: 9px 11px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: all 0.2s; }
-    .match-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .match-card:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); }
     .match-name { font-size: 12px; font-weight: 500; color: var(--text); }
     .match-reason { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .match-score { font-size: 11px; color: var(--green); font-weight: 600; float: right; }
 
-    /* SHARED CHAT SIDEBAR */
+    /* SHARED */
     .shared-profiles { display: flex; flex-direction: column; gap: 12px; }
     .shared-profile-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
     .shared-profile-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
     .shared-profile-you { font-size: 10px; color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 10px; }
-    .shared-profile-summary { font-size: 11px; color: var(--muted); font-style: italic; margin-bottom: 8px; }
+    .shared-profile-summary { font-size: 11px; color: var(--muted); font-style: italic; margin-bottom: 8px; line-height: 1.5; }
     .email-chip { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 5px 8px; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
-    .email-chip:hover { border-color: var(--accent); }
+    .email-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
     .email-chip-text { font-size: 11px; color: var(--text2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .email-chip-copy { font-size: 10px; color: var(--muted); }
+    .email-chip-copy { font-size: 10px; color: var(--muted); flex-shrink: 0; }
 
     /* MODAL */
-    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.3); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
     .modal-bg.active { display: flex; }
-    .modal { background: var(--surface); border-radius: 20px; width: 520px; max-width: calc(100vw - 32px); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,0.15); overflow: hidden; animation: modalIn 0.25s ease; }
+    .modal { background: var(--surface); border-radius: 20px; width: 540px; max-width: calc(100vw - 32px); max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,0.12); overflow: hidden; animation: modalIn 0.25s ease; }
     @keyframes modalIn { from { opacity:0; transform:translateY(16px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-    .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; }
+    .modal-header { padding: 22px 26px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; }
     .modal-header-left { flex: 1; }
-    .modal-name { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .modal-summary { font-size: 12px; color: var(--muted); line-height: 1.5; font-style: italic; }
-    .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; padding: 0 4px; line-height: 1; }
+    .modal-name { font-family: 'Lora', serif; font-size: 21px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .modal-summary { font-size: 12px; color: var(--muted); line-height: 1.55; font-style: italic; }
+    .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; padding: 0 4px; line-height: 1; transition: color 0.2s; }
     .modal-close:hover { color: var(--text); }
-    .modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+    .modal-body { flex: 1; overflow-y: auto; padding: 22px 26px; display: flex; flex-direction: column; gap: 20px; }
     .modal-body::-webkit-scrollbar { width: 3px; }
     .modal-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-    .modal-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .modal-col-title { font-size: 10px; color: var(--accent2); letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--accent-soft); }
-    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); flex-shrink: 0; display: flex; gap: 10px; align-items: center; }
-    .btn-primary { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); }
+    .modal-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .modal-col-title { font-size: 10px; color: var(--accent2); letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--accent-soft); }
+    .modal-footer { padding: 16px 26px; border-top: 1px solid var(--border); flex-shrink: 0; display: flex; gap: 10px; align-items: center; background: var(--surface2); }
+    .btn-primary { background: var(--accent); border: none; color: white; padding: 10px 22px; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); }
     .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .btn-secondary { background: none; border: 1px solid var(--border2); color: var(--text2); padding: 10px 16px; border-radius: 10px; font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-    .modal-compat { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-    .modal-compat-score { font-size: 22px; font-weight: 700; color: var(--green); }
+    .modal-compat { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+    .modal-compat-score { font-size: 24px; font-weight: 700; color: var(--green); }
     .modal-compat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
 
     /* NOTIFICATIONS */
-    .notif-panel { position: fixed; top: 60px; right: 16px; width: 320px; background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 80; display: none; }
-    .notif-panel.active { display: block; }
+    .notif-panel { position: fixed; top: 62px; right: 16px; width: 320px; background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; box-shadow: 0 8px 40px rgba(0,0,0,0.1); z-index: 80; display: none; }
+    .notif-panel.active { display: block; animation: modalIn 0.2s ease; }
     .notif-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
     .notif-title { font-size: 12px; font-weight: 600; color: var(--text); }
     .notif-list { padding: 8px; max-height: 300px; overflow-y: auto; }
     .notif-item { padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; border: 1px solid var(--border); background: var(--surface2); }
     .notif-item-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
-    .notif-item-text { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .notif-item-text { font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.4; }
     .notif-actions { display: flex; gap: 6px; }
-    .notif-accept { background: var(--accent); border: none; color: white; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; font-weight: 500; }
-    .notif-decline { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; }
-    .notif-empty { padding: 16px; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
+    .notif-accept { background: var(--accent); border: none; color: white; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; font-weight: 500; transition: all 0.2s; }
+    .notif-accept:hover { background: var(--accent2); }
+    .notif-decline { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .notif-decline:hover { border-color: var(--rose); color: var(--rose); }
+    .notif-empty { padding: 20px; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
 
-    /* RESPONSIVE */
+    /* RESPONSIVE MOBILE */
     @media (max-width: 768px) {
+      /* Auth */
       .auth-box { width: calc(100% - 32px); padding: 36px 24px; border-radius: 20px; }
       .auth-logo { font-size: 26px; }
       .bd1, .bd3 { display: none; }
-      header { padding: 0 12px; gap: 6px; }
-      .logo { font-size: 17px; }
+
+      /* Header mobile simplifié */
+      header { padding: 0 14px; height: 52px; gap: 8px; }
+      .logo { font-size: 18px; }
+      .header-center { display: none; } /* nav tabs cachés → bottom nav */
       .user-badge { display: none; }
-      .header-btn { padding: 5px 8px; font-size: 11px; }
-      .nav-tab { padding: 4px 7px; font-size: 11px; }
-      .history-panel { position: fixed; top: 52px; left: 0; bottom: 0; width: 285px !important; z-index: 50; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: 4px 0 24px rgba(0,0,0,0.12); }
+      .header-btn.new-conv-btn { display: none; } /* géré via bottom nav */
+
+      /* Bottom nav mobile */
+      .mobile-nav {
+        display: flex; align-items: center; justify-content: space-around;
+        height: 56px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border); flex-shrink: 0; padding: 0 8px;
+        position: relative; z-index: 10;
+      }
+      .mobile-nav-btn {
+        display: flex; flex-direction: column; align-items: center; gap: 3px;
+        background: none; border: none; cursor: pointer; font-family: inherit;
+        padding: 6px 16px; border-radius: 10px; transition: all 0.2s;
+        color: var(--muted); font-size: 10px; font-weight: 500;
+      }
+      .mobile-nav-btn.active { color: var(--accent); background: var(--accent-soft); }
+      .mobile-nav-btn:hover { color: var(--accent); }
+      .mobile-nav-icon { font-size: 18px; line-height: 1; }
+      .mobile-nav-new {
+        background: var(--accent); color: white; border-radius: 12px;
+        padding: 8px 20px; box-shadow: 0 2px 10px rgba(91,141,238,0.35);
+      }
+      .mobile-nav-new:hover { background: var(--accent2); color: white; }
+      .mobile-nav-new.active { background: var(--accent); color: white; }
+      .mobile-notif-dot { position: relative; }
+      .mobile-notif-badge { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: var(--rose); border-radius: 50%; font-size: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+      /* Panneaux overlay */
+      .history-panel {
+        position: fixed; top: 52px; left: 0; bottom: 56px;
+        width: 285px !important; z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+      }
       .history-panel.collapsed { width: 285px !important; }
       .history-panel.open { transform: translateX(0) !important; }
-      .profile-panel { position: fixed; top: 52px; right: 0; bottom: 0; width: 285px !important; z-index: 50; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: -4px 0 24px rgba(0,0,0,0.12); }
+
+      .profile-panel {
+        position: fixed; top: 52px; right: 0; bottom: 56px;
+        width: 285px !important; z-index: 50;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+      }
       .profile-panel.collapsed { width: 285px !important; }
       .profile-panel.open { transform: translateX(0) !important; }
+
       .panel-close { display: block; }
       .chat-area { border-right: none; }
-      #messages { padding: 20px 14px; gap: 16px; }
-      .bubble { max-width: 90%; }
-      footer { padding: 10px 12px 20px; }
+      #messages { padding: 16px 14px; gap: 14px; }
+      .bubble { max-width: 90%; font-size: 14px; }
+      footer { padding: 10px 12px 12px; }
       #inp { font-size: 16px; }
-      .send-btn { padding: 11px 14px; }
+      .send-btn { padding: 11px 14px; font-size: 13px; }
       .modal-cols { grid-template-columns: 1fr; }
-      .notif-panel { right: 8px; left: 8px; width: auto; }
+      .notif-panel { right: 8px; left: 8px; width: auto; top: 60px; }
     }
   </style>
 </head>
@@ -287,6 +356,7 @@
     <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password" />
     <button class="auth-btn" onclick="submitAuth()">Continuer</button>
     <div class="auth-error" id="auth-error"></div>
+    <a class="auth-back" href="/">← Retour à l'accueil</a>
   </div>
 </div>
 
@@ -320,7 +390,7 @@
       <button class="btn-primary" id="modal-request-btn" onclick="sendRequest()">Envoyer une demande</button>
       <div class="modal-compat">
         <div class="modal-compat-score" id="modal-score"></div>
-        <div class="modal-compat-label">compatibilité</div>
+        <div class="modal-compat-label">match</div>
       </div>
     </div>
   </div>
@@ -340,23 +410,48 @@
 <div id="chat-screen">
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
   <header>
-    <button class="header-btn" onclick="toggleHistory()">☰</button>
+    <button class="header-icon-btn" onclick="toggleHistory()" title="Conversations">☰</button>
     <div class="logo" onclick="switchView('ai')">Korale</div>
-    <div class="nav-tabs">
+    <div class="header-center">
       <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
       <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Connexions</button>
     </div>
     <button class="header-btn new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
-      <button class="header-btn notif-btn" id="notif-btn" onclick="toggleNotifs()">
+      <button class="header-icon-btn notif-btn" id="notif-btn" onclick="toggleNotifs()" title="Notifications">
         🔔
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
-      <button class="header-btn" onclick="toggleProfile()">◎</button>
+      <button class="header-icon-btn" onclick="toggleProfile()" title="Profil">◎</button>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
   </header>
+
+  <!-- BOTTOM NAV MOBILE -->
+  <div class="mobile-nav" id="mobile-nav">
+    <button class="mobile-nav-btn" id="mob-tab-ai" onclick="switchView('ai')">
+      <span class="mobile-nav-icon">💬</span>
+      IA
+    </button>
+    <button class="mobile-nav-btn mobile-nav-new" id="mob-new" onclick="newConversation()">
+      + Nouveau
+    </button>
+    <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
+      <span class="mobile-nav-icon">🤝</span>
+      Connexions
+    </button>
+    <button class="mobile-nav-btn mobile-notif-dot" onclick="toggleNotifs()">
+      <span class="mobile-nav-icon">🔔</span>
+      <span class="mobile-notif-badge" id="mob-notif-badge" style="display:none">0</span>
+      Notifs
+    </button>
+    <button class="mobile-nav-btn" onclick="toggleProfile()">
+      <span class="mobile-nav-icon">◎</span>
+      Profil
+    </button>
+  </div>
+
   <div class="main">
     <div class="history-panel collapsed" id="history-panel">
       <div class="history-header">
@@ -372,7 +467,7 @@
           <div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div>
         </div>
       </div>
-      <footer id="chat-footer">
+      <footer>
         <input type="text" id="inp" placeholder="Écrivez votre message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey) sendMsg()" />
         <button class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer</button>
       </footer>
@@ -457,7 +552,7 @@
   let isStreaming = false;
   let conversations = [];
   let activeConvId = null;
-  let currentView = 'ai'; // 'ai' ou 'connexions'
+  let currentView = 'ai';
   let sharedConversations = [];
   let activeSharedConvId = null;
   let sharedPollingInterval = null;
@@ -466,7 +561,6 @@
 
   if (token && user) showChat();
 
-  // PANELS
   function closeAllPanels() {
     document.getElementById('history-panel').classList.remove('open');
     document.getElementById('profile-panel').classList.remove('open');
@@ -500,12 +594,18 @@
     document.getElementById('notif-panel').classList.toggle('active');
   }
 
-  // VIEW SWITCHING
+  function updateMobileNav(view) {
+    document.getElementById('mob-tab-ai').classList.toggle('active', view === 'ai');
+    document.getElementById('mob-tab-connexions').classList.toggle('active', view === 'connexions');
+    document.getElementById('mob-new').style.display = view === 'ai' ? '' : 'none';
+  }
+
   function switchView(view) {
     currentView = view;
     document.getElementById('tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
     document.getElementById('new-conv-btn').style.display = view === 'ai' ? '' : 'none';
+    updateMobileNav(view);
 
     if (view === 'ai') {
       document.getElementById('history-label-text').textContent = 'Conversations';
@@ -522,7 +622,6 @@
     }
   }
 
-  // AUTH
   function switchTab(mode) {
     authMode = mode;
     document.querySelectorAll('.auth-tab').forEach((t, i) => {
@@ -564,17 +663,36 @@
     window.location.href = '/';
   }
 
-  // AI CONVERSATIONS
   function resetProfile() {
+    const body = document.getElementById('profile-body');
+    body.innerHTML = `
+      <div id="profile-summary-section" style="display:none">
+        <div class="sec-label">résumé</div>
+        <div class="profile-summary" id="profile-summary"></div>
+      </div>
+      <div>
+        <div class="sec-label">compétences</div>
+        <div class="skill-grid" id="skill-grid"><span class="empty-state">en attente…</span></div>
+      </div>
+      <div>
+        <div class="sec-label">profil de travail</div>
+        <div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>
+        <div class="trait"><span class="trait-name">Technicité</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>
+        <div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>
+        <div class="trait"><span class="trait-name">Créativité</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>
+        <div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>
+        <div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div>
+      </div>
+      <div>
+        <div class="sec-label">projets détectés</div>
+        <div id="proj-list"><span class="empty-state">aucun projet identifié</span></div>
+      </div>
+      <div>
+        <div class="sec-label">compatibilités</div>
+        <div id="match-list"><span class="empty-state">analyse en cours…</span></div>
+      </div>
+    `;
     document.getElementById('profile-title').textContent = 'En construction…';
-    document.getElementById('skill-grid').innerHTML = '<span class="empty-state">en attente…</span>';
-    document.getElementById('proj-list').innerHTML = '<span class="empty-state">aucun projet identifié</span>';
-    document.getElementById('match-list').innerHTML = '<span class="empty-state">analyse en cours…</span>';
-    document.getElementById('profile-summary-section').style.display = 'none';
-    [['bv','pv'],['bt','pt'],['be','pe'],['bc','pc'],['bcol','pcol'],['bl','pl']].forEach(([b,p]) => {
-      const el = document.getElementById(b); const pel = document.getElementById(p);
-      if (el) el.style.width = '0%'; if (pel) pel.textContent = '0%';
-    });
   }
 
   async function loadConversations() {
@@ -587,7 +705,7 @@
   function renderConversationList() {
     const list = document.getElementById('history-list');
     if (conversations.length === 0) {
-      list.innerHTML = '<div style="padding:12px;font-size:11px;color:var(--muted);font-style:italic;">Aucune conversation</div>';
+      list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune conversation</div>';
       return;
     }
     list.innerHTML = conversations.map(c => {
@@ -607,6 +725,7 @@
     resetProfile();
     renderConversationList();
     if (isMobile()) closeAllPanels();
+    if (currentView !== 'ai') switchView('ai');
   }
 
   async function loadConversation(id) {
@@ -643,11 +762,14 @@
     const projects = Array.isArray(profile.projects) ? profile.projects : [];
     const traits = profile.traits || {};
     if (profile.summary) {
-      document.getElementById('profile-summary').textContent = profile.summary;
-      document.getElementById('profile-summary-section').style.display = 'block';
+      const ss = document.getElementById('profile-summary');
+      const sss = document.getElementById('profile-summary-section');
+      if (ss) ss.textContent = profile.summary;
+      if (sss) sss.style.display = 'block';
     }
     if (skills.length > 0) {
-      document.getElementById('skill-grid').innerHTML = skills.map(s=>`<span class="stag">${s}</span>`).join('');
+      const sg = document.getElementById('skill-grid');
+      if (sg) sg.innerHTML = skills.map(s=>`<span class="stag">${s}</span>`).join('');
       document.getElementById('profile-title').textContent = profile.summary ? profile.summary.slice(0,40)+'…' : skills[0]+'…';
     }
     [['vision','bv','pv'],['technicite','bt','pt'],['entrepreneuriat','be','pe'],
@@ -656,7 +778,8 @@
       if (el && pel && traits[k] !== undefined) { el.style.width = traits[k]+'%'; pel.textContent = traits[k]+'%'; }
     });
     if (projects.length > 0) {
-      document.getElementById('proj-list').innerHTML = projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('');
+      const pl = document.getElementById('proj-list');
+      if (pl) pl.innerHTML = projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('');
     }
   }
 
@@ -678,7 +801,7 @@
     if (!res.ok) return;
     const matches = await res.json();
     const list = document.getElementById('match-list');
-    if (matches.length === 0) return;
+    if (!list || matches.length === 0) return;
     list.innerHTML = matches.map(m => `
       <div class="match-card" onclick="openMatchModal('${m.name.replace(/'/g,"\\'")}', ${m.score}, '${(m.reason||'').replace(/'/g,"\\'")}')">
         <span class="match-score">${m.score}%</span>
@@ -688,7 +811,6 @@
     `).join('');
   }
 
-  // SHARED CONVERSATIONS
   async function loadSharedConversations() {
     const res = await fetch('/api/shared-conversations', { headers: {'Authorization':'Bearer '+token} });
     if (!res.ok) return;
@@ -699,7 +821,7 @@
   function renderSharedList() {
     const list = document.getElementById('history-list');
     if (sharedConversations.length === 0) {
-      list.innerHTML = '<div style="padding:12px;font-size:11px;color:var(--muted);font-style:italic;">Aucune connexion acceptée</div>';
+      list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune connexion acceptée</div>';
       return;
     }
     list.innerHTML = sharedConversations.map(sc => {
@@ -716,52 +838,41 @@
   async function openSharedConversation(id) {
     if (sharedPollingInterval) clearInterval(sharedPollingInterval);
     activeSharedConvId = id;
-
     const res = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
     if (!res.ok) return;
     const sc = await res.json();
-
-    // Afficher les deux profils dans la sidebar
     const myProfile = sc.user1_id === user.id ? sc.user1_profile : sc.user2_profile;
     const otherProfile = sc.user1_id === user.id ? sc.user2_profile : sc.user1_profile;
     const myEmail = sc.user1_id === user.id ? sc.user1_email : sc.user2_email;
     const otherEmail = sc.user1_id === user.id ? sc.user2_email : sc.user1_email;
     const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
-
     document.getElementById('profile-panel-label').textContent = 'profils partagés';
     document.getElementById('profile-title').textContent = `Vous & ${otherName}`;
     document.getElementById('profile-footer-text').textContent = 'connexion active';
-
     document.getElementById('profile-body').innerHTML = `
       <div class="shared-profiles">
         <div class="shared-profile-card">
-          <div class="shared-profile-name">
-            ${user.name || user.email}
-            <span class="shared-profile-you">Vous</span>
-          </div>
-          <div class="shared-profile-summary">${myProfile?.summary || 'Profil en construction'}</div>
+          <div class="shared-profile-name">${user.name||user.email}<span class="shared-profile-you">Vous</span></div>
+          <div class="shared-profile-summary">${myProfile?.summary||'Profil en construction'}</div>
           <div class="skill-grid" style="margin-bottom:6px">${(myProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
           <div class="email-chip" onclick="copyEmail('${myEmail}')">
             <span class="email-chip-text">${myEmail}</span>
-            <span class="email-chip-copy">Copier</span>
+            <span class="email-chip-copy">📋 Copier</span>
           </div>
         </div>
         <div class="shared-profile-card">
           <div class="shared-profile-name">${otherName}</div>
-          <div class="shared-profile-summary">${otherProfile?.summary || 'Profil en construction'}</div>
+          <div class="shared-profile-summary">${otherProfile?.summary||'Profil en construction'}</div>
           <div class="skill-grid" style="margin-bottom:6px">${(otherProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
           <div class="email-chip" onclick="copyEmail('${otherEmail}')">
             <span class="email-chip-text">${otherEmail}</span>
-            <span class="email-chip-copy">Copier</span>
+            <span class="email-chip-copy">📋 Copier</span>
           </div>
         </div>
       </div>
     `;
-
     renderSharedMessages(sc, otherName);
     renderSharedList();
-
-    // Polling toutes les 5 secondes
     sharedPollingInterval = setInterval(async () => {
       const r = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
       if (r.ok) { const updated = await r.json(); renderSharedMessages(updated, otherName); }
@@ -771,43 +882,35 @@
   function renderSharedMessages(sc, otherName) {
     const msgs = document.getElementById('messages');
     const messages = Array.isArray(sc.messages) ? sc.messages : [];
-    const scrolledToBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 50;
-
+    const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
     msgs.innerHTML = messages.length === 0
-      ? `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;font-style:italic;">Début de votre conversation avec ${otherName}.<br>Dites bonjour !</div>`
+      ? `<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Début de votre conversation avec <strong>${otherName}</strong>.<br>Dites bonjour !</div>`
       : messages.map(m => {
           const isMe = m.sender_id === user.id;
           const initial = isMe ? (user.name?.[0]?.toUpperCase()||'V') : (otherName?.[0]?.toUpperCase()||'?');
-          const cls = isMe ? 'user' : 'other';
-          return `<div class="msg ${cls}">
+          return `<div class="msg ${isMe?'user':'other'}">
             <div class="av ${isMe?'user':'other'}">${initial}</div>
-            <div>
-              ${!isMe ? `<div class="msg-sender">${m.sender_name}</div>` : ''}
-              <div class="bubble">${escapeHtml(m.text)}</div>
-            </div>
+            <div>${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}<div class="bubble">${escapeHtml(m.text)}</div></div>
           </div>`;
         }).join('');
-
-    if (scrolledToBottom || messages.length === 0) msgs.scrollTop = msgs.scrollHeight;
+    if (atBottom || messages.length === 0) msgs.scrollTop = msgs.scrollHeight;
   }
 
-  function escapeHtml(text) {
-    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   async function copyEmail(email) {
     await navigator.clipboard.writeText(email);
-    const chips = document.querySelectorAll('.email-chip-copy');
-    chips.forEach(c => { if (c.closest('.email-chip').querySelector('.email-chip-text').textContent === email) { c.textContent = '✓ Copié'; setTimeout(() => c.textContent = 'Copier', 2000); }});
+    document.querySelectorAll('.email-chip').forEach(chip => {
+      if (chip.querySelector('.email-chip-text').textContent === email) {
+        const copy = chip.querySelector('.email-chip-copy');
+        copy.textContent = '✓ Copié'; setTimeout(() => copy.textContent = '📋 Copier', 2000);
+      }
+    });
   }
 
-  // SEND MESSAGE (unifié IA + shared)
   async function sendMsg() {
-    if (currentView === 'connexions' && activeSharedConvId) {
-      await sendSharedMessage();
-    } else {
-      await send();
-    }
+    if (currentView === 'connexions' && activeSharedConvId) await sendSharedMessage();
+    else await send();
   }
 
   async function sendSharedMessage() {
@@ -816,25 +919,16 @@
     if (!text) return;
     inp.value = '';
     document.getElementById('send-btn').disabled = true;
-
     await fetch(`/api/shared-conversations/${activeSharedConvId}/messages`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ text })
     });
-
-    // Recharger les messages
     const res = await fetch(`/api/shared-conversations/${activeSharedConvId}`, { headers: {'Authorization':'Bearer '+token} });
-    if (res.ok) {
-      const sc = await res.json();
-      const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
-      renderSharedMessages(sc, otherName);
-    }
+    if (res.ok) { const sc = await res.json(); const on = sc.user1_id===user.id?sc.user2_name:sc.user1_name; renderSharedMessages(sc, on); }
     document.getElementById('send-btn').disabled = false;
     document.getElementById('inp').focus();
   }
 
-  // SEND IA
   async function send() {
     if (isStreaming) return;
     const inp = document.getElementById('inp');
@@ -843,22 +937,17 @@
     inp.value = '';
     isStreaming = true;
     document.getElementById('send-btn').disabled = true;
-
     if (!conversationId) {
-      const res = await fetch('/api/conversations', {
-        method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
-      });
+      const res = await fetch('/api/conversations', { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'} });
       const data = await res.json();
       conversationId = data.id; activeConvId = data.id;
     }
-
     const msgs = document.getElementById('messages');
     const userDiv = document.createElement('div');
     userDiv.className = 'msg user';
     userDiv.innerHTML = `<div class="av user">${user.name?.[0]?.toUpperCase()||'V'}</div><div class="bubble">${text}</div>`;
     msgs.appendChild(userDiv);
     history.push({role:'user', content:text});
-
     const aiDiv = document.createElement('div');
     aiDiv.className = 'msg ai';
     aiDiv.innerHTML = `<div class="av ai">K</div><div class="bubble"><span class="streaming-text"></span><span class="cursor"></span></div>`;
@@ -867,13 +956,10 @@
     const streamingEl = aiDiv.querySelector('.streaming-text');
     const cursorEl = aiDiv.querySelector('.cursor');
     const bubble = aiDiv.querySelector('.bubble');
-
     const res = await fetch('/api/chat', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({messages:history, conversationId})
     });
-
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let full = ''; let buffer = '';
@@ -881,14 +967,10 @@
       const {done, value} = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, {stream:true});
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
+      const lines = buffer.split('\n'); buffer = lines.pop();
       for (const line of lines) {
         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-          try {
-            const data = JSON.parse(line.slice(6));
-            if (data.text) { full += data.text; streamingEl.textContent = full; msgs.scrollTop = msgs.scrollHeight; }
-          } catch {}
+          try { const d = JSON.parse(line.slice(6)); if (d.text) { full+=d.text; streamingEl.textContent=full; msgs.scrollTop=msgs.scrollHeight; } } catch {}
         }
       }
     }
@@ -903,7 +985,6 @@
     setTimeout(loadMatching, 8000);
   }
 
-  // MATCHING MODAL
   function closeModal(e) {
     if (e && e.target !== document.getElementById('modal-bg')) return;
     document.getElementById('modal-bg').classList.remove('active');
@@ -911,9 +992,7 @@
   }
 
   async function openMatchModal(matchName, score, reason) {
-    const res = await fetch(`/api/user-profile-by-name/${encodeURIComponent(matchName)}`, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
+    const res = await fetch(`/api/user-profile-by-name/${encodeURIComponent(matchName)}`, { headers: {'Authorization':'Bearer '+token} });
     if (!res.ok) return;
     const data = await res.json();
     currentMatchData = { ...data, score, reason };
@@ -921,20 +1000,13 @@
     const skills = Array.isArray(profile.skills) ? profile.skills : [];
     const projects = Array.isArray(profile.projects) ? profile.projects : [];
     const traits = profile.traits || {};
-
     document.getElementById('modal-name').textContent = matchName;
     document.getElementById('modal-summary').textContent = profile.summary || '';
     document.getElementById('modal-score').textContent = score + '%';
     document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(s=>`<span class="stag">${s}</span>`).join('') : '<span class="empty-state">aucune</span>';
     document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('') : '<span class="empty-state">aucun</span>';
-
-    const traitLabels = [['vision','Vision','v'],['technicite','Technicité','t'],['entrepreneuriat','Entrepreneuriat','e'],
-      ['creativite','Créativité','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
-    document.getElementById('modal-traits').innerHTML = traitLabels.map(([k,label,cls]) => `
-      <div class="trait"><span class="trait-name">${label}</span>
-      <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${traits[k]||0}%"></div></div>
-      <span class="trait-pct">${traits[k]||0}%</span></div>`).join('');
-
+    const tl = [['vision','Vision','v'],['technicite','Technicité','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Créativité','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
+    document.getElementById('modal-traits').innerHTML = tl.map(([k,label,cls]) => `<div class="trait"><span class="trait-name">${label}</span><div class="bar-bg"><div class="bar-fill ${cls}" style="width:${traits[k]||0}%"></div></div><span class="trait-pct">${traits[k]||0}%</span></div>`).join('');
     const alreadySent = sentRequests.some(r => r.receiver_id === data.user_id && r.status === 'pending');
     const btn = document.getElementById('modal-request-btn');
     btn.textContent = alreadySent ? '✓ Demande envoyée' : 'Envoyer une demande';
@@ -947,8 +1019,7 @@
     const btn = document.getElementById('modal-request-btn');
     btn.disabled = true; btn.textContent = 'Envoi…';
     const res = await fetch('/api/connection-requests', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ receiverId: currentMatchData.user_id, senderConvId: conversationId, receiverConvId: currentMatchData.conv_id })
     });
     if (res.ok) { btn.textContent = '✓ Demande envoyée'; await loadSentRequests(); }
@@ -965,9 +1036,16 @@
     if (!res.ok) return;
     const requests = await res.json();
     const badge = document.getElementById('notif-badge');
+    const mobBadge = document.getElementById('mob-notif-badge');
     const list = document.getElementById('notif-list');
-    if (requests.length === 0) { badge.style.display = 'none'; list.innerHTML = '<div class="notif-empty">Aucune demande en attente</div>'; return; }
+    if (requests.length === 0) {
+      badge.style.display = 'none';
+      if (mobBadge) mobBadge.style.display = 'none';
+      list.innerHTML = '<div class="notif-empty">Aucune demande en attente</div>';
+      return;
+    }
     badge.style.display = 'flex'; badge.textContent = requests.length;
+    if (mobBadge) { mobBadge.style.display = 'flex'; mobBadge.textContent = requests.length; }
     list.innerHTML = requests.map(r => {
       const profile = r.sender_profile || {};
       const summary = profile.summary || r.sender_conv_title || '';
@@ -984,15 +1062,11 @@
 
   async function respondRequest(id, status) {
     await fetch(`/api/connection-requests/${id}`, {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ status })
     });
     await loadReceivedRequests();
-    if (status === 'accepted') {
-      await loadSharedConversations();
-      switchView('connexions');
-    }
+    if (status === 'accepted') { await loadSharedConversations(); switchView('connexions'); }
   }
 </script>
 </body>
