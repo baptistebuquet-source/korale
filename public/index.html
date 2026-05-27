@@ -26,11 +26,7 @@
     body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; font-size: 14px; overflow: hidden; }
 
     /* AUTH */
-    #auth-screen {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #eef4ff 0%, #f7f5f2 50%, #eaf4ef 100%);
-      position: relative; overflow: hidden;
-    }
+    #auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eef4ff 0%, #f7f5f2 50%, #eaf4ef 100%); position: relative; overflow: hidden; }
     #auth-screen::before { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 400px; height: 400px; background: radial-gradient(circle, rgba(91,141,238,0.12) 0%, transparent 70%); top: -100px; right: -80px; }
     #auth-screen::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 300px; height: 300px; background: radial-gradient(circle, rgba(46,204,138,0.1) 0%, transparent 70%); bottom: -60px; left: -60px; }
     .bubble-deco { position: absolute; border-radius: 50%; pointer-events: none; }
@@ -39,14 +35,7 @@
     .bd3 { width: 120px; height: 120px; background: radial-gradient(circle, rgba(232,107,138,0.08) 0%, transparent 70%); bottom: 20%; left: 20%; }
     .bd4 { width: 60px; height: 60px; background: radial-gradient(circle, rgba(46,204,138,0.12) 0%, transparent 70%); top: 15%; right: 25%; }
     .bd5 { width: 220px; height: 220px; background: radial-gradient(circle, rgba(91,141,238,0.06) 0%, transparent 70%); bottom: 10%; right: 5%; }
-
-    .auth-box {
-      background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.9); border-radius: 24px;
-      padding: 48px 44px; width: 400px;
-      box-shadow: 0 8px 40px rgba(91,141,238,0.12), 0 2px 8px rgba(0,0,0,0.06);
-      position: relative; z-index: 1;
-    }
+    .auth-box { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.9); border-radius: 24px; padding: 48px 44px; width: 400px; box-shadow: 0 8px 40px rgba(91,141,238,0.12), 0 2px 8px rgba(0,0,0,0.06); position: relative; z-index: 1; }
     .auth-logo { font-family: 'Lora', serif; font-size: 30px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; color: var(--accent2); }
     .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-weight: 300; }
     .auth-tabs { display: flex; margin-bottom: 24px; background: var(--bg2); border-radius: 10px; padding: 3px; gap: 3px; }
@@ -59,13 +48,13 @@
     .auth-btn:hover { background: var(--accent2); transform: translateY(-1px); }
     .auth-error { font-size: 12px; color: var(--rose); margin-top: 10px; }
 
-    /* CHAT */
+    /* CHAT SCREEN */
     #chat-screen { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--bg); position: relative; }
     .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 40; }
     .overlay.active { display: block; }
 
     header { padding: 0 16px; height: 52px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 10; }
-    .logo { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; color: var(--accent2); letter-spacing: -0.3px; }
+    .logo { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; color: var(--accent2); letter-spacing: -0.3px; cursor: pointer; }
     .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
     .header-btn { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
     .header-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
@@ -74,6 +63,12 @@
     .user-badge { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .notif-btn { position: relative; }
     .notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: var(--rose); border-radius: 50%; font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+
+    /* NAV TABS */
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .nav-tab.active { background: var(--accent-soft); border-color: rgba(91,141,238,0.3); color: var(--accent); font-weight: 500; }
+    .nav-tab:hover { border-color: var(--accent); color: var(--accent); }
 
     .main { display: flex; flex: 1; overflow: hidden; position: relative; }
 
@@ -92,6 +87,7 @@
     .conv-item.active { background: var(--accent-soft); border: 1px solid rgba(91,141,238,0.2); }
     .conv-title { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .conv-date { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .conv-item-shared { border-left: 3px solid var(--green); }
 
     /* CHAT AREA */
     .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); min-width: 0; background: var(--bg); }
@@ -101,15 +97,18 @@
 
     .msg { display: flex; gap: 10px; animation: fadeUp 0.25s ease; }
     .msg.user { flex-direction: row-reverse; }
+    .msg.other { flex-direction: row; }
     @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 
     .av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
     .av.ai { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
     .av.user { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); }
+    .av.other { background: linear-gradient(135deg, var(--green), #1fa870); color: white; }
 
     .bubble { max-width: 78%; padding: 11px 15px; border-radius: 16px; font-size: 14px; line-height: 1.7; overflow: hidden; }
     .msg.ai .bubble { background: var(--surface); border: 1px solid var(--border); border-top-left-radius: 4px; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
     .msg.user .bubble { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border-top-right-radius: 4px; box-shadow: 0 2px 12px rgba(91,141,238,0.3); }
+    .msg.other .bubble { background: var(--surface); border: 1px solid rgba(46,204,138,0.2); border-top-left-radius: 4px; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
 
     .bubble h1,.bubble h2,.bubble h3 { font-family: 'Lora', serif; font-weight: 600; margin: 14px 0 6px; line-height: 1.3; color: var(--text); }
     .bubble h1 { font-size: 17px; } .bubble h2 { font-size: 15px; } .bubble h3 { font-size: 14px; color: var(--accent2); }
@@ -125,6 +124,7 @@
     .bubble .katex-display > .katex { display: inline-block; }
     .bubble .katex { font-size: 1em; color: var(--text); }
     .katex-html { overflow: visible !important; }
+    .msg-sender { font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 500; }
 
     .code-block { margin: 12px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .code-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: #f0ede8; border-bottom: 1px solid var(--border2); }
@@ -150,7 +150,7 @@
     .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* PROFIL */
-    .profile-panel { width: 250px; background: var(--surface); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; transition: width 0.25s ease; }
+    .profile-panel { width: 260px; background: var(--surface); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; transition: width 0.25s ease; }
     .profile-panel.collapsed { width: 0; }
     .profile-header { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; }
     .profile-header-text { flex: 1; }
@@ -186,7 +186,18 @@
     .match-reason { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .match-score { font-size: 11px; color: var(--green); font-weight: 600; float: right; }
 
-    /* MODAL PROFIL MATCH */
+    /* SHARED CHAT SIDEBAR */
+    .shared-profiles { display: flex; flex-direction: column; gap: 12px; }
+    .shared-profile-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+    .shared-profile-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .shared-profile-you { font-size: 10px; color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 10px; }
+    .shared-profile-summary { font-size: 11px; color: var(--muted); font-style: italic; margin-bottom: 8px; }
+    .email-chip { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 5px 8px; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
+    .email-chip:hover { border-color: var(--accent); }
+    .email-chip-text { font-size: 11px; color: var(--text2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .email-chip-copy { font-size: 10px; color: var(--muted); }
+
+    /* MODAL */
     .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
     .modal-bg.active { display: flex; }
     .modal { background: var(--surface); border-radius: 20px; width: 520px; max-width: calc(100vw - 32px); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,0.15); overflow: hidden; animation: modalIn 0.25s ease; }
@@ -226,7 +237,7 @@
     .notif-decline { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; }
     .notif-empty { padding: 16px; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
 
-    /* RESPONSIVE MOBILE */
+    /* RESPONSIVE */
     @media (max-width: 768px) {
       .auth-box { width: calc(100% - 32px); padding: 36px 24px; border-radius: 20px; }
       .auth-logo { font-size: 26px; }
@@ -235,6 +246,7 @@
       .logo { font-size: 17px; }
       .user-badge { display: none; }
       .header-btn { padding: 5px 8px; font-size: 11px; }
+      .nav-tab { padding: 4px 7px; font-size: 11px; }
       .history-panel { position: fixed; top: 52px; left: 0; bottom: 0; width: 285px !important; z-index: 50; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: 4px 0 24px rgba(0,0,0,0.12); }
       .history-panel.collapsed { width: 285px !important; }
       .history-panel.open { transform: translateX(0) !important; }
@@ -314,7 +326,7 @@
   </div>
 </div>
 
-<!-- PANEL NOTIFICATIONS -->
+<!-- NOTIFICATIONS -->
 <div class="notif-panel" id="notif-panel">
   <div class="notif-header">
     <div class="notif-title">Demandes reçues</div>
@@ -329,11 +341,15 @@
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
   <header>
     <button class="header-btn" onclick="toggleHistory()">☰</button>
-    <div class="logo">Korale</div>
-    <button class="header-btn new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
+    <div class="logo" onclick="switchView('ai')">Korale</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
+      <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Connexions</button>
+    </div>
+    <button class="header-btn new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
-      <button class="header-btn notif-btn" id="notif-btn" onclick="toggleNotifs()" title="Demandes reçues">
+      <button class="header-btn notif-btn" id="notif-btn" onclick="toggleNotifs()">
         🔔
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
@@ -344,7 +360,7 @@
   <div class="main">
     <div class="history-panel collapsed" id="history-panel">
       <div class="history-header">
-        <div class="history-label">Conversations</div>
+        <div class="history-label" id="history-label-text">Conversations</div>
         <button class="panel-close" onclick="closeAllPanels()">✕</button>
       </div>
       <div class="history-list" id="history-list"></div>
@@ -356,20 +372,20 @@
           <div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div>
         </div>
       </div>
-      <footer>
-        <input type="text" id="inp" placeholder="Écrivez votre message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey) send()" />
-        <button class="send-btn" id="send-btn" onclick="send()">Envoyer</button>
+      <footer id="chat-footer">
+        <input type="text" id="inp" placeholder="Écrivez votre message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey) sendMsg()" />
+        <button class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer</button>
       </footer>
     </div>
     <div class="profile-panel" id="profile-panel">
       <div class="profile-header">
         <div class="profile-header-text">
-          <div class="profile-label">profil de cette conversation</div>
+          <div class="profile-label" id="profile-panel-label">profil de cette conversation</div>
           <div class="profile-title" id="profile-title">En construction…</div>
         </div>
         <button class="panel-close" onclick="closeAllPanels()">✕</button>
       </div>
-      <div class="profile-body">
+      <div class="profile-body" id="profile-body">
         <div id="profile-summary-section" style="display:none">
           <div class="sec-label">résumé</div>
           <div class="profile-summary" id="profile-summary"></div>
@@ -398,7 +414,7 @@
       </div>
       <div class="profile-footer">
         <div class="f-dot"></div>
-        <div class="f-text">analyse en continu</div>
+        <div class="f-text" id="profile-footer-text">analyse en continu</div>
       </div>
     </div>
   </div>
@@ -432,6 +448,25 @@
 
   const isMobile = () => window.innerWidth <= 768;
 
+  // STATE
+  let token = localStorage.getItem('korale_token');
+  let user = JSON.parse(localStorage.getItem('korale_user') || 'null');
+  let history = [];
+  let conversationId = null;
+  let authMode = 'login';
+  let isStreaming = false;
+  let conversations = [];
+  let activeConvId = null;
+  let currentView = 'ai'; // 'ai' ou 'connexions'
+  let sharedConversations = [];
+  let activeSharedConvId = null;
+  let sharedPollingInterval = null;
+  let currentMatchData = null;
+  let sentRequests = [];
+
+  if (token && user) showChat();
+
+  // PANELS
   function closeAllPanels() {
     document.getElementById('history-panel').classList.remove('open');
     document.getElementById('profile-panel').classList.remove('open');
@@ -465,148 +500,29 @@
     document.getElementById('notif-panel').classList.toggle('active');
   }
 
-  // STATE MODAL
-  let currentMatchData = null;
-  let sentRequests = [];
+  // VIEW SWITCHING
+  function switchView(view) {
+    currentView = view;
+    document.getElementById('tab-ai').classList.toggle('active', view === 'ai');
+    document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
+    document.getElementById('new-conv-btn').style.display = view === 'ai' ? '' : 'none';
 
-  function closeModal(e) {
-    if (e && e.target !== document.getElementById('modal-bg')) return;
-    document.getElementById('modal-bg').classList.remove('active');
-    currentMatchData = null;
-  }
-
-  async function openMatchModal(matchName, score, reason) {
-    // Charger le profil de cette personne
-    const res = await fetch(`/api/user-profile-by-name/${encodeURIComponent(matchName)}`, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    currentMatchData = { ...data, score, reason };
-
-    const profile = data.profile || {};
-    const skills = Array.isArray(profile.skills) ? profile.skills : [];
-    const projects = Array.isArray(profile.projects) ? profile.projects : [];
-    const traits = profile.traits || {};
-
-    document.getElementById('modal-name').textContent = matchName;
-    document.getElementById('modal-summary').textContent = profile.summary || '';
-    document.getElementById('modal-score').textContent = score + '%';
-
-    document.getElementById('modal-skills').innerHTML = skills.length
-      ? skills.map(s => `<span class="stag">${s}</span>`).join('')
-      : '<span class="empty-state">aucune compétence</span>';
-
-    document.getElementById('modal-projects').innerHTML = projects.length
-      ? projects.map(p => `<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('')
-      : '<span class="empty-state">aucun projet</span>';
-
-    const traitLabels = [
-      ['vision','Vision','v'], ['technicite','Technicité','t'], ['entrepreneuriat','Entrepreneuriat','e'],
-      ['creativite','Créativité','c'], ['collaboration','Collaboration','col'], ['leadership','Leadership','l']
-    ];
-    document.getElementById('modal-traits').innerHTML = traitLabels.map(([k, label, cls]) => `
-      <div class="trait">
-        <span class="trait-name">${label}</span>
-        <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${traits[k]||0}%"></div></div>
-        <span class="trait-pct">${traits[k]||0}%</span>
-      </div>
-    `).join('');
-
-    // Vérifier si demande déjà envoyée
-    const alreadySent = sentRequests.some(r => r.receiver_id === data.user_id && r.status === 'pending');
-    const btn = document.getElementById('modal-request-btn');
-    if (alreadySent) {
-      btn.textContent = '✓ Demande envoyée';
-      btn.disabled = true;
+    if (view === 'ai') {
+      document.getElementById('history-label-text').textContent = 'Conversations';
+      document.getElementById('profile-panel-label').textContent = 'profil de cette conversation';
+      document.getElementById('profile-footer-text').textContent = 'analyse en continu';
+      renderConversationList();
+      if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
+      resetProfile();
+      document.getElementById('messages').innerHTML = `<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>`;
+      conversationId = null; history = [];
     } else {
-      btn.textContent = 'Envoyer une demande';
-      btn.disabled = false;
-    }
-
-    document.getElementById('modal-bg').classList.add('active');
-  }
-
-  async function sendRequest() {
-    if (!currentMatchData || !conversationId) return;
-    const btn = document.getElementById('modal-request-btn');
-    btn.disabled = true;
-    btn.textContent = 'Envoi…';
-
-    const res = await fetch('/api/connection-requests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        receiverId: currentMatchData.user_id,
-        senderConvId: conversationId,
-        receiverConvId: currentMatchData.conv_id
-      })
-    });
-
-    if (res.ok) {
-      btn.textContent = '✓ Demande envoyée';
-      await loadSentRequests();
-    } else {
-      btn.textContent = 'Erreur — réessayer';
-      btn.disabled = false;
+      document.getElementById('history-label-text').textContent = 'Connexions';
+      loadSharedConversations();
     }
   }
 
-  async function loadSentRequests() {
-    const res = await fetch('/api/connection-requests/sent', { headers: { 'Authorization': 'Bearer ' + token } });
-    if (res.ok) sentRequests = await res.json();
-  }
-
-  async function loadReceivedRequests() {
-    const res = await fetch('/api/connection-requests/received', { headers: { 'Authorization': 'Bearer ' + token } });
-    if (!res.ok) return;
-    const requests = await res.json();
-    const badge = document.getElementById('notif-badge');
-    const list = document.getElementById('notif-list');
-
-    if (requests.length === 0) {
-      badge.style.display = 'none';
-      list.innerHTML = '<div class="notif-empty">Aucune demande en attente</div>';
-      return;
-    }
-
-    badge.style.display = 'flex';
-    badge.textContent = requests.length;
-
-    list.innerHTML = requests.map(r => {
-      const profile = r.sender_profile || {};
-      const summary = profile.summary || r.sender_conv_title || 'Conversation';
-      return `<div class="notif-item">
-        <div class="notif-item-name">${r.sender_name}</div>
-        <div class="notif-item-text">${summary}</div>
-        <div class="notif-actions">
-          <button class="notif-accept" onclick="respondRequest(${r.id}, 'accepted')">Accepter</button>
-          <button class="notif-decline" onclick="respondRequest(${r.id}, 'declined')">Refuser</button>
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  async function respondRequest(id, status) {
-    await fetch(`/api/connection-requests/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ status })
-    });
-    await loadReceivedRequests();
-  }
-
-  let token = localStorage.getItem('korale_token');
-  let user = JSON.parse(localStorage.getItem('korale_user') || 'null');
-  let history = [];
-  let conversationId = null;
-  let authMode = 'login';
-  let isStreaming = false;
-  let conversations = [];
-  let activeConvId = null;
-
-  if (token && user) showChat();
-
+  // AUTH
   function switchTab(mode) {
     authMode = mode;
     document.querySelectorAll('.auth-tab').forEach((t, i) => {
@@ -643,6 +559,12 @@
     setInterval(loadReceivedRequests, 30000);
   }
 
+  function logout() {
+    localStorage.removeItem('korale_token'); localStorage.removeItem('korale_user');
+    location.reload();
+  }
+
+  // AI CONVERSATIONS
   function resetProfile() {
     document.getElementById('profile-title').textContent = 'En construction…';
     document.getElementById('skill-grid').innerHTML = '<span class="empty-state">en attente…</span>';
@@ -655,16 +577,11 @@
     });
   }
 
-  function logout() {
-    localStorage.removeItem('korale_token'); localStorage.removeItem('korale_user');
-    location.reload();
-  }
-
   async function loadConversations() {
     const res = await fetch('/api/conversations/list', { headers:{'Authorization':'Bearer '+token} });
     if (!res.ok) return;
     conversations = await res.json();
-    renderConversationList();
+    if (currentView === 'ai') renderConversationList();
   }
 
   function renderConversationList() {
@@ -710,12 +627,8 @@
     });
     msgs.scrollTop = msgs.scrollHeight;
     renderConversationList();
-    if (conv.profile && conv.profile.skills) {
-      renderProfile(conv.profile);
-      loadMatching();
-    } else {
-      resetProfile();
-    }
+    if (conv.profile && conv.profile.skills) { renderProfile(conv.profile); loadMatching(); }
+    else resetProfile();
   }
 
   async function loadProfile() {
@@ -735,7 +648,7 @@
     }
     if (skills.length > 0) {
       document.getElementById('skill-grid').innerHTML = skills.map(s=>`<span class="stag">${s}</span>`).join('');
-      document.getElementById('profile-title').textContent = profile.summary ? profile.summary.slice(0, 40)+'…' : skills[0]+'…';
+      document.getElementById('profile-title').textContent = profile.summary ? profile.summary.slice(0,40)+'…' : skills[0]+'…';
     }
     [['vision','bv','pv'],['technicite','bt','pt'],['entrepreneuriat','be','pe'],
      ['creativite','bc','pc'],['collaboration','bcol','pcol'],['leadership','bl','pl']].forEach(([k,b,p]) => {
@@ -750,17 +663,15 @@
   function renderContent(bubble, text) {
     bubble.innerHTML = marked.parse(text);
     renderMathInElement(bubble, {
-      delimiters: [
-        {left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},
-        {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}
-      ],
+      delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},
+        {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
       throwOnError: false
     });
   }
 
   async function loadMatching() {
     if (!conversationId) return;
-    const context = history.length > 0 ? history[history.length-1].content.slice(0, 200) : '';
+    const context = history.length > 0 ? history[history.length-1].content.slice(0,200) : '';
     const res = await fetch(`/api/matching?context=${encodeURIComponent(context)}&conversationId=${conversationId}`, {
       headers: {'Authorization': 'Bearer ' + token}
     });
@@ -769,7 +680,7 @@
     const list = document.getElementById('match-list');
     if (matches.length === 0) return;
     list.innerHTML = matches.map(m => `
-      <div class="match-card" onclick="openMatchModal('${m.name}', ${m.score}, '${m.reason}')">
+      <div class="match-card" onclick="openMatchModal('${m.name.replace(/'/g,"\\'")}', ${m.score}, '${(m.reason||'').replace(/'/g,"\\'")}')">
         <span class="match-score">${m.score}%</span>
         <div class="match-name">${m.name}</div>
         <div class="match-reason">${m.reason}</div>
@@ -777,6 +688,153 @@
     `).join('');
   }
 
+  // SHARED CONVERSATIONS
+  async function loadSharedConversations() {
+    const res = await fetch('/api/shared-conversations', { headers: {'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    sharedConversations = await res.json();
+    renderSharedList();
+  }
+
+  function renderSharedList() {
+    const list = document.getElementById('history-list');
+    if (sharedConversations.length === 0) {
+      list.innerHTML = '<div style="padding:12px;font-size:11px;color:var(--muted);font-style:italic;">Aucune connexion acceptée</div>';
+      return;
+    }
+    list.innerHTML = sharedConversations.map(sc => {
+      const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
+      const date = new Date(sc.updated_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'});
+      const isActive = sc.id === activeSharedConvId;
+      return `<div class="conv-item conv-item-shared ${isActive?'active':''}" onclick="openSharedConversation(${sc.id}); if(isMobile()) closeAllPanels();">
+        <div class="conv-title">💬 ${otherName}</div>
+        <div class="conv-date">${date}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function openSharedConversation(id) {
+    if (sharedPollingInterval) clearInterval(sharedPollingInterval);
+    activeSharedConvId = id;
+
+    const res = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    const sc = await res.json();
+
+    // Afficher les deux profils dans la sidebar
+    const myProfile = sc.user1_id === user.id ? sc.user1_profile : sc.user2_profile;
+    const otherProfile = sc.user1_id === user.id ? sc.user2_profile : sc.user1_profile;
+    const myEmail = sc.user1_id === user.id ? sc.user1_email : sc.user2_email;
+    const otherEmail = sc.user1_id === user.id ? sc.user2_email : sc.user1_email;
+    const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
+
+    document.getElementById('profile-panel-label').textContent = 'profils partagés';
+    document.getElementById('profile-title').textContent = `Vous & ${otherName}`;
+    document.getElementById('profile-footer-text').textContent = 'connexion active';
+
+    document.getElementById('profile-body').innerHTML = `
+      <div class="shared-profiles">
+        <div class="shared-profile-card">
+          <div class="shared-profile-name">
+            ${user.name || user.email}
+            <span class="shared-profile-you">Vous</span>
+          </div>
+          <div class="shared-profile-summary">${myProfile?.summary || 'Profil en construction'}</div>
+          <div class="skill-grid" style="margin-bottom:6px">${(myProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
+          <div class="email-chip" onclick="copyEmail('${myEmail}')">
+            <span class="email-chip-text">${myEmail}</span>
+            <span class="email-chip-copy">Copier</span>
+          </div>
+        </div>
+        <div class="shared-profile-card">
+          <div class="shared-profile-name">${otherName}</div>
+          <div class="shared-profile-summary">${otherProfile?.summary || 'Profil en construction'}</div>
+          <div class="skill-grid" style="margin-bottom:6px">${(otherProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
+          <div class="email-chip" onclick="copyEmail('${otherEmail}')">
+            <span class="email-chip-text">${otherEmail}</span>
+            <span class="email-chip-copy">Copier</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    renderSharedMessages(sc, otherName);
+    renderSharedList();
+
+    // Polling toutes les 5 secondes
+    sharedPollingInterval = setInterval(async () => {
+      const r = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
+      if (r.ok) { const updated = await r.json(); renderSharedMessages(updated, otherName); }
+    }, 5000);
+  }
+
+  function renderSharedMessages(sc, otherName) {
+    const msgs = document.getElementById('messages');
+    const messages = Array.isArray(sc.messages) ? sc.messages : [];
+    const scrolledToBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 50;
+
+    msgs.innerHTML = messages.length === 0
+      ? `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;font-style:italic;">Début de votre conversation avec ${otherName}.<br>Dites bonjour !</div>`
+      : messages.map(m => {
+          const isMe = m.sender_id === user.id;
+          const initial = isMe ? (user.name?.[0]?.toUpperCase()||'V') : (otherName?.[0]?.toUpperCase()||'?');
+          const cls = isMe ? 'user' : 'other';
+          return `<div class="msg ${cls}">
+            <div class="av ${isMe?'user':'other'}">${initial}</div>
+            <div>
+              ${!isMe ? `<div class="msg-sender">${m.sender_name}</div>` : ''}
+              <div class="bubble">${escapeHtml(m.text)}</div>
+            </div>
+          </div>`;
+        }).join('');
+
+    if (scrolledToBottom || messages.length === 0) msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function copyEmail(email) {
+    await navigator.clipboard.writeText(email);
+    const chips = document.querySelectorAll('.email-chip-copy');
+    chips.forEach(c => { if (c.closest('.email-chip').querySelector('.email-chip-text').textContent === email) { c.textContent = '✓ Copié'; setTimeout(() => c.textContent = 'Copier', 2000); }});
+  }
+
+  // SEND MESSAGE (unifié IA + shared)
+  async function sendMsg() {
+    if (currentView === 'connexions' && activeSharedConvId) {
+      await sendSharedMessage();
+    } else {
+      await send();
+    }
+  }
+
+  async function sendSharedMessage() {
+    const inp = document.getElementById('inp');
+    const text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    document.getElementById('send-btn').disabled = true;
+
+    await fetch(`/api/shared-conversations/${activeSharedConvId}/messages`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ text })
+    });
+
+    // Recharger les messages
+    const res = await fetch(`/api/shared-conversations/${activeSharedConvId}`, { headers: {'Authorization':'Bearer '+token} });
+    if (res.ok) {
+      const sc = await res.json();
+      const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
+      renderSharedMessages(sc, otherName);
+    }
+    document.getElementById('send-btn').disabled = false;
+    document.getElementById('inp').focus();
+  }
+
+  // SEND IA
   async function send() {
     if (isStreaming) return;
     const inp = document.getElementById('inp');
@@ -819,11 +877,10 @@
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let full = ''; let buffer = '';
-
     while (true) {
       const {done, value} = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, {stream: true});
+      buffer += decoder.decode(value, {stream:true});
       const lines = buffer.split('\n');
       buffer = lines.pop();
       for (const line of lines) {
@@ -835,7 +892,6 @@
         }
       }
     }
-
     cursorEl.remove();
     renderContent(bubble, full);
     msgs.scrollTop = msgs.scrollHeight;
@@ -845,6 +901,98 @@
     setTimeout(loadConversations, 1000);
     setTimeout(loadProfile, 3000);
     setTimeout(loadMatching, 8000);
+  }
+
+  // MATCHING MODAL
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modal-bg')) return;
+    document.getElementById('modal-bg').classList.remove('active');
+    currentMatchData = null;
+  }
+
+  async function openMatchModal(matchName, score, reason) {
+    const res = await fetch(`/api/user-profile-by-name/${encodeURIComponent(matchName)}`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    currentMatchData = { ...data, score, reason };
+    const profile = data.profile || {};
+    const skills = Array.isArray(profile.skills) ? profile.skills : [];
+    const projects = Array.isArray(profile.projects) ? profile.projects : [];
+    const traits = profile.traits || {};
+
+    document.getElementById('modal-name').textContent = matchName;
+    document.getElementById('modal-summary').textContent = profile.summary || '';
+    document.getElementById('modal-score').textContent = score + '%';
+    document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(s=>`<span class="stag">${s}</span>`).join('') : '<span class="empty-state">aucune</span>';
+    document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('') : '<span class="empty-state">aucun</span>';
+
+    const traitLabels = [['vision','Vision','v'],['technicite','Technicité','t'],['entrepreneuriat','Entrepreneuriat','e'],
+      ['creativite','Créativité','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
+    document.getElementById('modal-traits').innerHTML = traitLabels.map(([k,label,cls]) => `
+      <div class="trait"><span class="trait-name">${label}</span>
+      <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${traits[k]||0}%"></div></div>
+      <span class="trait-pct">${traits[k]||0}%</span></div>`).join('');
+
+    const alreadySent = sentRequests.some(r => r.receiver_id === data.user_id && r.status === 'pending');
+    const btn = document.getElementById('modal-request-btn');
+    btn.textContent = alreadySent ? '✓ Demande envoyée' : 'Envoyer une demande';
+    btn.disabled = alreadySent;
+    document.getElementById('modal-bg').classList.add('active');
+  }
+
+  async function sendRequest() {
+    if (!currentMatchData || !conversationId) return;
+    const btn = document.getElementById('modal-request-btn');
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    const res = await fetch('/api/connection-requests', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ receiverId: currentMatchData.user_id, senderConvId: conversationId, receiverConvId: currentMatchData.conv_id })
+    });
+    if (res.ok) { btn.textContent = '✓ Demande envoyée'; await loadSentRequests(); }
+    else { btn.textContent = 'Erreur — réessayer'; btn.disabled = false; }
+  }
+
+  async function loadSentRequests() {
+    const res = await fetch('/api/connection-requests/sent', { headers: {'Authorization':'Bearer '+token} });
+    if (res.ok) sentRequests = await res.json();
+  }
+
+  async function loadReceivedRequests() {
+    const res = await fetch('/api/connection-requests/received', { headers: {'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    const requests = await res.json();
+    const badge = document.getElementById('notif-badge');
+    const list = document.getElementById('notif-list');
+    if (requests.length === 0) { badge.style.display = 'none'; list.innerHTML = '<div class="notif-empty">Aucune demande en attente</div>'; return; }
+    badge.style.display = 'flex'; badge.textContent = requests.length;
+    list.innerHTML = requests.map(r => {
+      const profile = r.sender_profile || {};
+      const summary = profile.summary || r.sender_conv_title || '';
+      return `<div class="notif-item">
+        <div class="notif-item-name">${r.sender_name}</div>
+        <div class="notif-item-text">${summary}</div>
+        <div class="notif-actions">
+          <button class="notif-accept" onclick="respondRequest(${r.id},'accepted')">Accepter</button>
+          <button class="notif-decline" onclick="respondRequest(${r.id},'declined')">Refuser</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function respondRequest(id, status) {
+    await fetch(`/api/connection-requests/${id}`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ status })
+    });
+    await loadReceivedRequests();
+    if (status === 'accepted') {
+      await loadSharedConversations();
+      switchView('connexions');
+    }
   }
 </script>
 </body>

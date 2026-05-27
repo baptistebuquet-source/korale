@@ -51,6 +51,28 @@ async function initDB() {
       traits JSONB DEFAULT '{}',
       updated_at TIMESTAMP DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS connection_requests (
+      id SERIAL PRIMARY KEY,
+      sender_id INTEGER REFERENCES users(id),
+      receiver_id INTEGER REFERENCES users(id),
+      sender_conv_id INTEGER REFERENCES conversations(id),
+      receiver_conv_id INTEGER REFERENCES conversations(id),
+      status VARCHAR(20) DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(sender_id, receiver_id, sender_conv_id)
+    );
+    CREATE TABLE IF NOT EXISTS shared_conversations (
+      id SERIAL PRIMARY KEY,
+      request_id INTEGER REFERENCES connection_requests(id),
+      user1_id INTEGER REFERENCES users(id),
+      user2_id INTEGER REFERENCES users(id),
+      user1_conv_id INTEGER REFERENCES conversations(id),
+      user2_conv_id INTEGER REFERENCES conversations(id),
+      messages JSONB DEFAULT '[]',
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
   `);
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS title VARCHAR(255)`);
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS profile JSONB DEFAULT '{}'`);
@@ -106,10 +128,8 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Analyse le profil pour UNE conversation spécifique
 async function analyzeConversationProfile(messages) {
   const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-
   const analysis = await client.messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 1024,
@@ -138,7 +158,6 @@ Réponds UNIQUEMENT en JSON valide:
 Maximum 6 compétences, 3 projets. Scores entre 0 et 100 basés uniquement sur cette conversation. JSON uniquement.`
     }]
   });
-
   try {
     let text = analysis.content[0].text.trim();
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -160,7 +179,6 @@ async function generateTitle(messages) {
   return result.content[0].text.trim();
 }
 
-// Profil global (pour compatibilité - retourne profil de la dernière conv active)
 app.get('/api/profile', authMiddleware, async (req, res) => {
   const { conversationId } = req.query;
   if (conversationId) {
@@ -168,11 +186,8 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
       'SELECT profile FROM conversations WHERE id = $1 AND user_id = $2',
       [conversationId, req.user.id]
     );
-    if (result.rows[0] && result.rows[0].profile) {
-      return res.json(result.rows[0].profile);
-    }
+    if (result.rows[0] && result.rows[0].profile) return res.json(result.rows[0].profile);
   }
-  // Fallback: dernière conversation avec profil
   const result = await pool.query(
     `SELECT profile FROM conversations WHERE user_id = $1 AND profile != '{}' ORDER BY updated_at DESC LIMIT 1`,
     [req.user.id]
@@ -180,7 +195,6 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
   res.json(result.rows[0]?.profile || {});
 });
 
-// Liste des conversations
 app.get('/api/conversations/list', authMiddleware, async (req, res) => {
   const result = await pool.query(
     'SELECT id, title, created_at, updated_at, profile FROM conversations WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 50',
@@ -189,7 +203,6 @@ app.get('/api/conversations/list', authMiddleware, async (req, res) => {
   res.json(result.rows);
 });
 
-// Charger une conversation
 app.get('/api/conversations/:id', authMiddleware, async (req, res) => {
   const result = await pool.query(
     'SELECT * FROM conversations WHERE id = $1 AND user_id = $2',
@@ -226,15 +239,11 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
       'UPDATE conversations SET messages = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3',
       [JSON.stringify(allMessages), conversationId, req.user.id]
     );
-
-    // Générer titre si première réponse
     if (messages.length === 1) {
       generateTitle(allMessages).then(title => {
         if (title) pool.query('UPDATE conversations SET title = $1 WHERE id = $2', [title, conversationId]);
       }).catch(console.error);
     }
-
-    // Analyser le profil de CETTE conversation
     analyzeConversationProfile(allMessages)
       .then(async (profile) => {
         if (profile) {
@@ -258,11 +267,8 @@ app.post('/api/conversations', authMiddleware, async (req, res) => {
   res.json({ id: result.rows[0].id });
 });
 
-// Matching basé sur le profil de la conversation courante
 app.get('/api/matching', authMiddleware, async (req, res) => {
   const { context, conversationId } = req.query;
-
-  // Récupérer le profil de la conversation courante
   let myProfile = {};
   if (conversationId) {
     const convResult = await pool.query(
@@ -271,8 +277,6 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     );
     myProfile = convResult.rows[0]?.profile || {};
   }
-
-  // Fallback sur dernière conv avec profil
   if (!myProfile.skills) {
     const fallback = await pool.query(
       `SELECT profile FROM conversations WHERE user_id = $1 AND profile != '{}' ORDER BY updated_at DESC LIMIT 1`,
@@ -280,10 +284,8 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     );
     myProfile = fallback.rows[0]?.profile || {};
   }
-
   if (!myProfile.skills || myProfile.skills.length === 0) return res.json([]);
 
-  // Récupérer profils des autres utilisateurs (via leur dernière conv avec profil)
   const others = await pool.query(`
     SELECT DISTINCT ON (c.user_id) c.profile, u.name, u.id as user_id, c.id as conv_id
     FROM conversations c
@@ -298,7 +300,6 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
 
   const mySkills = Array.isArray(myProfile.skills) ? myProfile.skills : [];
   const myTraits = myProfile.traits || {};
-
   const profilesText = others.rows.map(p => {
     const prof = p.profile || {};
     const skills = Array.isArray(prof.skills) ? prof.skills : [];
@@ -347,35 +348,38 @@ Trie par score décroissant. JSON uniquement.`
   }
 });
 
-
-// Récupérer le profil public d'un match (sa meilleure conv compatible)
 app.get('/api/user-profile/:userId', authMiddleware, async (req, res) => {
-  const { convContext } = req.query;
-  
-  // Trouver la conversation de cet utilisateur la plus pertinente
   const result = await pool.query(`
     SELECT DISTINCT ON (c.user_id) c.id, c.profile, c.title, u.name
     FROM conversations c
     JOIN users u ON c.user_id = u.id
-    WHERE c.user_id = $1
-      AND c.profile != '{}'
-      AND c.profile IS NOT NULL
+    WHERE c.user_id = $1 AND c.profile != '{}' AND c.profile IS NOT NULL
     ORDER BY c.user_id, c.updated_at DESC
   `, [req.params.userId]);
-
   if (!result.rows[0]) return res.status(404).json({ error: 'Profil non trouvé' });
   res.json(result.rows[0]);
 });
 
-// Envoyer une demande de mise en relation
+app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
+  const result = await pool.query(`
+    SELECT DISTINCT ON (c.user_id) c.id as conv_id, c.profile, u.name, u.id as user_id
+    FROM conversations c
+    JOIN users u ON c.user_id = u.id
+    WHERE u.name = $1 AND c.profile != '{}' AND c.profile IS NOT NULL
+    ORDER BY c.user_id, c.updated_at DESC
+  `, [req.params.name]);
+  if (!result.rows[0]) return res.status(404).json({ error: 'Non trouvé' });
+  res.json(result.rows[0]);
+});
+
+// CONNECTION REQUESTS
 app.post('/api/connection-requests', authMiddleware, async (req, res) => {
   const { receiverId, senderConvId, receiverConvId } = req.body;
   try {
     const result = await pool.query(
       `INSERT INTO connection_requests (sender_id, receiver_id, sender_conv_id, receiver_conv_id)
        VALUES ($1, $2, $3, $4)
-       ON CONFLICT (sender_id, receiver_id, sender_conv_id) DO NOTHING
-       RETURNING *`,
+       ON CONFLICT (sender_id, receiver_id, sender_conv_id) DO NOTHING RETURNING *`,
       [req.user.id, receiverId, senderConvId, receiverConvId]
     );
     res.json({ success: true, request: result.rows[0] });
@@ -384,7 +388,6 @@ app.post('/api/connection-requests', authMiddleware, async (req, res) => {
   }
 });
 
-// Mes demandes reçues
 app.get('/api/connection-requests/received', authMiddleware, async (req, res) => {
   const result = await pool.query(`
     SELECT cr.*, u.name as sender_name, c.profile as sender_profile, c.title as sender_conv_title
@@ -397,18 +400,6 @@ app.get('/api/connection-requests/received', authMiddleware, async (req, res) =>
   res.json(result.rows);
 });
 
-// Accepter ou refuser une demande
-app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
-  const { status } = req.body; // 'accepted' ou 'declined'
-  const result = await pool.query(
-    `UPDATE connection_requests SET status = $1, updated_at = NOW()
-     WHERE id = $2 AND receiver_id = $3 RETURNING *`,
-    [status, req.params.id, req.user.id]
-  );
-  res.json(result.rows[0]);
-});
-
-// Mes demandes envoyées (pour savoir si déjà envoyé)
 app.get('/api/connection-requests/sent', authMiddleware, async (req, res) => {
   const result = await pool.query(
     `SELECT * FROM connection_requests WHERE sender_id = $1`,
@@ -417,22 +408,89 @@ app.get('/api/connection-requests/sent', authMiddleware, async (req, res) => {
   res.json(result.rows);
 });
 
+// PATCH — accepter/refuser + créer shared_conversation si accepté
+app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
+  const { status } = req.body;
+  const result = await pool.query(
+    `UPDATE connection_requests SET status = $1, updated_at = NOW()
+     WHERE id = $2 AND receiver_id = $3 RETURNING *`,
+    [status, req.params.id, req.user.id]
+  );
+  const request = result.rows[0];
+  if (!request) return res.status(404).json({ error: 'Non trouvée' });
 
-app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
+  if (status === 'accepted') {
+    await pool.query(
+      `INSERT INTO shared_conversations
+       (request_id, user1_id, user2_id, user1_conv_id, user2_conv_id)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT DO NOTHING`,
+      [request.id, request.sender_id, request.receiver_id,
+       request.sender_conv_id, request.receiver_conv_id]
+    );
+  }
+  res.json(request);
+});
+
+// SHARED CONVERSATIONS
+app.get('/api/shared-conversations', authMiddleware, async (req, res) => {
   const result = await pool.query(`
-    SELECT DISTINCT ON (c.user_id) c.id as conv_id, c.profile, u.name, u.id as user_id
-    FROM conversations c
-    JOIN users u ON c.user_id = u.id
-    WHERE u.name = $1
-      AND c.profile != '{}'
-      AND c.profile IS NOT NULL
-    ORDER BY c.user_id, c.updated_at DESC
-  `, [req.params.name]);
-  if (!result.rows[0]) return res.status(404).json({ error: 'Non trouvé' });
+    SELECT sc.*,
+      u1.name as user1_name, u1.email as user1_email,
+      u2.name as user2_name, u2.email as user2_email,
+      c1.profile as user1_profile,
+      c2.profile as user2_profile
+    FROM shared_conversations sc
+    JOIN users u1 ON sc.user1_id = u1.id
+    JOIN users u2 ON sc.user2_id = u2.id
+    JOIN conversations c1 ON sc.user1_conv_id = c1.id
+    JOIN conversations c2 ON sc.user2_conv_id = c2.id
+    WHERE sc.user1_id = $1 OR sc.user2_id = $1
+    ORDER BY sc.updated_at DESC
+  `, [req.user.id]);
+  res.json(result.rows);
+});
+
+app.get('/api/shared-conversations/:id', authMiddleware, async (req, res) => {
+  const result = await pool.query(`
+    SELECT sc.*,
+      u1.name as user1_name, u1.email as user1_email,
+      u2.name as user2_name, u2.email as user2_email,
+      c1.profile as user1_profile,
+      c2.profile as user2_profile
+    FROM shared_conversations sc
+    JOIN users u1 ON sc.user1_id = u1.id
+    JOIN users u2 ON sc.user2_id = u2.id
+    JOIN conversations c1 ON sc.user1_conv_id = c1.id
+    JOIN conversations c2 ON sc.user2_conv_id = c2.id
+    WHERE sc.id = $1 AND (sc.user1_id = $2 OR sc.user2_id = $2)
+  `, [req.params.id, req.user.id]);
+  if (!result.rows[0]) return res.status(404).json({ error: 'Non trouvée' });
   res.json(result.rows[0]);
 });
 
-
+app.post('/api/shared-conversations/:id/messages', authMiddleware, async (req, res) => {
+  const { text } = req.body;
+  if (!text?.trim()) return res.status(400).json({ error: 'Message vide' });
+  const conv = await pool.query(
+    'SELECT * FROM shared_conversations WHERE id = $1 AND (user1_id = $2 OR user2_id = $2)',
+    [req.params.id, req.user.id]
+  );
+  if (!conv.rows[0]) return res.status(404).json({ error: 'Non trouvée' });
+  const messages = Array.isArray(conv.rows[0].messages) ? conv.rows[0].messages : [];
+  const newMsg = {
+    sender_id: req.user.id,
+    sender_name: req.user.name || req.user.email,
+    text: text.trim(),
+    created_at: new Date().toISOString()
+  };
+  messages.push(newMsg);
+  await pool.query(
+    'UPDATE shared_conversations SET messages = $1, updated_at = NOW() WHERE id = $2',
+    [JSON.stringify(messages), req.params.id]
+  );
+  res.json(newMsg);
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Korale running on port ${PORT}`));
