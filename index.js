@@ -39,6 +39,7 @@ async function initDB() {
       user_id INTEGER REFERENCES users(id),
       title VARCHAR(255),
       messages JSONB DEFAULT '[]',
+      profile JSONB DEFAULT '{}',
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -51,8 +52,8 @@ async function initDB() {
       updated_at TIMESTAMP DEFAULT NOW()
     );
   `);
-  // Ajouter colonne title si elle n'existe pas
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS title VARCHAR(255)`);
+  await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS profile JSONB DEFAULT '{}'`);
   console.log('Base de données initialisée');
 }
 
@@ -105,46 +106,36 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-async function analyzeProfile(userId, messages) {
-  // Récupérer le profil existant
-  const existing = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [userId]);
-  const currentProfile = existing.rows[0] || {};
-  const currentSkills = Array.isArray(currentProfile.skills) ? currentProfile.skills : [];
-  const currentProjects = Array.isArray(currentProfile.projects) ? currentProfile.projects : [];
-  const currentTraits = currentProfile.traits || {};
-
+// Analyse le profil pour UNE conversation spécifique
+async function analyzeConversationProfile(messages) {
   const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-  
+
   const analysis = await client.messages.create({
     model: 'claude-sonnet-4-5',
-    max_tokens: 4096,
+    max_tokens: 1024,
     messages: [{
       role: 'user',
-      content: `Analyse cette conversation et extrais les informations sur l'utilisateur.
+      content: `Analyse cette conversation et extrais le profil de l'utilisateur pour CETTE conversation uniquement.
 
-      Profil actuel:
-      - Compétences: ${currentSkills.join(', ') || 'aucune encore'}
-      - Projets: ${currentProjects.join(', ') || 'aucun encore'}
+Conversation:
+${conversation}
 
-      Nouvelle conversation:
-      ${conversation}
+Réponds UNIQUEMENT en JSON valide:
+{
+  "skills": ["compétence1", "compétence2"],
+  "projects": ["projet1", "projet2"],
+  "traits": {
+    "vision": 0,
+    "technicite": 0,
+    "entrepreneuriat": 0,
+    "creativite": 0,
+    "collaboration": 0,
+    "leadership": 0
+  },
+  "summary": "résumé en une phrase de ce dont parle cette conversation"
+}
 
-      Réponds UNIQUEMENT en JSON valide:
-      {
-        "skills": ["compétence1", "compétence2"],
-        "projects": ["projet1", "projet2"],
-        "traits": {
-          "vision": 0,
-          "technicite": 0,
-          "entrepreneuriat": 0,
-          "creativite": 0,
-          "collaboration": 0,
-          "leadership": 0
-        },
-        "summary": "résumé en une phrase"
-      }
-
-      Maximum 8 compétences, 5 projets. Scores entre 0 et 100. JSON uniquement.`
+Maximum 6 compétences, 3 projets. Scores entre 0 et 100 basés uniquement sur cette conversation. JSON uniquement.`
     }]
   });
 
@@ -153,7 +144,7 @@ async function analyzeProfile(userId, messages) {
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(text);
   } catch(e) {
-    console.log('Erreur parsing JSON:', e.message);
+    console.log('Erreur parsing JSON profil conv:', e.message);
     return null;
   }
 }
@@ -169,15 +160,30 @@ async function generateTitle(messages) {
   return result.content[0].text.trim();
 }
 
+// Profil global (pour compatibilité - retourne profil de la dernière conv active)
 app.get('/api/profile', authMiddleware, async (req, res) => {
-  const result = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [req.user.id]);
-  res.json(result.rows[0] || {});
+  const { conversationId } = req.query;
+  if (conversationId) {
+    const result = await pool.query(
+      'SELECT profile FROM conversations WHERE id = $1 AND user_id = $2',
+      [conversationId, req.user.id]
+    );
+    if (result.rows[0] && result.rows[0].profile) {
+      return res.json(result.rows[0].profile);
+    }
+  }
+  // Fallback: dernière conversation avec profil
+  const result = await pool.query(
+    `SELECT profile FROM conversations WHERE user_id = $1 AND profile != '{}' ORDER BY updated_at DESC LIMIT 1`,
+    [req.user.id]
+  );
+  res.json(result.rows[0]?.profile || {});
 });
 
 // Liste des conversations
 app.get('/api/conversations/list', authMiddleware, async (req, res) => {
   const result = await pool.query(
-    'SELECT id, title, created_at, updated_at FROM conversations WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 50',
+    'SELECT id, title, created_at, updated_at, profile FROM conversations WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 50',
     [req.user.id]
   );
   res.json(result.rows);
@@ -220,21 +226,24 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
       'UPDATE conversations SET messages = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3',
       [JSON.stringify(allMessages), conversationId, req.user.id]
     );
+
     // Générer titre si première réponse
     if (messages.length === 1) {
       generateTitle(allMessages).then(title => {
         if (title) pool.query('UPDATE conversations SET title = $1 WHERE id = $2', [title, conversationId]);
       }).catch(console.error);
     }
-    analyzeProfile(req.user.id, allMessages)
+
+    // Analyser le profil de CETTE conversation
+    analyzeConversationProfile(allMessages)
       .then(async (profile) => {
         if (profile) {
           await pool.query(
-            `UPDATE profiles SET skills = $1, projects = $2, traits = $3, updated_at = NOW() WHERE user_id = $4`,
-            [JSON.stringify(profile.skills), JSON.stringify(profile.projects), JSON.stringify(profile.traits), req.user.id]
+            'UPDATE conversations SET profile = $1 WHERE id = $2 AND user_id = $3',
+            [JSON.stringify(profile), conversationId, req.user.id]
           );
         }
-      }).catch(e => console.log('Erreur analyse:', e.message));
+      }).catch(e => console.log('Erreur analyse conv:', e.message));
   }
 
   res.write('data: [DONE]\n\n');
@@ -249,31 +258,52 @@ app.post('/api/conversations', authMiddleware, async (req, res) => {
   res.json({ id: result.rows[0].id });
 });
 
-
+// Matching basé sur le profil de la conversation courante
 app.get('/api/matching', authMiddleware, async (req, res) => {
-  const { context } = req.query;
-  
-  // Récupérer le profil de l'utilisateur
-  const userProfile = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [req.user.id]);
-  const myProfile = userProfile.rows[0];
-  if (!myProfile) return res.json([]);
+  const { context, conversationId } = req.query;
 
-  // Récupérer tous les autres profils
-  const others = await pool.query(
-    'SELECT p.*, u.name, u.id as user_id FROM profiles p JOIN users u ON p.user_id = u.id WHERE p.user_id != $1',
-    [req.user.id]
-  );
+  // Récupérer le profil de la conversation courante
+  let myProfile = {};
+  if (conversationId) {
+    const convResult = await pool.query(
+      'SELECT profile FROM conversations WHERE id = $1 AND user_id = $2',
+      [conversationId, req.user.id]
+    );
+    myProfile = convResult.rows[0]?.profile || {};
+  }
+
+  // Fallback sur dernière conv avec profil
+  if (!myProfile.skills) {
+    const fallback = await pool.query(
+      `SELECT profile FROM conversations WHERE user_id = $1 AND profile != '{}' ORDER BY updated_at DESC LIMIT 1`,
+      [req.user.id]
+    );
+    myProfile = fallback.rows[0]?.profile || {};
+  }
+
+  if (!myProfile.skills || myProfile.skills.length === 0) return res.json([]);
+
+  // Récupérer profils des autres utilisateurs (via leur dernière conv avec profil)
+  const others = await pool.query(`
+    SELECT DISTINCT ON (c.user_id) c.profile, u.name, u.id as user_id, c.id as conv_id
+    FROM conversations c
+    JOIN users u ON c.user_id = u.id
+    WHERE c.user_id != $1
+      AND c.profile != '{}'
+      AND c.profile IS NOT NULL
+    ORDER BY c.user_id, c.updated_at DESC
+  `, [req.user.id]);
 
   if (others.rows.length === 0) return res.json([]);
 
   const mySkills = Array.isArray(myProfile.skills) ? myProfile.skills : [];
   const myTraits = myProfile.traits || {};
 
-  // Demander à Claude de calculer les compatibilités
   const profilesText = others.rows.map(p => {
-    const skills = Array.isArray(p.skills) ? p.skills : [];
-    const traits = p.traits || {};
-    return `- ${p.name}: compétences=[${skills.join(', ')}], vision=${traits.vision||0}%, technicité=${traits.technicite||0}%, entrepreneuriat=${traits.entrepreneuriat||0}%`;
+    const prof = p.profile || {};
+    const skills = Array.isArray(prof.skills) ? prof.skills : [];
+    const traits = prof.traits || {};
+    return `- ${p.name}: compétences=[${skills.join(', ')}], vision=${traits.vision||0}%, technicité=${traits.technicite||0}%, entrepreneuriat=${traits.entrepreneuriat||0}%, créativité=${traits.creativite||0}%, collaboration=${traits.collaboration||0}%, leadership=${traits.leadership||0}%`;
   }).join('\n');
 
   const analysis = await client.messages.create({
@@ -283,18 +313,19 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
       role: 'user',
       content: `Tu es un moteur de matching pour Korale, une plateforme de collaboration.
 
-Profil de l'utilisateur:
+Profil de l'utilisateur pour cette conversation:
 - Compétences: ${mySkills.join(', ')}
-- Vision: ${myTraits.vision||0}%, Technicité: ${myTraits.technicite||0}%, Entrepreneuriat: ${myTraits.entrepreneuriat||0}%
+- Vision: ${myTraits.vision||0}%, Technicité: ${myTraits.technicite||0}%, Entrepreneuriat: ${myTraits.entrepreneuriat||0}%, Créativité: ${myTraits.creativite||0}%, Collaboration: ${myTraits.collaboration||0}%, Leadership: ${myTraits.leadership||0}%
+- Résumé: ${myProfile.summary || 'non disponible'}
 
-Contexte de la conversation actuelle: "${context || 'général'}"
+Contexte de la conversation: "${context || 'général'}"
 
 Profils disponibles:
 ${profilesText}
 
 Calcule un score de compatibilité (0-100) pour chaque profil en tenant compte:
-1. De la complémentarité des compétences (pas la similarité)
-2. De l'équilibre des traits de personnalité
+1. De la complémentarité des compétences
+2. De l'équilibre des traits
 3. Du contexte de la conversation
 
 Réponds UNIQUEMENT en JSON:
@@ -302,7 +333,7 @@ Réponds UNIQUEMENT en JSON:
   {"name": "prénom", "score": 85, "reason": "raison courte en 5 mots max"},
   ...
 ]
-Trie par score décroissant. Ne réponds qu'avec le JSON.`
+Trie par score décroissant. JSON uniquement.`
     }]
   });
 
@@ -315,7 +346,6 @@ Trie par score décroissant. Ne réponds qu'avec le JSON.`
     res.json([]);
   }
 });
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Korale running on port ${PORT}`));
