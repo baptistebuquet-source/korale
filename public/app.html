@@ -439,6 +439,7 @@
         🔔
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
+      <button class="header-icon-btn" id="tab-connexions" onclick="switchView('connexions')" title="Connexions">🤝</button>
       <button class="header-icon-btn profile-btn" onclick="toggleProfile()" title="Profil">◎</button>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
@@ -457,11 +458,6 @@
     <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
       <span class="mobile-nav-icon">🤝</span>
       Connexions
-    </button>
-    <button class="mobile-nav-btn mobile-notif-dot" onclick="toggleNotifs()">
-      <span class="mobile-nav-icon">🔔</span>
-      <span class="mobile-notif-badge" id="mob-notif-badge" style="display:none">0</span>
-      Notifs
     </button>
     <button class="mobile-nav-btn" onclick="toggleProfile()">
       <span class="mobile-nav-icon">◎</span>
@@ -617,13 +613,14 @@
     if (mobNew) mobNew.style.display = view === 'ai' ? '' : 'none';
   }
 
-  function switchView(view) {
+function switchView(view) {
     currentView = view;
     document.getElementById('tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
+    const tabConnTop = document.getElementById('tab-connexions-top');
+    if (tabConnTop) tabConnTop.classList.toggle('active', view === 'connexions');
     document.getElementById('new-conv-btn').style.display = view === 'ai' ? '' : 'none';
     updateMobileNav(view);
-
     if (view === 'ai') {
       document.getElementById('history-label-text').textContent = 'Conversations';
       document.getElementById('profile-panel-label').textContent = 'profil de cette conversation';
