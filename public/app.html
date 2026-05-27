@@ -266,6 +266,7 @@
     .notif-decline { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .notif-decline:hover { border-color: var(--rose); color: var(--rose); }
     .notif-empty { padding: 20px; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
+    .nav-separator { width: 1px; height: 20px; background: var(--border2); margin: 0 4px; }
 
     /* ===================== RESPONSIVE MOBILE ===================== */
     @media (max-width: 768px) {
@@ -339,6 +340,8 @@
       .send-btn { padding: 11px 14px; }
       .modal-cols { grid-template-columns: 1fr; }
       .notif-panel { right: 8px; left: 8px; width: auto; top: 60px; }
+
+      .desktop-only { display: none; }
     }
   </style>
 </head>
@@ -422,10 +425,11 @@
     <button class="header-icon-btn" onclick="toggleHistory()" title="Historique des conversations">☰</button>
     <div class="logo" onclick="switchView('ai')">Korale</div>
     <div class="nav-tabs">
-      <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
-      <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Connexions</button>
+          <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
+          <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
+          <div class="nav-separator"></div>
+          <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Connexions</button>
     </div>
-    <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
     <div class="header-spacer"></div>
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
@@ -433,7 +437,7 @@
         🔔
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
-      <button class="header-icon-btn" onclick="toggleProfile()" title="Analyse de la conversation">◈</button>
+      <button class="header-icon-btn desktop-only" onclick="toggleProfile()" title="Analyse de la conversation">◈</button>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
   </header>
@@ -448,13 +452,13 @@
       <span class="mobile-nav-icon">＋</span>
       Nouveau
     </button>
+     <button class="mobile-nav-btn" onclick="toggleProfile()">
+          <span class="mobile-nav-icon">◈</span>
+          Analyse
+    </button>   
     <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
       <span class="mobile-nav-icon">🤝</span>
       Connexions
-    </button>
-    <button class="mobile-nav-btn" onclick="toggleProfile()">
-      <span class="mobile-nav-icon">◈</span>
-      Analyse
     </button>
   </div>
 
