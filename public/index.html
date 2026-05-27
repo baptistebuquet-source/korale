@@ -72,6 +72,8 @@
     .new-conv-btn { background: var(--accent-soft); border-color: rgba(91,141,238,0.3); color: var(--accent); }
     .new-conv-btn:hover { background: var(--accent-soft2); }
     .user-badge { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .notif-btn { position: relative; }
+    .notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: var(--rose); border-radius: 50%; font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
 
     .main { display: flex; flex: 1; overflow: hidden; position: relative; }
 
@@ -184,40 +186,61 @@
     .match-reason { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .match-score { font-size: 11px; color: var(--green); font-weight: 600; float: right; }
 
+    /* MODAL PROFIL MATCH */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-bg.active { display: flex; }
+    .modal { background: var(--surface); border-radius: 20px; width: 520px; max-width: calc(100vw - 32px); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,0.15); overflow: hidden; animation: modalIn 0.25s ease; }
+    @keyframes modalIn { from { opacity:0; transform:translateY(16px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+    .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; }
+    .modal-header-left { flex: 1; }
+    .modal-name { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .modal-summary { font-size: 12px; color: var(--muted); line-height: 1.5; font-style: italic; }
+    .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; padding: 0 4px; line-height: 1; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+    .modal-body::-webkit-scrollbar { width: 3px; }
+    .modal-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    .modal-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .modal-col-title { font-size: 10px; color: var(--accent2); letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--accent-soft); }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); flex-shrink: 0; display: flex; gap: 10px; align-items: center; }
+    .btn-primary { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: none; border: 1px solid var(--border2); color: var(--text2); padding: 10px 16px; border-radius: 10px; font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .modal-compat { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .modal-compat-score { font-size: 22px; font-weight: 700; color: var(--green); }
+    .modal-compat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* NOTIFICATIONS */
+    .notif-panel { position: fixed; top: 60px; right: 16px; width: 320px; background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 80; display: none; }
+    .notif-panel.active { display: block; }
+    .notif-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .notif-title { font-size: 12px; font-weight: 600; color: var(--text); }
+    .notif-list { padding: 8px; max-height: 300px; overflow-y: auto; }
+    .notif-item { padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; border: 1px solid var(--border); background: var(--surface2); }
+    .notif-item-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .notif-item-text { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .notif-actions { display: flex; gap: 6px; }
+    .notif-accept { background: var(--accent); border: none; color: white; padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; font-weight: 500; }
+    .notif-decline { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; }
+    .notif-empty { padding: 16px; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
+
     /* RESPONSIVE MOBILE */
     @media (max-width: 768px) {
       .auth-box { width: calc(100% - 32px); padding: 36px 24px; border-radius: 20px; }
       .auth-logo { font-size: 26px; }
       .bd1, .bd3 { display: none; }
-
       header { padding: 0 12px; gap: 6px; }
       .logo { font-size: 17px; }
       .user-badge { display: none; }
       .header-btn { padding: 5px 8px; font-size: 11px; }
-
-      /* Panneaux overlay */
-      .history-panel {
-        position: fixed; top: 52px; left: 0; bottom: 0;
-        width: 285px !important;
-        z-index: 50;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
-        box-shadow: 4px 0 24px rgba(0,0,0,0.12);
-      }
+      .history-panel { position: fixed; top: 52px; left: 0; bottom: 0; width: 285px !important; z-index: 50; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: 4px 0 24px rgba(0,0,0,0.12); }
       .history-panel.collapsed { width: 285px !important; }
       .history-panel.open { transform: translateX(0) !important; }
-
-      .profile-panel {
-        position: fixed; top: 52px; right: 0; bottom: 0;
-        width: 285px !important;
-        z-index: 50;
-        transform: translateX(100%);
-        transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
-        box-shadow: -4px 0 24px rgba(0,0,0,0.12);
-      }
+      .profile-panel { position: fixed; top: 52px; right: 0; bottom: 0; width: 285px !important; z-index: 50; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: -4px 0 24px rgba(0,0,0,0.12); }
       .profile-panel.collapsed { width: 285px !important; }
       .profile-panel.open { transform: translateX(0) !important; }
-
       .panel-close { display: block; }
       .chat-area { border-right: none; }
       #messages { padding: 20px 14px; gap: 16px; }
@@ -225,6 +248,8 @@
       footer { padding: 10px 12px 20px; }
       #inp { font-size: 16px; }
       .send-btn { padding: 11px 14px; }
+      .modal-cols { grid-template-columns: 1fr; }
+      .notif-panel { right: 8px; left: 8px; width: auto; }
     }
   </style>
 </head>
@@ -253,6 +278,53 @@
   </div>
 </div>
 
+<!-- MODAL PROFIL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-name" id="modal-name"></div>
+        <div class="modal-summary" id="modal-summary"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-cols">
+        <div>
+          <div class="modal-col-title">Son profil</div>
+          <div class="sec-label">compétences</div>
+          <div class="skill-grid" id="modal-skills" style="margin-bottom:14px"></div>
+          <div class="sec-label">projets</div>
+          <div id="modal-projects"></div>
+        </div>
+        <div>
+          <div class="modal-col-title">Traits de travail</div>
+          <div id="modal-traits"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Fermer</button>
+      <button class="btn-primary" id="modal-request-btn" onclick="sendRequest()">Envoyer une demande</button>
+      <div class="modal-compat">
+        <div class="modal-compat-score" id="modal-score"></div>
+        <div class="modal-compat-label">compatibilité</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL NOTIFICATIONS -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-header">
+    <div class="notif-title">Demandes reçues</div>
+    <button class="panel-close" style="display:block" onclick="toggleNotifs()">✕</button>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty">Aucune demande en attente</div>
+  </div>
+</div>
+
 <div id="chat-screen">
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
   <header>
@@ -261,6 +333,10 @@
     <button class="header-btn new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
+      <button class="header-btn notif-btn" id="notif-btn" onclick="toggleNotifs()" title="Demandes reçues">
+        🔔
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
       <button class="header-btn" onclick="toggleProfile()">◎</button>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
@@ -360,6 +436,7 @@
     document.getElementById('history-panel').classList.remove('open');
     document.getElementById('profile-panel').classList.remove('open');
     document.getElementById('overlay').classList.remove('active');
+    document.getElementById('notif-panel').classList.remove('active');
   }
 
   function toggleHistory() {
@@ -382,6 +459,141 @@
     } else {
       panel.classList.toggle('collapsed');
     }
+  }
+
+  function toggleNotifs() {
+    document.getElementById('notif-panel').classList.toggle('active');
+  }
+
+  // STATE MODAL
+  let currentMatchData = null;
+  let sentRequests = [];
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modal-bg')) return;
+    document.getElementById('modal-bg').classList.remove('active');
+    currentMatchData = null;
+  }
+
+  async function openMatchModal(matchName, score, reason) {
+    // Charger le profil de cette personne
+    const res = await fetch(`/api/user-profile-by-name/${encodeURIComponent(matchName)}`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    currentMatchData = { ...data, score, reason };
+
+    const profile = data.profile || {};
+    const skills = Array.isArray(profile.skills) ? profile.skills : [];
+    const projects = Array.isArray(profile.projects) ? profile.projects : [];
+    const traits = profile.traits || {};
+
+    document.getElementById('modal-name').textContent = matchName;
+    document.getElementById('modal-summary').textContent = profile.summary || '';
+    document.getElementById('modal-score').textContent = score + '%';
+
+    document.getElementById('modal-skills').innerHTML = skills.length
+      ? skills.map(s => `<span class="stag">${s}</span>`).join('')
+      : '<span class="empty-state">aucune compétence</span>';
+
+    document.getElementById('modal-projects').innerHTML = projects.length
+      ? projects.map(p => `<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('')
+      : '<span class="empty-state">aucun projet</span>';
+
+    const traitLabels = [
+      ['vision','Vision','v'], ['technicite','Technicité','t'], ['entrepreneuriat','Entrepreneuriat','e'],
+      ['creativite','Créativité','c'], ['collaboration','Collaboration','col'], ['leadership','Leadership','l']
+    ];
+    document.getElementById('modal-traits').innerHTML = traitLabels.map(([k, label, cls]) => `
+      <div class="trait">
+        <span class="trait-name">${label}</span>
+        <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${traits[k]||0}%"></div></div>
+        <span class="trait-pct">${traits[k]||0}%</span>
+      </div>
+    `).join('');
+
+    // Vérifier si demande déjà envoyée
+    const alreadySent = sentRequests.some(r => r.receiver_id === data.user_id && r.status === 'pending');
+    const btn = document.getElementById('modal-request-btn');
+    if (alreadySent) {
+      btn.textContent = '✓ Demande envoyée';
+      btn.disabled = true;
+    } else {
+      btn.textContent = 'Envoyer une demande';
+      btn.disabled = false;
+    }
+
+    document.getElementById('modal-bg').classList.add('active');
+  }
+
+  async function sendRequest() {
+    if (!currentMatchData || !conversationId) return;
+    const btn = document.getElementById('modal-request-btn');
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+
+    const res = await fetch('/api/connection-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        receiverId: currentMatchData.user_id,
+        senderConvId: conversationId,
+        receiverConvId: currentMatchData.conv_id
+      })
+    });
+
+    if (res.ok) {
+      btn.textContent = '✓ Demande envoyée';
+      await loadSentRequests();
+    } else {
+      btn.textContent = 'Erreur — réessayer';
+      btn.disabled = false;
+    }
+  }
+
+  async function loadSentRequests() {
+    const res = await fetch('/api/connection-requests/sent', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (res.ok) sentRequests = await res.json();
+  }
+
+  async function loadReceivedRequests() {
+    const res = await fetch('/api/connection-requests/received', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!res.ok) return;
+    const requests = await res.json();
+    const badge = document.getElementById('notif-badge');
+    const list = document.getElementById('notif-list');
+
+    if (requests.length === 0) {
+      badge.style.display = 'none';
+      list.innerHTML = '<div class="notif-empty">Aucune demande en attente</div>';
+      return;
+    }
+
+    badge.style.display = 'flex';
+    badge.textContent = requests.length;
+
+    list.innerHTML = requests.map(r => {
+      const profile = r.sender_profile || {};
+      const summary = profile.summary || r.sender_conv_title || 'Conversation';
+      return `<div class="notif-item">
+        <div class="notif-item-name">${r.sender_name}</div>
+        <div class="notif-item-text">${summary}</div>
+        <div class="notif-actions">
+          <button class="notif-accept" onclick="respondRequest(${r.id}, 'accepted')">Accepter</button>
+          <button class="notif-decline" onclick="respondRequest(${r.id}, 'declined')">Refuser</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function respondRequest(id, status) {
+    await fetch(`/api/connection-requests/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ status })
+    });
+    await loadReceivedRequests();
   }
 
   let token = localStorage.getItem('korale_token');
@@ -426,6 +638,9 @@
     await loadConversations();
     conversationId = null; history = [];
     resetProfile();
+    loadSentRequests();
+    loadReceivedRequests();
+    setInterval(loadReceivedRequests, 30000);
   }
 
   function resetProfile() {
@@ -495,7 +710,6 @@
     });
     msgs.scrollTop = msgs.scrollHeight;
     renderConversationList();
-    // Charger le profil de cette conversation
     if (conv.profile && conv.profile.skills) {
       renderProfile(conv.profile);
       loadMatching();
@@ -515,25 +729,19 @@
     const skills = Array.isArray(profile.skills) ? profile.skills : [];
     const projects = Array.isArray(profile.projects) ? profile.projects : [];
     const traits = profile.traits || {};
-
     if (profile.summary) {
       document.getElementById('profile-summary').textContent = profile.summary;
       document.getElementById('profile-summary-section').style.display = 'block';
     }
-
     if (skills.length > 0) {
       document.getElementById('skill-grid').innerHTML = skills.map(s=>`<span class="stag">${s}</span>`).join('');
       document.getElementById('profile-title').textContent = profile.summary ? profile.summary.slice(0, 40)+'…' : skills[0]+'…';
     }
-
     [['vision','bv','pv'],['technicite','bt','pt'],['entrepreneuriat','be','pe'],
      ['creativite','bc','pc'],['collaboration','bcol','pcol'],['leadership','bl','pl']].forEach(([k,b,p]) => {
       const el = document.getElementById(b); const pel = document.getElementById(p);
-      if (el && pel && traits[k] !== undefined) {
-        el.style.width = traits[k]+'%'; pel.textContent = traits[k]+'%';
-      }
+      if (el && pel && traits[k] !== undefined) { el.style.width = traits[k]+'%'; pel.textContent = traits[k]+'%'; }
     });
-
     if (projects.length > 0) {
       document.getElementById('proj-list').innerHTML = projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('');
     }
@@ -561,7 +769,7 @@
     const list = document.getElementById('match-list');
     if (matches.length === 0) return;
     list.innerHTML = matches.map(m => `
-      <div class="match-card">
+      <div class="match-card" onclick="openMatchModal('${m.name}', ${m.score}, '${m.reason}')">
         <span class="match-score">${m.score}%</span>
         <div class="match-name">${m.name}</div>
         <div class="match-reason">${m.reason}</div>

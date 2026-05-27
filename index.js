@@ -347,5 +347,92 @@ Trie par score décroissant. JSON uniquement.`
   }
 });
 
+
+// Récupérer le profil public d'un match (sa meilleure conv compatible)
+app.get('/api/user-profile/:userId', authMiddleware, async (req, res) => {
+  const { convContext } = req.query;
+  
+  // Trouver la conversation de cet utilisateur la plus pertinente
+  const result = await pool.query(`
+    SELECT DISTINCT ON (c.user_id) c.id, c.profile, c.title, u.name
+    FROM conversations c
+    JOIN users u ON c.user_id = u.id
+    WHERE c.user_id = $1
+      AND c.profile != '{}'
+      AND c.profile IS NOT NULL
+    ORDER BY c.user_id, c.updated_at DESC
+  `, [req.params.userId]);
+
+  if (!result.rows[0]) return res.status(404).json({ error: 'Profil non trouvé' });
+  res.json(result.rows[0]);
+});
+
+// Envoyer une demande de mise en relation
+app.post('/api/connection-requests', authMiddleware, async (req, res) => {
+  const { receiverId, senderConvId, receiverConvId } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO connection_requests (sender_id, receiver_id, sender_conv_id, receiver_conv_id)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (sender_id, receiver_id, sender_conv_id) DO NOTHING
+       RETURNING *`,
+      [req.user.id, receiverId, senderConvId, receiverConvId]
+    );
+    res.json({ success: true, request: result.rows[0] });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Mes demandes reçues
+app.get('/api/connection-requests/received', authMiddleware, async (req, res) => {
+  const result = await pool.query(`
+    SELECT cr.*, u.name as sender_name, c.profile as sender_profile, c.title as sender_conv_title
+    FROM connection_requests cr
+    JOIN users u ON cr.sender_id = u.id
+    JOIN conversations c ON cr.sender_conv_id = c.id
+    WHERE cr.receiver_id = $1 AND cr.status = 'pending'
+    ORDER BY cr.created_at DESC
+  `, [req.user.id]);
+  res.json(result.rows);
+});
+
+// Accepter ou refuser une demande
+app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
+  const { status } = req.body; // 'accepted' ou 'declined'
+  const result = await pool.query(
+    `UPDATE connection_requests SET status = $1, updated_at = NOW()
+     WHERE id = $2 AND receiver_id = $3 RETURNING *`,
+    [status, req.params.id, req.user.id]
+  );
+  res.json(result.rows[0]);
+});
+
+// Mes demandes envoyées (pour savoir si déjà envoyé)
+app.get('/api/connection-requests/sent', authMiddleware, async (req, res) => {
+  const result = await pool.query(
+    `SELECT * FROM connection_requests WHERE sender_id = $1`,
+    [req.user.id]
+  );
+  res.json(result.rows);
+});
+
+
+app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
+  const result = await pool.query(`
+    SELECT DISTINCT ON (c.user_id) c.id as conv_id, c.profile, u.name, u.id as user_id
+    FROM conversations c
+    JOIN users u ON c.user_id = u.id
+    WHERE u.name = $1
+      AND c.profile != '{}'
+      AND c.profile IS NOT NULL
+    ORDER BY c.user_id, c.updated_at DESC
+  `, [req.params.name]);
+  if (!result.rows[0]) return res.status(404).json({ error: 'Non trouvé' });
+  res.json(result.rows[0]);
+});
+
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Korale running on port ${PORT}`));
