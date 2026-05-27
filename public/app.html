@@ -56,7 +56,7 @@
     .auth-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,141,238,0.1); }
     .auth-input::placeholder { color: var(--muted); }
     .auth-btn { width: 100%; background: var(--accent); border: none; color: white; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; font-family: inherit; transition: all 0.2s; box-shadow: 0 4px 16px rgba(91,141,238,0.3); }
-    .auth-btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,141,238,0.4); }
+    .auth-btn:hover { background: var(--accent2); transform: translateY(-1px); }
     .auth-error { font-size: 12px; color: var(--rose); margin-top: 10px; }
     .auth-back { display: block; text-align: center; margin-top: 20px; font-size: 12px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
     .auth-back:hover { color: var(--accent); }
@@ -66,31 +66,36 @@
     .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 40; backdrop-filter: blur(2px); }
     .overlay.active { display: block; }
 
-    /* HEADER */
+    /* HEADER — desktop */
     header {
-      padding: 0 20px; height: 54px;
+      padding: 0 16px; height: 54px;
       border-bottom: 1px solid var(--border);
       background: rgba(255,255,255,0.95);
       backdrop-filter: blur(16px);
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 8px;
       flex-shrink: 0; position: relative; z-index: 10;
     }
-    .logo { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; color: var(--accent2); letter-spacing: -0.3px; cursor: pointer; flex-shrink: 0; }
-    .header-center { display: flex; align-items: center; gap: 6px; margin: 0 auto; }
-    .header-right { display: flex; align-items: center; gap: 6px; }
-    .header-btn { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 11px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
-    .header-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-    .header-icon-btn { background: none; border: 1px solid var(--border2); color: var(--muted); width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; position: relative; flex-shrink: 0; }
-    .header-icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .logo { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; color: var(--accent2); letter-spacing: -0.3px; cursor: pointer; flex-shrink: 0; margin-right: 4px; }
+    /* Nav tabs juste après le logo, pas centrés */
+    .nav-tabs { display: flex; gap: 4px; flex-shrink: 0; }
     .nav-tab { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .nav-tab.active { background: var(--accent-soft); border-color: rgba(91,141,238,0.35); color: var(--accent); font-weight: 500; }
     .nav-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-    .new-conv-btn { background: var(--accent); border-color: var(--accent); color: white; box-shadow: 0 2px 8px rgba(91,141,238,0.25); }
-    .new-conv-btn:hover { background: var(--accent2); border-color: var(--accent2); color: white; }
-    .user-badge { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+    /* Bouton nouvelle conversation juste après les tabs */
+    .new-conv-btn { background: var(--accent); border: 1px solid var(--accent); color: white; padding: 5px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 8px rgba(91,141,238,0.25); flex-shrink: 0; }
+    .new-conv-btn:hover { background: var(--accent2); border-color: var(--accent2); }
+    /* Spacer pour pousser les éléments droits */
+    .header-spacer { flex: 1; }
+    /* Éléments côté droit */
+    .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .header-btn { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+    .header-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .header-icon-btn { background: none; border: 1px solid var(--border2); color: var(--muted); width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; position: relative; flex-shrink: 0; }
+    .header-icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .user-badge { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
     .notif-badge { position: absolute; top: -4px; right: -4px; width: 15px; height: 15px; background: var(--rose); border-radius: 50%; font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
-    /* MOBILE BOTTOM NAV */
+    /* MOBILE BOTTOM NAV — caché sur desktop */
     .mobile-nav { display: none; }
 
     .main { display: flex; flex: 1; overflow: hidden; position: relative; }
@@ -164,11 +169,11 @@
     .cursor { display: inline-block; width: 2px; height: 14px; background: var(--accent); margin-left: 2px; animation: blink 0.7s infinite; vertical-align: middle; border-radius: 1px; }
     @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
 
-    footer { padding: 12px 20px 16px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); display: flex; gap: 8px; flex-shrink: 0; }
+    footer { padding: 12px 16px 16px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); display: flex; gap: 8px; flex-shrink: 0; }
     #inp { flex: 1; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 11px 16px; color: var(--text); font-size: 14px; outline: none; font-family: inherit; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
     #inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,141,238,0.1); }
     #inp::placeholder { color: var(--muted); }
-    .send-btn { background: var(--accent); border: none; color: white; padding: 11px 20px; border-radius: 12px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); white-space: nowrap; }
+    .send-btn { background: var(--accent); border: none; color: white; padding: 11px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); white-space: nowrap; }
     .send-btn:hover { background: var(--accent2); transform: translateY(-1px); }
     .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
@@ -262,48 +267,51 @@
     .notif-decline:hover { border-color: var(--rose); color: var(--rose); }
     .notif-empty { padding: 20px; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
 
-    /* RESPONSIVE MOBILE */
+    /* ===================== RESPONSIVE MOBILE ===================== */
     @media (max-width: 768px) {
       /* Auth */
       .auth-box { width: calc(100% - 32px); padding: 36px 24px; border-radius: 20px; }
       .auth-logo { font-size: 26px; }
       .bd1, .bd3 { display: none; }
 
-      /* Header mobile simplifié */
-      header { padding: 0 14px; height: 52px; gap: 8px; }
-      .logo { font-size: 18px; }
-      .header-center { display: none; } /* nav tabs cachés → bottom nav */
-      .user-badge { display: none; }
-      .header-btn.new-conv-btn { display: none; } /* géré via bottom nav */
+      /* Header mobile : hamburger | logo | spacer | cloche | quitter */
+      header { padding: 0 12px; height: 52px; gap: 6px; }
+      .logo { font-size: 18px; margin-right: 0; }
+      /* Cacher les éléments qui passent dans le bottom nav */
+      .nav-tabs { display: none; }
+      .new-conv-btn { display: none; }
+      /* Garder visible sur mobile */
+      .user-badge { display: block; max-width: 80px; font-size: 11px; }
+      /* Cloche reste en haut à droite, profil passe en bas */
+      .header-icon-btn.profile-btn { display: none; }
 
       /* Bottom nav mobile */
       .mobile-nav {
         display: flex; align-items: center; justify-content: space-around;
-        height: 56px; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
-        border-top: 1px solid var(--border); flex-shrink: 0; padding: 0 8px;
+        height: 58px; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border); flex-shrink: 0; padding: 0 4px;
         position: relative; z-index: 10;
       }
       .mobile-nav-btn {
-        display: flex; flex-direction: column; align-items: center; gap: 3px;
+        display: flex; flex-direction: column; align-items: center; gap: 2px;
         background: none; border: none; cursor: pointer; font-family: inherit;
-        padding: 6px 16px; border-radius: 10px; transition: all 0.2s;
-        color: var(--muted); font-size: 10px; font-weight: 500;
+        padding: 6px 10px; border-radius: 10px; transition: all 0.2s;
+        color: var(--muted); font-size: 10px; font-weight: 500; flex: 1;
       }
       .mobile-nav-btn.active { color: var(--accent); background: var(--accent-soft); }
-      .mobile-nav-btn:hover { color: var(--accent); }
-      .mobile-nav-icon { font-size: 18px; line-height: 1; }
+      .mobile-nav-icon { font-size: 19px; line-height: 1; }
       .mobile-nav-new {
-        background: var(--accent); color: white; border-radius: 12px;
-        padding: 8px 20px; box-shadow: 0 2px 10px rgba(91,141,238,0.35);
+        background: var(--accent); color: white !important; border-radius: 12px;
+        padding: 8px 14px; box-shadow: 0 2px 10px rgba(91,141,238,0.35);
+        font-size: 11px !important;
       }
-      .mobile-nav-new:hover { background: var(--accent2); color: white; }
-      .mobile-nav-new.active { background: var(--accent); color: white; }
+      .mobile-nav-new:hover, .mobile-nav-new.active { background: var(--accent2); color: white !important; }
       .mobile-notif-dot { position: relative; }
-      .mobile-notif-badge { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: var(--rose); border-radius: 50%; font-size: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+      .mobile-notif-badge { position: absolute; top: 4px; right: 8px; width: 14px; height: 14px; background: var(--rose); border-radius: 50%; font-size: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
-      /* Panneaux overlay */
+      /* Panneaux overlay — bottom = hauteur bottom nav */
       .history-panel {
-        position: fixed; top: 52px; left: 0; bottom: 56px;
+        position: fixed; top: 52px; left: 0; bottom: 58px;
         width: 285px !important; z-index: 50;
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
@@ -313,7 +321,7 @@
       .history-panel.open { transform: translateX(0) !important; }
 
       .profile-panel {
-        position: fixed; top: 52px; right: 0; bottom: 56px;
+        position: fixed; top: 52px; right: 0; bottom: 58px;
         width: 285px !important; z-index: 50;
         transform: translateX(100%);
         transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
@@ -325,10 +333,10 @@
       .panel-close { display: block; }
       .chat-area { border-right: none; }
       #messages { padding: 16px 14px; gap: 14px; }
-      .bubble { max-width: 90%; font-size: 14px; }
+      .bubble { max-width: 90%; }
       footer { padding: 10px 12px 12px; }
       #inp { font-size: 16px; }
-      .send-btn { padding: 11px 14px; font-size: 13px; }
+      .send-btn { padding: 11px 14px; }
       .modal-cols { grid-template-columns: 1fr; }
       .notif-panel { right: 8px; left: 8px; width: auto; top: 60px; }
     }
@@ -409,33 +417,42 @@
 
 <div id="chat-screen">
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+
   <header>
-    <button class="header-icon-btn" onclick="toggleHistory()" title="Conversations">☰</button>
+    <!-- Gauche : hamburger -->
+    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">☰</button>
+    <!-- Logo -->
     <div class="logo" onclick="switchView('ai')">Korale</div>
-    <div class="header-center">
+    <!-- Nav tabs juste après le logo (desktop) -->
+    <div class="nav-tabs">
       <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
       <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Connexions</button>
     </div>
-    <button class="header-btn new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
+    <!-- + Nouvelle juste après les tabs (desktop) -->
+    <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
+    <!-- Spacer -->
+    <div class="header-spacer"></div>
+    <!-- Droite : badge user, cloche, profil, quitter -->
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
-      <button class="header-icon-btn notif-btn" id="notif-btn" onclick="toggleNotifs()" title="Notifications">
+      <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifs()" title="Notifications">
         🔔
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
-      <button class="header-icon-btn" onclick="toggleProfile()" title="Profil">◎</button>
+      <button class="header-icon-btn profile-btn" onclick="toggleProfile()" title="Profil">◎</button>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
   </header>
 
-  <!-- BOTTOM NAV MOBILE -->
+  <!-- BOTTOM NAV MOBILE — affiché seulement sur mobile via CSS -->
   <div class="mobile-nav" id="mobile-nav">
     <button class="mobile-nav-btn" id="mob-tab-ai" onclick="switchView('ai')">
       <span class="mobile-nav-icon">💬</span>
       IA
     </button>
     <button class="mobile-nav-btn mobile-nav-new" id="mob-new" onclick="newConversation()">
-      + Nouveau
+      <span class="mobile-nav-icon">＋</span>
+      Nouveau
     </button>
     <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
       <span class="mobile-nav-icon">🤝</span>
@@ -543,7 +560,6 @@
 
   const isMobile = () => window.innerWidth <= 768;
 
-  // STATE
   let token = localStorage.getItem('korale_token');
   let user = JSON.parse(localStorage.getItem('korale_user') || 'null');
   let history = [];
@@ -597,7 +613,8 @@
   function updateMobileNav(view) {
     document.getElementById('mob-tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('mob-tab-connexions').classList.toggle('active', view === 'connexions');
-    document.getElementById('mob-new').style.display = view === 'ai' ? '' : 'none';
+    const mobNew = document.getElementById('mob-new');
+    if (mobNew) mobNew.style.display = view === 'ai' ? '' : 'none';
   }
 
   function switchView(view) {
@@ -664,6 +681,7 @@
   }
 
   function resetProfile() {
+    document.getElementById('profile-title').textContent = 'En construction…';
     const body = document.getElementById('profile-body');
     body.innerHTML = `
       <div id="profile-summary-section" style="display:none">
@@ -692,7 +710,6 @@
         <div id="match-list"><span class="empty-state">analyse en cours…</span></div>
       </div>
     `;
-    document.getElementById('profile-title').textContent = 'En construction…';
   }
 
   async function loadConversations() {
