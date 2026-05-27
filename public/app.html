@@ -332,7 +332,8 @@
       .profile-panel.open { transform: translateX(0) !important; }
 
       .panel-close { display: block; }
-      .chat-area { border-right: none; }
+      .chat-area { border-right: none; min-height: 0; flex: 1; }
+        footer { padding: 10px 12px 12px; flex-shrink: 0; }
       #messages { padding: 16px 14px; gap: 14px; }
       .bubble { max-width: 90%; }
       footer { padding: 10px 12px 12px; }
@@ -432,13 +433,13 @@
     </div>
     <div class="header-spacer"></div>
     <div class="header-right">
-      <div class="user-badge" id="user-label"></div>
-      <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifs()" title="Demandes reçues">
-        🔔
-        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
-      </button>
-      <button class="header-icon-btn desktop-only" onclick="toggleProfile()" title="Analyse de la conversation">◈</button>
-      <button class="header-btn" onclick="logout()">Quitter</button>
+          <div class="user-badge" id="user-label"></div>
+          <button class="header-btn" id="notif-btn" onclick="toggleNotifs()">
+            🔔 Demandes
+            <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+          </button>
+          <button class="header-btn desktop-only" onclick="toggleProfile()">◈ Analyse</button>
+          <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
   </header>
 
