@@ -4,9 +4,12 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 
 const app = express();
-app.use(express.json());
+
+// Augmenter la limite pour accepter les images en base64 (défaut 100kb trop petit)
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -16,7 +19,6 @@ app.get('/app', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/app.html'));
 });
 
-const path = require('path');
 app.get('/hljs/highlight.min.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'node_modules/highlight.js/lib/core.js'));
 });
@@ -99,44 +101,28 @@ function authMiddleware(req, res, next) {
   }
 }
 
-app.post('/api/register', async (req, res) => {
-  const { email, password, name } = req.body;
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    const result = await pool.query(
-      'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id, email, name',
-      [email, hash, name]
-    );
-    const user = result.rows[0];
-    await pool.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
-    res.json({ token, user });
-  } catch (e) {
-    console.log('Erreur inscription:', e.message);
-    if (e.code === '23505') {
-      res.status(400).json({ error: 'Email déjà utilisé' });
-    } else {
-      res.status(500).json({ error: 'Erreur: ' + e.message });
-    }
+// ── UTILITAIRE : extraire le texte d'un message (content string ou array) ──
+function extractTextFromContent(content) {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .filter(c => c.type === 'text')
+      .map(c => c.text)
+      .join('\n');
   }
-});
+  return '';
+}
 
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = result.rows[0];
-    if (!user || !await bcrypt.compare(password, user.password))
-      return res.status(401).json({ error: 'Identifiants incorrects' });
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
-    res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
-  } catch (e) {
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
+// ── ANALYSE PROFIL ─────────────────────────────────────────────────────────
 async function analyzeConversationProfile(messages) {
-  const conversation = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+  // On extrait uniquement le texte pour l'analyse (les images ne sont pas pertinentes pour le profil)
+  const conversation = messages
+    .map(m => `${m.role}: ${extractTextFromContent(m.content)}`)
+    .filter(line => line.trim() !== `${line.split(':')[0]}:`) // ignorer les messages vides
+    .join('\n');
+
+  if (!conversation.trim()) return null;
+
   const analysis = await client.messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 1024,
@@ -177,7 +163,9 @@ Maximum 6 compétences, 3 projets. Scores entre 0 et 100 basés uniquement sur c
 
 async function generateTitle(messages) {
   if (messages.length < 2) return null;
-  const first = messages.slice(0, 2).map(m => `${m.role}: ${m.content}`).join('\n');
+  const first = messages.slice(0, 2)
+    .map(m => `${m.role}: ${extractTextFromContent(m.content)}`)
+    .join('\n');
   const result = await client.messages.create({
     model: 'claude-sonnet-4-5',
     max_tokens: 50,
@@ -186,6 +174,44 @@ async function generateTitle(messages) {
   return result.content[0].text.trim();
 }
 
+// ── AUTH ───────────────────────────────────────────────────────────────────
+app.post('/api/register', async (req, res) => {
+  const { email, password, name } = req.body;
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id, email, name',
+      [email, hash, name]
+    );
+    const user = result.rows[0];
+    await pool.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
+    res.json({ token, user });
+  } catch (e) {
+    console.log('Erreur inscription:', e.message);
+    if (e.code === '23505') {
+      res.status(400).json({ error: 'Email déjà utilisé' });
+    } else {
+      res.status(500).json({ error: 'Erreur: ' + e.message });
+    }
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+    if (!user || !await bcrypt.compare(password, user.password))
+      return res.status(401).json({ error: 'Identifiants incorrects' });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
+    res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ── PROFILE ────────────────────────────────────────────────────────────────
 app.get('/api/profile', authMiddleware, async (req, res) => {
   const { conversationId } = req.query;
   if (conversationId) {
@@ -202,6 +228,7 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
   res.json(result.rows[0]?.profile || {});
 });
 
+// ── CONVERSATIONS ──────────────────────────────────────────────────────────
 app.get('/api/conversations/list', authMiddleware, async (req, res) => {
   const result = await pool.query(
     'SELECT id, title, created_at, updated_at, profile FROM conversations WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 50',
@@ -219,16 +246,30 @@ app.get('/api/conversations/:id', authMiddleware, async (req, res) => {
   res.json(result.rows[0]);
 });
 
+app.post('/api/conversations', authMiddleware, async (req, res) => {
+  const result = await pool.query(
+    'INSERT INTO conversations (user_id, messages) VALUES ($1, $2) RETURNING id',
+    [req.user.id, '[]']
+  );
+  res.json({ id: result.rows[0].id });
+});
+
+// ── CHAT (streaming) ────────────────────────────────────────────────────────
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { messages, conversationId } = req.body;
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
+  // Les messages du frontend ont déjà le bon format :
+  // - content: string (texte seul)
+  // - content: array (texte + images)
+  // L'API Anthropic accepte les deux formats nativement.
   const stream = client.messages.stream({
     model: 'claude-sonnet-4-5',
     max_tokens: 4096,
-    system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile. IMPORTANT: Pour toutes les équations mathématiques, utilise TOUJOURS la notation LaTeX : $...$ pour les équations inline et $$...$$ pour les équations centrées sur leur propre ligne. N'utilise JAMAIS de blocs code pour les équations mathématiques.",
+    system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile. IMPORTANT: Pour toutes les équations mathématiques, utilise TOUJOURS la notation LaTeX : $...$ pour les équations inline et $$...$$ pour les équations centrées sur leur propre ligne. N'utilise JAMAIS de blocs code pour les équations mathématiques. Si l'utilisateur partage une image, décris-la et réponds en fonction de son contenu.",
     messages: messages,
   });
 
@@ -266,14 +307,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   res.end();
 });
 
-app.post('/api/conversations', authMiddleware, async (req, res) => {
-  const result = await pool.query(
-    'INSERT INTO conversations (user_id, messages) VALUES ($1, $2) RETURNING id',
-    [req.user.id, '[]']
-  );
-  res.json({ id: result.rows[0].id });
-});
-
+// ── MATCHING ────────────────────────────────────────────────────────────────
 app.get('/api/matching', authMiddleware, async (req, res) => {
   const { context, conversationId } = req.query;
   let myProfile = {};
@@ -355,6 +389,7 @@ Trie par score décroissant. JSON uniquement.`
   }
 });
 
+// ── USER PROFILES ───────────────────────────────────────────────────────────
 app.get('/api/user-profile/:userId', authMiddleware, async (req, res) => {
   const result = await pool.query(`
     SELECT DISTINCT ON (c.user_id) c.id, c.profile, c.title, u.name
@@ -379,7 +414,7 @@ app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
   res.json(result.rows[0]);
 });
 
-// CONNECTION REQUESTS
+// ── CONNECTION REQUESTS ─────────────────────────────────────────────────────
 app.post('/api/connection-requests', authMiddleware, async (req, res) => {
   const { receiverId, senderConvId, receiverConvId } = req.body;
   try {
@@ -415,7 +450,6 @@ app.get('/api/connection-requests/sent', authMiddleware, async (req, res) => {
   res.json(result.rows);
 });
 
-// PATCH — accepter/refuser + créer shared_conversation si accepté
 app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
   const { status } = req.body;
   const result = await pool.query(
@@ -439,7 +473,7 @@ app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
   res.json(request);
 });
 
-// SHARED CONVERSATIONS
+// ── SHARED CONVERSATIONS ────────────────────────────────────────────────────
 app.get('/api/shared-conversations', authMiddleware, async (req, res) => {
   const result = await pool.query(`
     SELECT sc.*,
@@ -477,27 +511,48 @@ app.get('/api/shared-conversations/:id', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/shared-conversations/:id/messages', authMiddleware, async (req, res) => {
-  const { text } = req.body;
-  if (!text?.trim()) return res.status(400).json({ error: 'Message vide' });
+  const { text, attachments } = req.body;
+
+  // Valider : texte OU pièces jointes obligatoires
+  const hasText = text && text.trim();
+  const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+  if (!hasText && !hasAttachments) return res.status(400).json({ error: 'Message vide' });
+
   const conv = await pool.query(
     'SELECT * FROM shared_conversations WHERE id = $1 AND (user1_id = $2 OR user2_id = $2)',
     [req.params.id, req.user.id]
   );
   if (!conv.rows[0]) return res.status(404).json({ error: 'Non trouvée' });
+
   const messages = Array.isArray(conv.rows[0].messages) ? conv.rows[0].messages : [];
+
   const newMsg = {
     sender_id: req.user.id,
     sender_name: req.user.name || req.user.email,
-    text: text.trim(),
+    text: hasText ? text.trim() : '',
+    // On stocke les pièces jointes dans le message
+    // Note : les dataUrl base64 peuvent être volumineuses.
+    // Pour production, il faudrait uploader vers S3/Cloudinary et stocker l'URL.
+    // Ici on stocke directement en JSONB pour simplifier.
+    attachments: hasAttachments ? attachments.map(a => ({
+      name: a.name,
+      type: a.type,
+      isImage: a.isImage,
+      dataUrl: a.dataUrl
+    })) : [],
     created_at: new Date().toISOString()
   };
+
   messages.push(newMsg);
+
   await pool.query(
     'UPDATE shared_conversations SET messages = $1, updated_at = NOW() WHERE id = $2',
     [JSON.stringify(messages), req.params.id]
   );
+
   res.json(newMsg);
 });
 
+// ── START ───────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Korale running on port ${PORT}`));

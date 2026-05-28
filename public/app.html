@@ -96,7 +96,7 @@
     .conv-item-shared { border-left: 3px solid var(--green); }
 
     /* CHAT AREA */
-    .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); min-width: 0; min-height: 0; background: var(--bg); }
+    .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); min-width: 0; min-height: 0; background: var(--bg); position: relative; }
     #messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 28px 24px; display: flex; flex-direction: column; gap: 20px; min-height: 0; }
     #messages::-webkit-scrollbar { width: 4px; }
     #messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
@@ -147,13 +147,41 @@
     .cursor { display: inline-block; width: 2px; height: 14px; background: var(--accent); margin-left: 2px; animation: blink 0.7s infinite; vertical-align: middle; border-radius: 1px; }
     @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
 
-    footer { padding: 12px 16px 16px; border-top: 1px solid var(--border); background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); display: flex; gap: 8px; flex-shrink: 0; }
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); display: flex; flex-direction: column; padding: 0; flex-shrink: 0; }
+    .footer-attachments { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 0; }
+    .footer-inner { display: flex; gap: 8px; padding: 12px 16px 16px; align-items: center; }
     #inp { flex: 1; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 11px 16px; color: var(--text); font-size: 14px; outline: none; font-family: inherit; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
     #inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,141,238,0.1); }
     #inp::placeholder { color: var(--muted); }
     .send-btn { background: var(--accent); border: none; color: white; padding: 11px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 10px rgba(91,141,238,0.3); white-space: nowrap; }
     .send-btn:hover { background: var(--accent2); transform: translateY(-1px); }
     .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .attach-btn { background: none; border: 1px solid var(--border2); color: var(--muted); width: 42px; height: 42px; border-radius: 12px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+    .attach-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+    /* ATTACH PREVIEWS */
+    .attach-preview { position: relative; display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: var(--text2); max-width: 180px; animation: fadeUp 0.2s ease; }
+    .attach-preview img { width: 36px; height: 36px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
+    .attach-preview-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attach-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 0 2px; line-height: 1; flex-shrink: 0; transition: color 0.2s; }
+    .attach-remove:hover { color: var(--rose); }
+
+    /* MSG IMAGES & FILES */
+    .msg-image { max-width: 100%; max-height: 280px; border-radius: 10px; display: block; margin-top: 6px; cursor: zoom-in; }
+    .msg-file { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 12px; color: var(--text2); text-decoration: none; transition: all 0.2s; }
+    .msg-file:hover { border-color: var(--accent); color: var(--accent); }
+    .msg-file-icon { font-size: 18px; }
+    .msg.user .msg-file { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25); color: white; }
+    .msg.user .msg-file:hover { background: rgba(255,255,255,0.25); }
+
+    /* DRAG & DROP */
+    .chat-area.drag-over::after { content: 'Déposez vos fichiers ici'; position: absolute; inset: 0; background: rgba(91,141,238,0.08); border: 2px dashed var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--accent); font-weight: 500; z-index: 20; pointer-events: none; }
+
+    /* IMAGE ZOOM */
+    .img-zoom-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; cursor: zoom-out; backdrop-filter: blur(4px); }
+    .img-zoom-overlay.active { display: flex; }
+    .img-zoom-overlay img { max-width: 90vw; max-height: 90vh; border-radius: 10px; box-shadow: 0 24px 80px rgba(0,0,0,0.4); }
 
     /* PROFILE PANEL */
     .profile-panel { width: 260px; background: var(--surface); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; transition: width 0.25s ease; }
@@ -186,12 +214,11 @@
     .f-text { font-size: 10px; color: var(--muted); }
     .empty-state { font-size: 11px; color: var(--muted); font-style: italic; }
     .profile-summary { font-size: 11px; color: var(--text2); line-height: 1.55; padding: 8px 10px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); font-style: italic; }
-    .match-card { padding: 9px 11px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: all 0.2s; }
+    .match-card { padding: 9px 11px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; }
     .match-card:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); }
     .match-name { font-size: 12px; font-weight: 500; color: var(--text); }
     .match-reason { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .match-score { font-size: 11px; color: var(--green); font-weight: 600; }
-    .match-card { display: flex; flex-direction: column; }
     .match-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
 
     /* SHARED */
@@ -259,24 +286,21 @@
       .user-badge { display: block; max-width: 80px; font-size: 11px; }
       .desktop-only { display: none; }
       .nav-separator { display: none; }
-
       .mobile-nav { display: flex; align-items: center; justify-content: space-around; height: 58px; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); border-top: 1px solid var(--border); flex-shrink: 0; padding: 0 4px; position: relative; z-index: 10; }
       .mobile-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 6px 10px; border-radius: 10px; transition: all 0.2s; color: var(--muted); font-size: 10px; font-weight: 500; flex: 1; }
       .mobile-nav-btn.active { color: var(--accent); background: var(--accent-soft); }
       .mobile-nav-icon { font-size: 19px; line-height: 1; }
       .mobile-nav-new { background: var(--accent); color: white !important; border-radius: 12px; padding: 8px 14px; box-shadow: 0 2px 10px rgba(91,141,238,0.35); font-size: 11px !important; }
       .mobile-nav-new:hover, .mobile-nav-new.active { background: var(--accent2); color: white !important; }
-
       .history-panel { position: fixed; top: 52px; left: 0; bottom: 58px; width: 285px !important; z-index: 50; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: 4px 0 24px rgba(0,0,0,0.1); }
       .history-panel.collapsed { width: 285px !important; }
       .history-panel.open { transform: translateX(0) !important; }
       .profile-panel { position: fixed; top: 52px; right: 0; bottom: 58px; width: 285px !important; z-index: 50; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: -4px 0 24px rgba(0,0,0,0.1); }
       .profile-panel.collapsed { width: 285px !important; }
       .profile-panel.open { transform: translateX(0) !important; }
-
       .panel-close { display: block; }
       .chat-area { border-right: none; min-height: 0; flex: 1; }
-      footer { padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); flex-shrink: 0; }
+      .footer-inner { padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); }
       #messages { padding: 16px 14px; gap: 14px; }
       .bubble { max-width: 90%; }
       #inp { font-size: 14px; }
@@ -287,6 +311,11 @@
   </style>
 </head>
 <body>
+
+<!-- IMAGE ZOOM -->
+<div class="img-zoom-overlay" id="img-zoom" onclick="this.classList.remove('active')">
+  <img id="img-zoom-src" src="" alt="">
+</div>
 
 <div id="auth-screen">
   <div class="bubble-deco bd1"></div>
@@ -308,7 +337,7 @@
     <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password" />
     <button class="auth-btn" onclick="submitAuth()">Continuer</button>
     <div class="auth-error" id="auth-error"></div>
-    <a class="auth-back" href="/">← Retour à l'accueil</a>
+    <a class="auth-back" href="/">&#8592; Retour à l'accueil</a>
   </div>
 </div>
 
@@ -320,7 +349,7 @@
         <div class="modal-name" id="modal-name"></div>
         <div class="modal-summary" id="modal-summary"></div>
       </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
     </div>
     <div class="modal-body">
       <div class="modal-cols">
@@ -352,7 +381,7 @@
 <div class="notif-panel" id="notif-panel">
   <div class="notif-header">
     <div class="notif-title">Demandes reçues</div>
-    <button class="panel-close" style="display:block" onclick="toggleNotifs()">✕</button>
+    <button class="panel-close" style="display:block" onclick="toggleNotifs()">&#10005;</button>
   </div>
   <div class="notif-list" id="notif-list">
     <div class="notif-empty">Aucune demande en attente</div>
@@ -363,7 +392,7 @@
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
 
   <header>
-    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">☰</button>
+    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">&#9776;</button>
     <div class="logo" onclick="switchView('ai')">Korale</div>
     <div class="nav-tabs">
       <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
@@ -378,7 +407,7 @@
         Demandes
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
-      <button class="header-btn desktop-only" id="analyse-btn" onclick="toggleProfile()">◈ Contexte</button>
+      <button class="header-btn desktop-only" id="analyse-btn" onclick="toggleProfile()">&#9672; Contexte</button>
       <div class="nav-separator desktop-only"></div>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
@@ -387,19 +416,19 @@
   <!-- BOTTOM NAV MOBILE -->
   <div class="mobile-nav" id="mobile-nav">
     <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')">
-      <span class="mobile-nav-icon">💬</span>
+      <span class="mobile-nav-icon">&#128172;</span>
       IA
     </button>
     <button class="mobile-nav-btn mobile-nav-new" id="mob-new" onclick="newConversation()">
-      <span class="mobile-nav-icon">＋</span>
+      <span class="mobile-nav-icon">&#65291;</span>
       Nouveau
     </button>
     <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
-      <span class="mobile-nav-icon">🤝</span>
+      <span class="mobile-nav-icon">&#129309;</span>
       Réseau
-    </button>   
+    </button>
     <button class="mobile-nav-btn" id="mob-contexte-btn" onclick="toggleProfile()">
-      <span class="mobile-nav-icon">◈</span>
+      <span class="mobile-nav-icon">&#9672;</span>
       <span id="mob-contexte-label">Contexte</span>
     </button>
   </div>
@@ -408,11 +437,12 @@
     <div class="history-panel collapsed" id="history-panel">
       <div class="history-header">
         <div class="history-label" id="history-label-text">Conversations</div>
-        <button class="panel-close" onclick="closeAllPanels()">✕</button>
+        <button class="panel-close" onclick="closeAllPanels()">&#10005;</button>
       </div>
       <div class="history-list" id="history-list"></div>
     </div>
-    <div class="chat-area">
+
+    <div class="chat-area" id="chat-area">
       <div id="messages">
         <div class="msg ai">
           <div class="av ai">K</div>
@@ -420,17 +450,23 @@
         </div>
       </div>
       <footer>
-        <input type="text" id="inp" placeholder="Écrivez votre message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey) sendMsg()" />
-        <button class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer</button>
+        <div class="footer-attachments" id="footer-attachments" style="display:none"></div>
+        <div class="footer-inner">
+          <input type="file" id="file-input" multiple accept="image/*,.pdf,.txt,.md,.csv,.json,.js,.py,.html,.css" style="display:none" onchange="handleFileSelect(event)">
+          <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="Joindre un fichier">&#128206;</button>
+          <input type="text" id="inp" placeholder="Écrivez votre message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey) sendMsg()" />
+          <button class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer</button>
+        </div>
       </footer>
     </div>
+
     <div class="profile-panel" id="profile-panel">
       <div class="profile-header">
         <div class="profile-header-text">
           <div class="profile-label" id="profile-panel-label">analyse de cette conversation</div>
           <div class="profile-title" id="profile-title">En construction…</div>
         </div>
-        <button class="panel-close" onclick="closeAllPanels()">✕</button>
+        <button class="panel-close" onclick="closeAllPanels()">&#10005;</button>
       </div>
       <div class="profile-body" id="profile-body">
         <div id="profile-summary-section" style="display:none">
@@ -481,20 +517,21 @@
         else highlighted = hljs.highlightAuto(code).value;
       }
     } catch(e) {}
-    return `<div class="code-block"><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyCode(this)">Copier</button></div><pre><code class="hljs">${highlighted}</code></pre></div>`;
+    return '<div class="code-block"><div class="code-header"><span class="code-lang">'+language+'</span><button class="copy-btn" onclick="copyCode(this)">Copier</button></div><pre><code class="hljs">'+highlighted+'</code></pre></div>';
   };
   marked.use({ renderer });
 
   function copyCode(btn) {
     const code = btn.closest('.code-block').querySelector('code').innerText;
     navigator.clipboard.writeText(code).then(() => {
-      btn.textContent = '✓ Copié'; btn.classList.add('copied');
+      btn.textContent = 'Copié'; btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
     });
   }
 
   const isMobile = () => window.innerWidth <= 768;
 
+  // ETAT GLOBAL
   let token = localStorage.getItem('korale_token');
   let user = JSON.parse(localStorage.getItem('korale_user') || 'null');
   let history = [];
@@ -509,9 +546,11 @@
   let sharedPollingInterval = null;
   let currentMatchData = null;
   let sentRequests = [];
+  let pendingAttachments = []; // { id, file, dataUrl, isImage }
 
   if (token && user) showChat();
 
+  // PANELS
   function closeAllPanels() {
     document.getElementById('history-panel').classList.remove('open');
     document.getElementById('profile-panel').classList.remove('open');
@@ -545,6 +584,7 @@
     document.getElementById('notif-panel').classList.toggle('active');
   }
 
+  // NAV
   function updateMobileNav(view) {
     document.getElementById('mob-tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('mob-tab-connexions').classList.toggle('active', view === 'connexions');
@@ -552,7 +592,7 @@
     if (mobNew) mobNew.style.display = view === 'ai' ? '' : 'none';
   }
 
-function switchView(view) {
+  function switchView(view) {
     currentView = view;
     document.getElementById('tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
@@ -564,18 +604,18 @@ function switchView(view) {
       document.getElementById('history-label-text').textContent = 'Conversations';
       document.getElementById('profile-panel-label').textContent = 'contexte de la conversation';
       document.getElementById('profile-footer-text').textContent = 'analyse en continu';
-      if (analyseBtn) analyseBtn.textContent = '◈ Contexte';
+      if (analyseBtn) analyseBtn.textContent = 'Contexte';
       if (mobLabel) mobLabel.textContent = 'Contexte';
       if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
       renderConversationList();
       if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
       resetProfile();
-      document.getElementById('messages').innerHTML = `<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>`;
+      document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>';
       conversationId = null; history = [];
     } else {
       document.getElementById('history-label-text').textContent = 'Réseau';
       document.getElementById('profile-panel-label').textContent = 'détails';
-      if (analyseBtn) analyseBtn.textContent = '◈ Détails';
+      if (analyseBtn) analyseBtn.textContent = 'Détails';
       if (mobLabel) mobLabel.textContent = 'Détails';
       if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
       if (isMobile()) {
@@ -587,6 +627,7 @@ function switchView(view) {
     }
   }
 
+  // AUTH
   function switchTab(mode) {
     authMode = mode;
     document.querySelectorAll('.auth-tab').forEach((t, i) => {
@@ -621,7 +662,6 @@ function switchView(view) {
     loadSentRequests();
     loadReceivedRequests();
     setInterval(loadReceivedRequests, 30000);
-    // Fix : bouton IA actif au démarrage sur mobile
     updateMobileNav('ai');
   }
 
@@ -630,102 +670,11 @@ function switchView(view) {
     window.location.href = '/';
   }
 
+  // PROFILE
   function resetProfile() {
     document.getElementById('profile-title').textContent = 'En construction…';
     const body = document.getElementById('profile-body');
-    body.innerHTML = `
-      <div id="profile-summary-section" style="display:none">
-        <div class="sec-label">résumé</div>
-        <div class="profile-summary" id="profile-summary"></div>
-      </div>
-      <div>
-        <div class="sec-label">compétences</div>
-        <div class="skill-grid" id="skill-grid"><span class="empty-state">en attente…</span></div>
-      </div>
-      <div>
-        <div class="sec-label">profil de travail</div>
-        <div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>
-        <div class="trait"><span class="trait-name">Technicité</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>
-        <div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>
-        <div class="trait"><span class="trait-name">Créativité</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>
-        <div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>
-        <div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div>
-      </div>
-      <div>
-        <div class="sec-label">projets détectés</div>
-        <div id="proj-list"><span class="empty-state">aucun projet identifié</span></div>
-      </div>
-      <div>
-        <div class="sec-label">compatibilités</div>
-        <div id="match-list"><span class="empty-state">analyse en cours…</span></div>
-      </div>
-    `;
-  }
-
-  async function loadConversations() {
-    const res = await fetch('/api/conversations/list', { headers:{'Authorization':'Bearer '+token} });
-    if (!res.ok) return;
-    conversations = await res.json();
-    if (currentView === 'ai') renderConversationList();
-  }
-
-  function renderConversationList() {
-    const list = document.getElementById('history-list');
-    if (conversations.length === 0) {
-      list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune conversation</div>';
-      return;
-    }
-    list.innerHTML = conversations.map(c => {
-      const date = new Date(c.updated_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'});
-      const title = c.title || 'Conversation';
-      const isActive = c.id === activeConvId;
-      return `<div class="conv-item ${isActive?'active':''}" onclick="loadConversation(${c.id}); if(isMobile()) closeAllPanels();">
-        <div class="conv-title">${title}</div>
-        <div class="conv-date">${date}</div>
-      </div>`;
-    }).join('');
-  }
-
-  async function newConversation() {
-    conversationId = null; activeConvId = null; history = [];
-    document.getElementById('messages').innerHTML = `<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>`;
-    resetProfile();
-    renderConversationList();
-    if (isMobile()) closeAllPanels();
-    if (currentView !== 'ai') switchView('ai');
-  }
-
-  async function loadConversation(id) {
-    const res = await fetch(`/api/conversations/${id}`, { headers:{'Authorization':'Bearer '+token} });
-    if (!res.ok) return;
-    const conv = await res.json();
-    conversationId = id; activeConvId = id;
-    history = Array.isArray(conv.messages) ? conv.messages : [];
-    const msgs = document.getElementById('messages');
-    msgs.innerHTML = `<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>`;
-    history.forEach(m => {
-      const div = document.createElement('div');
-      div.className = 'msg ' + m.role;
-      const initial = m.role==='ai' ? 'K' : (user.name?.[0]?.toUpperCase()||'V');
-      div.innerHTML = `<div class="av ${m.role}">${initial}</div><div class="bubble"></div>`;
-      msgs.appendChild(div);
-      renderContent(div.querySelector('.bubble'), m.content);
-    });
-    msgs.scrollTop = msgs.scrollHeight;
-    renderConversationList();
-    if (conv.profile && conv.profile.skills) { renderProfile(conv.profile); loadMatching(); }
-    else resetProfile();
-  }
-
-  async function loadProfile() {
-    if (!conversationId) return;
-    const res = await fetch(`/api/profile?conversationId=${conversationId}`, { headers:{'Authorization':'Bearer '+token} });
-    const profile = await res.json();
-    if (profile && profile.skills) {
-      renderProfile(profile);
-      // Déclencher le matching dès que le profil est disponible
-      loadMatching();
-    }
+    body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label">résumé</div><div class="profile-summary" id="profile-summary"></div></div><div><div class="sec-label">compétences</div><div class="skill-grid" id="skill-grid"><span class="empty-state">en attente…</span></div></div><div><div class="sec-label">profil de travail</div><div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div><div class="trait"><span class="trait-name">Technicité</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div><div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div><div class="trait"><span class="trait-name">Créativité</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div><div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div><div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div><div><div class="sec-label">projets détectés</div><div id="proj-list"><span class="empty-state">aucun projet identifié</span></div></div><div><div class="sec-label">compatibilités</div><div id="match-list"><span class="empty-state">analyse en cours…</span></div></div>';
   }
 
   function renderProfile(profile) {
@@ -740,50 +689,110 @@ function switchView(view) {
     }
     if (skills.length > 0) {
       const sg = document.getElementById('skill-grid');
-      if (sg) sg.innerHTML = skills.map(s=>`<span class="stag">${s}</span>`).join('');
+      if (sg) sg.innerHTML = skills.map(s => '<span class="stag">'+s+'</span>').join('');
       document.getElementById('profile-title').textContent = profile.summary ? profile.summary.slice(0,40)+'…' : skills[0]+'…';
     }
     [['vision','bv','pv'],['technicite','bt','pt'],['entrepreneuriat','be','pe'],
-     ['creativite','bc','pc'],['collaboration','bcol','pcol'],['leadership','bl','pl']].forEach(([k,b,p]) => {
+     ['creativite','bc','pc'],['collaboration','bcol','pcol'],['leadership','bl','pl']].forEach(function(arr) {
+      const k=arr[0],b=arr[1],p=arr[2];
       const el = document.getElementById(b); const pel = document.getElementById(p);
       if (el && pel && traits[k] !== undefined) { el.style.width = traits[k]+'%'; pel.textContent = traits[k]+'%'; }
     });
     if (projects.length > 0) {
       const pl = document.getElementById('proj-list');
-      if (pl) pl.innerHTML = projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('');
+      if (pl) pl.innerHTML = projects.map(p => '<div class="proj-tag"><div class="proj-dot"></div>'+p+'</div>').join('');
     }
   }
 
+  async function loadProfile() {
+    if (!conversationId) return;
+    const res = await fetch('/api/profile?conversationId='+conversationId, { headers:{'Authorization':'Bearer '+token} });
+    const profile = await res.json();
+    if (profile && profile.skills) { renderProfile(profile); loadMatching(); }
+  }
+
+  // CONVERSATIONS
+  async function loadConversations() {
+    const res = await fetch('/api/conversations/list', { headers:{'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    conversations = await res.json();
+    if (currentView === 'ai') renderConversationList();
+  }
+
+  function renderConversationList() {
+    const list = document.getElementById('history-list');
+    if (conversations.length === 0) {
+      list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune conversation</div>';
+      return;
+    }
+    list.innerHTML = conversations.map(function(c) {
+      const date = new Date(c.updated_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'});
+      const title = c.title || 'Conversation';
+      const isActive = c.id === activeConvId;
+      return '<div class="conv-item '+(isActive?'active':'')+'" onclick="loadConversation('+c.id+'); if(isMobile()) closeAllPanels();"><div class="conv-title">'+title+'</div><div class="conv-date">'+date+'</div></div>';
+    }).join('');
+  }
+
+  async function newConversation() {
+    conversationId = null; activeConvId = null; history = [];
+    document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>';
+    resetProfile();
+    renderConversationList();
+    if (isMobile()) closeAllPanels();
+    if (currentView !== 'ai') switchView('ai');
+  }
+
+  async function loadConversation(id) {
+    const res = await fetch('/api/conversations/'+id, { headers:{'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    const conv = await res.json();
+    conversationId = id; activeConvId = id;
+    history = Array.isArray(conv.messages) ? conv.messages : [];
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML = '<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>';
+    history.forEach(function(m) {
+      const div = document.createElement('div');
+      div.className = 'msg ' + m.role;
+      const initial = m.role==='ai' ? 'K' : (user.name?.[0]?.toUpperCase()||'V');
+      div.innerHTML = '<div class="av '+m.role+'">'+initial+'</div><div class="bubble"></div>';
+      msgs.appendChild(div);
+      const content = typeof m.content === 'string' ? m.content : (Array.isArray(m.content) ? m.content.filter(function(c){return c.type==='text';}).map(function(c){return c.text;}).join('\n') : '');
+      renderContent(div.querySelector('.bubble'), content);
+    });
+    msgs.scrollTop = msgs.scrollHeight;
+    renderConversationList();
+    if (conv.profile && conv.profile.skills) { renderProfile(conv.profile); loadMatching(); }
+    else resetProfile();
+  }
+
   function renderContent(bubble, text) {
+    if (!text) return;
     bubble.innerHTML = marked.parse(text);
     renderMathInElement(bubble, {
-      delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},
-        {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
+      delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
       throwOnError: false
     });
   }
 
+  // MATCHING
   async function loadMatching() {
     if (!conversationId) return;
-    const context = history.length > 0 ? history[history.length-1].content.slice(0,200) : '';
-    const res = await fetch(`/api/matching?context=${encodeURIComponent(context)}&conversationId=${conversationId}`, {
-      headers: {'Authorization': 'Bearer ' + token}
-    });
+    const lastMsg = history[history.length-1];
+    const lastContent = lastMsg ? (typeof lastMsg.content === 'string' ? lastMsg.content : '') : '';
+    const context = lastContent.slice(0, 200);
+    const res = await fetch('/api/matching?context='+encodeURIComponent(context)+'&conversationId='+conversationId, { headers: {'Authorization': 'Bearer '+token} });
     if (!res.ok) return;
     const matches = await res.json();
     const list = document.getElementById('match-list');
     if (!list || matches.length === 0) return;
-    list.innerHTML = matches.map(m => `
-      <div class="match-card" onclick="openMatchModal('${m.name.replace(/'/g,"\\'")}', ${m.score}, '${(m.reason||'').replace(/'/g,"\\'")}')">
-        <div class="match-card-top">
-          <div class="match-name">${m.name}</div>
-          <span class="match-score">${m.score}%</span>
-        </div>
-        <div class="match-reason">${m.reason}</div>
-      </div>
-    `).join('');
+    list.innerHTML = matches.map(function(m) {
+      return '<div class="match-card" onclick="openMatchModal(\''+m.name.replace(/'/g,"\\'")+'\',' +m.score+',\''+((m.reason||'').replace(/'/g,"\\'"))+'\')">'
+        +'<div class="match-card-top"><div class="match-name">'+m.name+'</div><span class="match-score">'+m.score+'%</span></div>'
+        +'<div class="match-reason">'+m.reason+'</div></div>';
+    }).join('');
   }
 
+  // SHARED CONVERSATIONS
   async function loadSharedConversations() {
     const res = await fetch('/api/shared-conversations', { headers: {'Authorization':'Bearer '+token} });
     if (!res.ok) return;
@@ -797,120 +806,193 @@ function switchView(view) {
       list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune connexion acceptée</div>';
       return;
     }
-    list.innerHTML = sharedConversations.map(sc => {
+    list.innerHTML = sharedConversations.map(function(sc) {
       const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
       const date = new Date(sc.updated_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'});
       const isActive = sc.id === activeSharedConvId;
-      return `<div class="conv-item conv-item-shared ${isActive?'active':''}" onclick="openSharedConversation(${sc.id}); if(isMobile()) closeAllPanels();">
-        <div class="conv-title">💬 ${otherName}</div>
-        <div class="conv-date">${date}</div>
-      </div>`;
+      return '<div class="conv-item conv-item-shared '+(isActive?'active':'')+'" onclick="openSharedConversation('+sc.id+'); if(isMobile()) closeAllPanels();">'
+        +'<div class="conv-title">&#128172; '+otherName+'</div><div class="conv-date">'+date+'</div></div>';
     }).join('');
   }
 
-    async function openSharedConversation(id) {
-        if (sharedPollingInterval) clearInterval(sharedPollingInterval);
-        activeSharedConvId = id;
-        const res = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
-        if (!res.ok) return;
-        const sc = await res.json();
-        const myProfile = sc.user1_id === user.id ? sc.user1_profile : sc.user2_profile;
-        const otherProfile = sc.user1_id === user.id ? sc.user2_profile : sc.user1_profile;
-        const myEmail = sc.user1_id === user.id ? sc.user1_email : sc.user2_email;
-        const otherEmail = sc.user1_id === user.id ? sc.user2_email : sc.user1_email;
-        const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
-        document.getElementById('profile-panel-label').textContent = 'détails de la connexion';
-        document.getElementById('profile-title').textContent = `Vous & ${otherName}`;
-        document.getElementById('profile-footer-text').textContent = 'connexion active';
-        const analyseBtn = document.getElementById('analyse-btn');
-        if (analyseBtn) analyseBtn.textContent = '◈ Détails';
-        const mobLabel = document.getElementById('mob-contexte-label');
-        if (mobLabel) mobLabel.textContent = 'Détails';
-        document.getElementById('profile-body').innerHTML = `
-          <div class="shared-profiles">
-            <div class="shared-profile-card">
-              <div class="shared-profile-name">${user.name||user.email}<span class="shared-profile-you">Vous</span></div>
-              <div class="shared-profile-summary">${myProfile?.summary||'Profil en construction'}</div>
-              <div class="skill-grid" style="margin-bottom:6px">${(myProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
-              <div class="email-chip" onclick="copyEmail('${myEmail}')">
-                <span class="email-chip-text">${myEmail}</span>
-                <span class="email-chip-copy">📋 Copier</span>
-              </div>
-            </div>
-            <div class="shared-profile-card">
-              <div class="shared-profile-name">${otherName}</div>
-              <div class="shared-profile-summary">${otherProfile?.summary||'Profil en construction'}</div>
-              <div class="skill-grid" style="margin-bottom:6px">${(otherProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
-              <div class="email-chip" onclick="copyEmail('${otherEmail}')">
-                <span class="email-chip-text">${otherEmail}</span>
-                <span class="email-chip-copy">📋 Copier</span>
-              </div>
-            </div>
-          </div>
-        `;
-        document.getElementById('messages').innerHTML = '';
-        renderSharedMessages(sc, otherName);
-        renderSharedList();
-        sharedPollingInterval = setInterval(async () => {
-          const r = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
-          if (r.ok) { const updated = await r.json(); renderSharedMessages(updated, otherName); }
-        }, 5000);
-      }
+  async function openSharedConversation(id) {
+    if (sharedPollingInterval) clearInterval(sharedPollingInterval);
+    activeSharedConvId = id;
+    const res = await fetch('/api/shared-conversations/'+id, { headers: {'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    const sc = await res.json();
+    const myProfile = sc.user1_id === user.id ? sc.user1_profile : sc.user2_profile;
+    const otherProfile = sc.user1_id === user.id ? sc.user2_profile : sc.user1_profile;
+    const myEmail = sc.user1_id === user.id ? sc.user1_email : sc.user2_email;
+    const otherEmail = sc.user1_id === user.id ? sc.user2_email : sc.user1_email;
+    const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
+    document.getElementById('profile-panel-label').textContent = 'détails de la connexion';
+    document.getElementById('profile-title').textContent = 'Vous & '+otherName;
+    document.getElementById('profile-footer-text').textContent = 'connexion active';
+    const analyseBtn = document.getElementById('analyse-btn');
+    if (analyseBtn) analyseBtn.textContent = 'Détails';
+    const mobLabel = document.getElementById('mob-contexte-label');
+    if (mobLabel) mobLabel.textContent = 'Détails';
+    document.getElementById('profile-body').innerHTML =
+      '<div class="shared-profiles">'
+      +'<div class="shared-profile-card"><div class="shared-profile-name">'+(user.name||user.email)+'<span class="shared-profile-you">Vous</span></div>'
+      +'<div class="shared-profile-summary">'+(myProfile&&myProfile.summary?myProfile.summary:'Profil en construction')+'</div>'
+      +'<div class="skill-grid" style="margin-bottom:6px">'+((myProfile&&myProfile.skills)||[]).map(function(s){return '<span class="stag">'+s+'</span>';}).join('')+'</div>'
+      +'<div class="email-chip" onclick="copyEmail(\''+myEmail+'\')"><span class="email-chip-text">'+myEmail+'</span><span class="email-chip-copy">&#128203; Copier</span></div></div>'
+      +'<div class="shared-profile-card"><div class="shared-profile-name">'+otherName+'</div>'
+      +'<div class="shared-profile-summary">'+(otherProfile&&otherProfile.summary?otherProfile.summary:'Profil en construction')+'</div>'
+      +'<div class="skill-grid" style="margin-bottom:6px">'+((otherProfile&&otherProfile.skills)||[]).map(function(s){return '<span class="stag">'+s+'</span>';}).join('')+'</div>'
+      +'<div class="email-chip" onclick="copyEmail(\''+otherEmail+'\')"><span class="email-chip-text">'+otherEmail+'</span><span class="email-chip-copy">&#128203; Copier</span></div></div>'
+      +'</div>';
+    document.getElementById('messages').innerHTML = '';
+    renderSharedMessages(sc, otherName);
+    renderSharedList();
+    sharedPollingInterval = setInterval(async function() {
+      const r = await fetch('/api/shared-conversations/'+id, { headers: {'Authorization':'Bearer '+token} });
+      if (r.ok) { const updated = await r.json(); renderSharedMessages(updated, otherName); }
+    }, 5000);
+  }
 
+  function buildSharedMessageHTML(m, isMe, initial) {
+    var attachmentsHtml = '';
+    if (Array.isArray(m.attachments) && m.attachments.length > 0) {
+      attachmentsHtml = m.attachments.map(function(a) {
+        if (a.isImage) return '<img src="'+a.dataUrl+'" class="msg-image" onclick="zoomImage(\''+a.dataUrl+'\')" alt="'+escapeHtml(a.name)+'">';
+        return '<a href="'+a.dataUrl+'" download="'+escapeHtml(a.name)+'" class="msg-file"><span class="msg-file-icon">&#128196;</span><span>'+escapeHtml(a.name)+'</span></a>';
+      }).join('');
+    }
+    var textHtml = m.text ? escapeHtml(m.text) : '';
+    return '<div class="msg '+(isMe?'user':'other')+'">'
+      +'<div class="av '+(isMe?'user':'other')+'">'+initial+'</div>'
+      +'<div class="bubble">'
+      +(!isMe ? '<div class="msg-sender">'+escapeHtml(m.sender_name)+'</div>' : '')
+      +textHtml
+      +attachmentsHtml
+      +'</div></div>';
+  }
 
-    function renderSharedMessages(sc, otherName) {
-      const msgs = document.getElementById('messages');
-      const messages = Array.isArray(sc.messages) ? sc.messages : [];
-      const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
+  function renderSharedMessages(sc, otherName) {
+    const msgs = document.getElementById('messages');
+    const messages = Array.isArray(sc.messages) ? sc.messages : [];
+    const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
+    const existing = msgs.querySelectorAll('.msg').length;
+    if (existing === messages.length) return;
 
-      // Compter les messages déjà affichés
-      const existing = msgs.querySelectorAll('.msg').length;
-      if (existing === messages.length) return; // Rien de nouveau
-
-      if (messages.length === 0) {
-        msgs.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Début de votre conversation avec <strong>${otherName}</strong>.<br>Dites bonjour !</div>`;
-        return;
-      }
-
-      // Premier chargement
-      if (existing === 0) {
-        msgs.innerHTML = messages.map(m => {
-          const isMe = m.sender_id === user.id;
-          const initial = isMe ? (user.name?.[0]?.toUpperCase()||'V') : (otherName?.[0]?.toUpperCase()||'?');
-          return `<div class="msg ${isMe?'user':'other'}">
-            <div class="av ${isMe?'user':'other'}">${initial}</div>
-            <div class="bubble">${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}${escapeHtml(m.text)}</div>
-          </div>`;
-        }).join('');
-      } else {
-        // Ajouter seulement les nouveaux
-        const newMessages = messages.slice(existing);
-        newMessages.forEach(m => {
-          const isMe = m.sender_id === user.id;
-          const initial = isMe ? (user.name?.[0]?.toUpperCase()||'V') : (otherName?.[0]?.toUpperCase()||'?');
-          const div = document.createElement('div');
-          div.className = `msg ${isMe?'user':'other'}`;
-          div.innerHTML = `<div class="av ${isMe?'user':'other'}">${initial}</div>
-            <div class="bubble">${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}${escapeHtml(m.text)}</div>`;
-          msgs.appendChild(div);
-        });
-      }
-
-      if (atBottom) msgs.scrollTop = msgs.scrollHeight;
+    if (messages.length === 0) {
+      msgs.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Début de votre conversation avec <strong>'+otherName+'</strong>.<br>Dites bonjour !</div>';
+      return;
     }
 
-  function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    if (existing === 0) {
+      msgs.innerHTML = messages.map(function(m) {
+        const isMe = m.sender_id === user.id;
+        const initial = isMe ? (user.name&&user.name[0]?user.name[0].toUpperCase():'V') : (otherName&&otherName[0]?otherName[0].toUpperCase():'?');
+        return buildSharedMessageHTML(m, isMe, initial);
+      }).join('');
+    } else {
+      messages.slice(existing).forEach(function(m) {
+        const isMe = m.sender_id === user.id;
+        const initial = isMe ? (user.name&&user.name[0]?user.name[0].toUpperCase():'V') : (otherName&&otherName[0]?otherName[0].toUpperCase():'?');
+        const div = document.createElement('div');
+        div.innerHTML = buildSharedMessageHTML(m, isMe, initial);
+        msgs.appendChild(div.firstElementChild);
+      });
+    }
+    if (atBottom) msgs.scrollTop = msgs.scrollHeight;
+  }
 
-  async function copyEmail(email) {
-    await navigator.clipboard.writeText(email);
-    document.querySelectorAll('.email-chip').forEach(chip => {
-      if (chip.querySelector('.email-chip-text').textContent === email) {
-        const copy = chip.querySelector('.email-chip-copy');
-        copy.textContent = '✓ Copié'; setTimeout(() => copy.textContent = '📋 Copier', 2000);
+  // UTILS
+  function escapeHtml(t) {
+    if (!t) return '';
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes+' o';
+    if (bytes < 1048576) return Math.round(bytes/1024)+' Ko';
+    return (bytes/1048576).toFixed(1)+' Mo';
+  }
+
+  function readFileAsText(file) {
+    return new Promise(function(resolve) {
+      const reader = new FileReader();
+      reader.onload = function(e) { resolve(e.target.result); };
+      reader.onerror = function() { resolve('[Impossible de lire le fichier]'); };
+      reader.readAsText(file);
+    });
+  }
+
+  // FICHIERS
+  function handleFileSelect(e) {
+    Array.from(e.target.files).forEach(addAttachment);
+    e.target.value = '';
+  }
+
+  function addAttachment(file) {
+    const isImage = file.type.startsWith('image/');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const id = Date.now() + Math.random();
+      pendingAttachments.push({ id: id, file: file, dataUrl: e.target.result, isImage: isImage });
+      renderAttachmentPreviews();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function renderAttachmentPreviews() {
+    const container = document.getElementById('footer-attachments');
+    container.style.display = pendingAttachments.length ? 'flex' : 'none';
+    container.innerHTML = pendingAttachments.map(function(a) {
+      return '<div class="attach-preview">'
+        +(a.isImage ? '<img src="'+a.dataUrl+'" alt="">' : '<span style="font-size:18px">&#128196;</span>')
+        +'<span class="attach-preview-name">'+escapeHtml(a.file.name)+'</span>'
+        +'<button class="attach-remove" onclick="removeAttachment('+a.id+')">&#215;</button>'
+        +'</div>';
+    }).join('');
+  }
+
+  function removeAttachment(id) {
+    pendingAttachments = pendingAttachments.filter(function(a) { return a.id !== id; });
+    renderAttachmentPreviews();
+  }
+
+  function zoomImage(src) {
+    document.getElementById('img-zoom-src').src = src;
+    document.getElementById('img-zoom').classList.add('active');
+  }
+
+  function renderAttachmentsInBubble(bubble, attachments) {
+    attachments.forEach(function(a) {
+      if (a.isImage) {
+        const img = document.createElement('img');
+        img.src = a.dataUrl;
+        img.className = 'msg-image';
+        img.onclick = function() { zoomImage(a.dataUrl); };
+        bubble.appendChild(img);
+      } else {
+        const link = document.createElement('a');
+        link.href = a.dataUrl;
+        link.download = a.file.name;
+        link.className = 'msg-file';
+        link.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+escapeHtml(a.file.name)+'</span><span style="margin-left:auto;font-size:10px;opacity:0.6">'+formatSize(a.file.size)+'</span>';
+        bubble.appendChild(link);
       }
     });
   }
 
+  // Drag & drop
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatArea = document.getElementById('chat-area');
+    chatArea.addEventListener('dragover', function(e) { e.preventDefault(); chatArea.classList.add('drag-over'); });
+    chatArea.addEventListener('dragleave', function() { chatArea.classList.remove('drag-over'); });
+    chatArea.addEventListener('drop', function(e) {
+      e.preventDefault();
+      chatArea.classList.remove('drag-over');
+      Array.from(e.dataTransfer.files).forEach(addAttachment);
+    });
+  });
+
+  // ENVOI MESSAGES
   async function sendMsg() {
     if (currentView === 'connexions' && activeSharedConvId) await sendSharedMessage();
     else await send();
@@ -919,15 +1001,30 @@ function switchView(view) {
   async function sendSharedMessage() {
     const inp = document.getElementById('inp');
     const text = inp.value.trim();
-    if (!text) return;
+    const attachments = pendingAttachments.slice();
+    if (!text && attachments.length === 0) return;
     inp.value = '';
+    pendingAttachments = [];
+    renderAttachmentPreviews();
     document.getElementById('send-btn').disabled = true;
-    await fetch(`/api/shared-conversations/${activeSharedConvId}/messages`, {
-      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({ text })
+
+    await fetch('/api/shared-conversations/'+activeSharedConvId+'/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({
+        text: text || '',
+        attachments: attachments.map(function(a) {
+          return { name: a.file.name, type: a.file.type, isImage: a.isImage, dataUrl: a.dataUrl };
+        })
+      })
     });
-    const res = await fetch(`/api/shared-conversations/${activeSharedConvId}`, { headers: {'Authorization':'Bearer '+token} });
-    if (res.ok) { const sc = await res.json(); const on = sc.user1_id===user.id?sc.user2_name:sc.user1_name; renderSharedMessages(sc, on); }
+
+    const res = await fetch('/api/shared-conversations/'+activeSharedConvId, { headers: {'Authorization':'Bearer '+token} });
+    if (res.ok) {
+      const sc = await res.json();
+      const on = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
+      renderSharedMessages(sc, on);
+    }
     document.getElementById('send-btn').disabled = false;
     document.getElementById('inp').focus();
   }
@@ -936,58 +1033,100 @@ function switchView(view) {
     if (isStreaming) return;
     const inp = document.getElementById('inp');
     const text = inp.value.trim();
-    if (!text) return;
+    const attachments = pendingAttachments.slice();
+    if (!text && attachments.length === 0) return;
     inp.value = '';
+    pendingAttachments = [];
+    renderAttachmentPreviews();
     isStreaming = true;
     document.getElementById('send-btn').disabled = true;
+
     if (!conversationId) {
-      const res = await fetch('/api/conversations', { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'} });
-      const data = await res.json();
-      conversationId = data.id; activeConvId = data.id;
+      const r = await fetch('/api/conversations', { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'} });
+      const d = await r.json();
+      conversationId = d.id; activeConvId = d.id;
     }
+
     const msgs = document.getElementById('messages');
     const userDiv = document.createElement('div');
     userDiv.className = 'msg user';
-    userDiv.innerHTML = `<div class="av user">${user.name?.[0]?.toUpperCase()||'V'}</div><div class="bubble">${text}</div>`;
+    userDiv.innerHTML = '<div class="av user">'+(user.name&&user.name[0]?user.name[0].toUpperCase():'V')+'</div><div class="bubble">'+(text?escapeHtml(text):'')+'</div>';
+    renderAttachmentsInBubble(userDiv.querySelector('.bubble'), attachments);
     msgs.appendChild(userDiv);
-    history.push({role:'user', content:text});
+
+    // Construire le content array pour l'API Anthropic
+    const messageContent = [];
+    for (var i = 0; i < attachments.length; i++) {
+      const a = attachments[i];
+      const base64 = a.dataUrl.split(',')[1];
+      if (a.isImage) {
+        messageContent.push({ type: 'image', source: { type: 'base64', media_type: a.file.type, data: base64 } });
+      } else {
+        const textContent = await readFileAsText(a.file);
+        messageContent.push({ type: 'text', text: '[Fichier: '+a.file.name+']\n```\n'+textContent+'\n```' });
+      }
+    }
+    if (text) messageContent.push({ type: 'text', text: text });
+
+    // Si texte seul, on envoie une string pour la compat backend
+    const historyContent = (messageContent.length === 1 && messageContent[0].type === 'text')
+      ? messageContent[0].text
+      : messageContent;
+
+    history.push({ role: 'user', content: historyContent });
+
     const aiDiv = document.createElement('div');
     aiDiv.className = 'msg ai';
-    aiDiv.innerHTML = `<div class="av ai">K</div><div class="bubble"><span class="streaming-text"></span><span class="cursor"></span></div>`;
+    aiDiv.innerHTML = '<div class="av ai">K</div><div class="bubble"><span class="streaming-text"></span><span class="cursor"></span></div>';
     msgs.appendChild(aiDiv);
     msgs.scrollTop = msgs.scrollHeight;
+
     const streamingEl = aiDiv.querySelector('.streaming-text');
     const cursorEl = aiDiv.querySelector('.cursor');
     const bubble = aiDiv.querySelector('.bubble');
+
     const res = await fetch('/api/chat', {
-      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({messages:history, conversationId})
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ messages: history, conversationId: conversationId })
     });
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let full = ''; let buffer = '';
     while (true) {
-      const {done, value} = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, {stream:true});
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, {stream:true});
       const lines = buffer.split('\n'); buffer = lines.pop();
-      for (const line of lines) {
+      for (var j = 0; j < lines.length; j++) {
+        const line = lines[j];
         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-          try { const d = JSON.parse(line.slice(6)); if (d.text) { full+=d.text; streamingEl.textContent=full; msgs.scrollTop=msgs.scrollHeight; } } catch {}
+          try { const dd = JSON.parse(line.slice(6)); if (dd.text) { full+=dd.text; streamingEl.textContent=full; msgs.scrollTop=msgs.scrollHeight; } } catch(e) {}
         }
       }
     }
     cursorEl.remove();
     renderContent(bubble, full);
     msgs.scrollTop = msgs.scrollHeight;
-    history.push({role:'assistant', content:full});
+    history.push({ role: 'assistant', content: full });
     isStreaming = false;
     document.getElementById('send-btn').disabled = false;
-    // Profil + matching déclenchés ensemble après chaque message
     setTimeout(loadProfile, 3000);
     setTimeout(loadConversations, 1000);
   }
 
+  // EMAIL
+  async function copyEmail(email) {
+    await navigator.clipboard.writeText(email);
+    document.querySelectorAll('.email-chip').forEach(function(chip) {
+      if (chip.querySelector('.email-chip-text').textContent === email) {
+        const copy = chip.querySelector('.email-chip-copy');
+        copy.textContent = 'Copié'; setTimeout(function() { copy.textContent = 'Copier'; }, 2000);
+      }
+    });
+  }
+
+  // MODAL MATCH
   function closeModal(e) {
     if (e && e.target !== document.getElementById('modal-bg')) return;
     document.getElementById('modal-bg').classList.remove('active');
@@ -995,24 +1134,24 @@ function switchView(view) {
   }
 
   async function openMatchModal(matchName, score, reason) {
-    const res = await fetch(`/api/user-profile-by-name/${encodeURIComponent(matchName)}`, { headers: {'Authorization':'Bearer '+token} });
+    const res = await fetch('/api/user-profile-by-name/'+encodeURIComponent(matchName), { headers: {'Authorization':'Bearer '+token} });
     if (!res.ok) return;
     const data = await res.json();
-    currentMatchData = { ...data, score, reason };
+    currentMatchData = Object.assign({}, data, {score:score, reason:reason});
     const profile = data.profile || {};
     const skills = Array.isArray(profile.skills) ? profile.skills : [];
     const projects = Array.isArray(profile.projects) ? profile.projects : [];
     const traits = profile.traits || {};
     document.getElementById('modal-name').textContent = matchName;
     document.getElementById('modal-summary').textContent = profile.summary || '';
-    document.getElementById('modal-score').textContent = score + '%';
-    document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(s=>`<span class="stag">${s}</span>`).join('') : '<span class="empty-state">aucune</span>';
-    document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(p=>`<div class="proj-tag"><div class="proj-dot"></div>${p}</div>`).join('') : '<span class="empty-state">aucun</span>';
+    document.getElementById('modal-score').textContent = score+'%';
+    document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+s+'</span>';}).join('') : '<span class="empty-state">aucune</span>';
+    document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+p+'</div>';}).join('') : '<span class="empty-state">aucun</span>';
     const tl = [['vision','Vision','v'],['technicite','Technicité','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Créativité','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
-    document.getElementById('modal-traits').innerHTML = tl.map(([k,label,cls]) => `<div class="trait"><span class="trait-name">${label}</span><div class="bar-bg"><div class="bar-fill ${cls}" style="width:${traits[k]||0}%"></div></div><span class="trait-pct">${traits[k]||0}%</span></div>`).join('');
-    const alreadySent = sentRequests.some(r => r.receiver_id === data.user_id && r.status === 'pending');
+    document.getElementById('modal-traits').innerHTML = tl.map(function(arr){return '<div class="trait"><span class="trait-name">'+arr[1]+'</span><div class="bar-bg"><div class="bar-fill '+arr[2]+'" style="width:'+(traits[arr[0]]||0)+'%"></div></div><span class="trait-pct">'+(traits[arr[0]]||0)+'%</span></div>';}).join('');
+    const alreadySent = sentRequests.some(function(r){return r.receiver_id===data.user_id&&r.status==='pending';});
     const btn = document.getElementById('modal-request-btn');
-    btn.textContent = alreadySent ? '✓ Demande envoyée' : 'Envoyer une demande';
+    btn.textContent = alreadySent ? 'Demande envoyée' : 'Envoyer une demande';
     btn.disabled = alreadySent;
     document.getElementById('modal-bg').classList.add('active');
   }
@@ -1022,13 +1161,14 @@ function switchView(view) {
     const btn = document.getElementById('modal-request-btn');
     btn.disabled = true; btn.textContent = 'Envoi…';
     const res = await fetch('/api/connection-requests', {
-      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ receiverId: currentMatchData.user_id, senderConvId: conversationId, receiverConvId: currentMatchData.conv_id })
     });
-    if (res.ok) { btn.textContent = '✓ Demande envoyée'; await loadSentRequests(); }
+    if (res.ok) { btn.textContent = 'Demande envoyée'; await loadSentRequests(); }
     else { btn.textContent = 'Erreur — réessayer'; btn.disabled = false; }
   }
 
+  // REQUESTS
   async function loadSentRequests() {
     const res = await fetch('/api/connection-requests/sent', { headers: {'Authorization':'Bearer '+token} });
     if (res.ok) sentRequests = await res.json();
@@ -1046,24 +1186,17 @@ function switchView(view) {
       return;
     }
     badge.style.display = 'flex'; badge.textContent = requests.length;
-    list.innerHTML = requests.map(r => {
+    list.innerHTML = requests.map(function(r) {
       const profile = r.sender_profile || {};
       const summary = profile.summary || r.sender_conv_title || '';
-      return `<div class="notif-item">
-        <div class="notif-item-name">${r.sender_name}</div>
-        <div class="notif-item-text">${summary}</div>
-        <div class="notif-actions">
-          <button class="notif-accept" onclick="respondRequest(${r.id},'accepted')">Accepter</button>
-          <button class="notif-decline" onclick="respondRequest(${r.id},'declined')">Refuser</button>
-        </div>
-      </div>`;
+      return '<div class="notif-item"><div class="notif-item-name">'+r.sender_name+'</div><div class="notif-item-text">'+summary+'</div><div class="notif-actions"><button class="notif-accept" onclick="respondRequest('+r.id+',\'accepted\')">Accepter</button><button class="notif-decline" onclick="respondRequest('+r.id+',\'declined\')">Refuser</button></div></div>';
     }).join('');
   }
 
   async function respondRequest(id, status) {
-    await fetch(`/api/connection-requests/${id}`, {
-      method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({ status })
+    await fetch('/api/connection-requests/'+id, {
+      method: 'PATCH', headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ status: status })
     });
     await loadReceivedRequests();
     if (status === 'accepted') { await loadSharedConversations(); switchView('connexions'); }
