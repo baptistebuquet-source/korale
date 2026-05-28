@@ -190,7 +190,9 @@
     .match-card:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); }
     .match-name { font-size: 12px; font-weight: 500; color: var(--text); }
     .match-reason { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .match-score { font-size: 11px; color: var(--green); font-weight: 600; float: right; }
+    .match-score { font-size: 11px; color: var(--green); font-weight: 600; }
+    .match-card { display: flex; flex-direction: column; }
+    .match-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
 
     /* SHARED */
     .shared-profiles { display: flex; flex-direction: column; gap: 12px; }
@@ -373,10 +375,10 @@
     <div class="header-right">
       <div class="user-badge" id="user-label"></div>
       <button class="header-btn" id="notif-btn" onclick="toggleNotifs()" style="position:relative">
-        🔔 Demandes
+        Demandes
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
-      <button class="header-btn desktop-only" onclick="toggleProfile()">◈ Analyse</button>
+      <button class="header-btn desktop-only" id="analyse-btn" onclick="toggleProfile()">◈ Contexte</button>
       <div class="nav-separator desktop-only"></div>
       <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
@@ -392,13 +394,13 @@
       <span class="mobile-nav-icon">＋</span>
       Nouveau
     </button>
-    <button class="mobile-nav-btn" onclick="toggleProfile()">
-      <span class="mobile-nav-icon">◈</span>
-      Analyse
-    </button>
     <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
       <span class="mobile-nav-icon">🤝</span>
       Réseau
+    </button>   
+    <button class="mobile-nav-btn" onclick="toggleProfile()">
+      <span class="mobile-nav-icon">◈</span>
+      Contexte
     </button>
   </div>
 
@@ -556,10 +558,12 @@
     document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
     document.getElementById('new-conv-btn').style.display = view === 'ai' ? '' : 'none';
     updateMobileNav(view);
+    const analyseBtn = document.getElementById('analyse-btn');
     if (view === 'ai') {
       document.getElementById('history-label-text').textContent = 'Conversations';
-      document.getElementById('profile-panel-label').textContent = 'analyse de cette conversation';
+      document.getElementById('profile-panel-label').textContent = 'contexte de la conversation';
       document.getElementById('profile-footer-text').textContent = 'analyse en continu';
+      if (analyseBtn) analyseBtn.textContent = '◈ Contexte';
       if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
       renderConversationList();
       if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
@@ -568,7 +572,14 @@
       conversationId = null; history = [];
     } else {
       document.getElementById('history-label-text').textContent = 'Réseau';
+      document.getElementById('profile-panel-label').textContent = 'détails';
+      if (analyseBtn) analyseBtn.textContent = '◈ Détails';
       if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
+      if (isMobile()) {
+        const panel = document.getElementById('history-panel');
+        panel.classList.add('open');
+        document.getElementById('overlay').classList.add('active');
+      }
       loadSharedConversations();
     }
   }
@@ -761,8 +772,10 @@
     if (!list || matches.length === 0) return;
     list.innerHTML = matches.map(m => `
       <div class="match-card" onclick="openMatchModal('${m.name.replace(/'/g,"\\'")}', ${m.score}, '${(m.reason||'').replace(/'/g,"\\'")}')">
-        <span class="match-score">${m.score}%</span>
-        <div class="match-name">${m.name}</div>
+        <div class="match-card-top">
+          <div class="match-name">${m.name}</div>
+          <span class="match-score">${m.score}%</span>
+        </div>
         <div class="match-reason">${m.reason}</div>
       </div>
     `).join('');
@@ -792,57 +805,70 @@
     }).join('');
   }
 
-  async function openSharedConversation(id) {
-    if (sharedPollingInterval) clearInterval(sharedPollingInterval);
-    activeSharedConvId = id;
-    const res = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
-    if (!res.ok) return;
-    const sc = await res.json();
-    const myProfile = sc.user1_id === user.id ? sc.user1_profile : sc.user2_profile;
-    const otherProfile = sc.user1_id === user.id ? sc.user2_profile : sc.user1_profile;
-    const myEmail = sc.user1_id === user.id ? sc.user1_email : sc.user2_email;
-    const otherEmail = sc.user1_id === user.id ? sc.user2_email : sc.user1_email;
-    const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
-    document.getElementById('profile-panel-label').textContent = 'profils partagés';
-    document.getElementById('profile-title').textContent = `Vous & ${otherName}`;
-    document.getElementById('profile-footer-text').textContent = 'connexion active';
-    document.getElementById('profile-body').innerHTML = `
-      <div class="shared-profiles">
-        <div class="shared-profile-card">
-          <div class="shared-profile-name">${user.name||user.email}<span class="shared-profile-you">Vous</span></div>
-          <div class="shared-profile-summary">${myProfile?.summary||'Profil en construction'}</div>
-          <div class="skill-grid" style="margin-bottom:6px">${(myProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
-          <div class="email-chip" onclick="copyEmail('${myEmail}')">
-            <span class="email-chip-text">${myEmail}</span>
-            <span class="email-chip-copy">📋 Copier</span>
+    async function openSharedConversation(id) {
+        if (sharedPollingInterval) clearInterval(sharedPollingInterval);
+        activeSharedConvId = id;
+        const res = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
+        if (!res.ok) return;
+        const sc = await res.json();
+        const myProfile = sc.user1_id === user.id ? sc.user1_profile : sc.user2_profile;
+        const otherProfile = sc.user1_id === user.id ? sc.user2_profile : sc.user1_profile;
+        const myEmail = sc.user1_id === user.id ? sc.user1_email : sc.user2_email;
+        const otherEmail = sc.user1_id === user.id ? sc.user2_email : sc.user1_email;
+        const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
+        document.getElementById('profile-panel-label').textContent = 'détails de la connexion';
+        document.getElementById('profile-title').textContent = `Vous & ${otherName}`;
+        document.getElementById('profile-footer-text').textContent = 'connexion active';
+        const analyseBtn = document.getElementById('analyse-btn');
+        if (analyseBtn) analyseBtn.textContent = '◈ Détails';
+        document.getElementById('profile-body').innerHTML = `
+          <div class="shared-profiles">
+            <div class="shared-profile-card">
+              <div class="shared-profile-name">${user.name||user.email}<span class="shared-profile-you">Vous</span></div>
+              <div class="shared-profile-summary">${myProfile?.summary||'Profil en construction'}</div>
+              <div class="skill-grid" style="margin-bottom:6px">${(myProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
+              <div class="email-chip" onclick="copyEmail('${myEmail}')">
+                <span class="email-chip-text">${myEmail}</span>
+                <span class="email-chip-copy">📋 Copier</span>
+              </div>
+            </div>
+            <div class="shared-profile-card">
+              <div class="shared-profile-name">${otherName}</div>
+              <div class="shared-profile-summary">${otherProfile?.summary||'Profil en construction'}</div>
+              <div class="skill-grid" style="margin-bottom:6px">${(otherProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
+              <div class="email-chip" onclick="copyEmail('${otherEmail}')">
+                <span class="email-chip-text">${otherEmail}</span>
+                <span class="email-chip-copy">📋 Copier</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="shared-profile-card">
-          <div class="shared-profile-name">${otherName}</div>
-          <div class="shared-profile-summary">${otherProfile?.summary||'Profil en construction'}</div>
-          <div class="skill-grid" style="margin-bottom:6px">${(otherProfile?.skills||[]).map(s=>`<span class="stag">${s}</span>`).join('')}</div>
-          <div class="email-chip" onclick="copyEmail('${otherEmail}')">
-            <span class="email-chip-text">${otherEmail}</span>
-            <span class="email-chip-copy">📋 Copier</span>
-          </div>
-        </div>
-      </div>
-    `;
-    renderSharedMessages(sc, otherName);
-    renderSharedList();
-    sharedPollingInterval = setInterval(async () => {
-      const r = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
-      if (r.ok) { const updated = await r.json(); renderSharedMessages(updated, otherName); }
-    }, 5000);
-  }
+        `;
+        renderSharedMessages(sc, otherName);
+        renderSharedList();
+        sharedPollingInterval = setInterval(async () => {
+          const r = await fetch(`/api/shared-conversations/${id}`, { headers: {'Authorization':'Bearer '+token} });
+          if (r.ok) { const updated = await r.json(); renderSharedMessages(updated, otherName); }
+        }, 5000);
+      }
 
-  function renderSharedMessages(sc, otherName) {
-    const msgs = document.getElementById('messages');
-    const messages = Array.isArray(sc.messages) ? sc.messages : [];
-    const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
-    msgs.innerHTML = messages.length === 0
-      ? `<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Début de votre conversation avec <strong>${otherName}</strong>.<br>Dites bonjour !</div>`
-      : messages.map(m => {
+
+    function renderSharedMessages(sc, otherName) {
+      const msgs = document.getElementById('messages');
+      const messages = Array.isArray(sc.messages) ? sc.messages : [];
+      const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
+
+      // Compter les messages déjà affichés
+      const existing = msgs.querySelectorAll('.msg').length;
+      if (existing === messages.length) return; // Rien de nouveau
+
+      if (messages.length === 0) {
+        msgs.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Début de votre conversation avec <strong>${otherName}</strong>.<br>Dites bonjour !</div>`;
+        return;
+      }
+
+      // Premier chargement
+      if (existing === 0) {
+        msgs.innerHTML = messages.map(m => {
           const isMe = m.sender_id === user.id;
           const initial = isMe ? (user.name?.[0]?.toUpperCase()||'V') : (otherName?.[0]?.toUpperCase()||'?');
           return `<div class="msg ${isMe?'user':'other'}">
@@ -850,8 +876,22 @@
             <div>${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}<div class="bubble">${escapeHtml(m.text)}</div></div>
           </div>`;
         }).join('');
-    if (atBottom || messages.length === 0) msgs.scrollTop = msgs.scrollHeight;
-  }
+      } else {
+        // Ajouter seulement les nouveaux
+        const newMessages = messages.slice(existing);
+        newMessages.forEach(m => {
+          const isMe = m.sender_id === user.id;
+          const initial = isMe ? (user.name?.[0]?.toUpperCase()||'V') : (otherName?.[0]?.toUpperCase()||'?');
+          const div = document.createElement('div');
+          div.className = `msg ${isMe?'user':'other'}`;
+          div.innerHTML = `<div class="av ${isMe?'user':'other'}">${initial}</div>
+            <div>${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}<div class="bubble">${escapeHtml(m.text)}</div></div>`;
+          msgs.appendChild(div);
+        });
+      }
+
+      if (atBottom) msgs.scrollTop = msgs.scrollHeight;
+    }
 
   function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
