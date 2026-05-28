@@ -24,25 +24,10 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { height: 100%; overflow: hidden; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', system-ui, sans-serif;
-      height: 100%;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      font-size: 14px;
-      overflow: hidden;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; height: 100%; min-height: 100dvh; display: flex; flex-direction: column; font-size: 14px; overflow: hidden; }
 
     /* AUTH */
-    #auth-screen {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #eef4ff 0%, #f7f5f2 50%, #eaf4ef 100%);
-      position: relative; overflow: hidden;
-    }
+    #auth-screen { flex: 1; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eef4ff 0%, #f7f5f2 50%, #eaf4ef 100%); position: relative; overflow: hidden; }
     #auth-screen::before { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 500px; height: 500px; background: radial-gradient(circle, rgba(91,141,238,0.1) 0%, transparent 70%); top: -120px; right: -100px; }
     #auth-screen::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; width: 350px; height: 350px; background: radial-gradient(circle, rgba(46,204,138,0.08) 0%, transparent 70%); bottom: -80px; left: -80px; }
     .bubble-deco { position: absolute; border-radius: 50%; pointer-events: none; }
@@ -51,14 +36,7 @@
     .bd3 { width: 130px; height: 130px; background: radial-gradient(circle, rgba(232,107,138,0.07) 0%, transparent 70%); bottom: 18%; left: 18%; }
     .bd4 { width: 65px; height: 65px; background: radial-gradient(circle, rgba(46,204,138,0.11) 0%, transparent 70%); top: 18%; right: 22%; }
     .bd5 { width: 240px; height: 240px; background: radial-gradient(circle, rgba(91,141,238,0.05) 0%, transparent 70%); bottom: 8%; right: 4%; }
-
-    .auth-box {
-      background: rgba(255,255,255,0.88); backdrop-filter: blur(24px);
-      border: 1px solid rgba(255,255,255,0.95); border-radius: 24px;
-      padding: 48px 44px; width: 400px;
-      box-shadow: 0 8px 48px rgba(91,141,238,0.13), 0 2px 8px rgba(0,0,0,0.05);
-      position: relative; z-index: 1;
-    }
+    .auth-box { background: rgba(255,255,255,0.88); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.95); border-radius: 24px; padding: 48px 44px; width: 400px; box-shadow: 0 8px 48px rgba(91,141,238,0.13), 0 2px 8px rgba(0,0,0,0.05); position: relative; z-index: 1; }
     .auth-logo { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 5px; color: var(--accent2); }
     .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-weight: 300; line-height: 1.5; }
     .auth-tabs { display: flex; margin-bottom: 24px; background: var(--bg2); border-radius: 10px; padding: 3px; gap: 3px; }
@@ -78,45 +56,27 @@
     .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 40; backdrop-filter: blur(2px); }
     .overlay.active { display: block; }
 
-    /* HEADER — desktop */
-    header {
-      padding: 0 16px; height: 54px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(16px);
-      display: flex; align-items: center; gap: 8px;
-      flex-shrink: 0; position: relative; z-index: 10;
-    }
+    header { padding: 0 16px; height: 54px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.95); backdrop-filter: blur(16px); display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 10; }
     .logo { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; color: var(--accent2); letter-spacing: -0.3px; cursor: pointer; flex-shrink: 0; margin-right: 4px; }
-    /* Nav tabs juste après le logo, pas centrés */
-    .nav-tabs { display: flex; gap: 4px; flex-shrink: 0; }
+    .nav-tabs { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
     .nav-tab { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .nav-tab.active { background: var(--accent-soft); border-color: rgba(91,141,238,0.35); color: var(--accent); font-weight: 500; }
     .nav-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-    /* Bouton nouvelle conversation juste après les tabs */
     .new-conv-btn { background: var(--accent); border: 1px solid var(--accent); color: white; padding: 5px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 8px rgba(91,141,238,0.25); flex-shrink: 0; }
     .new-conv-btn:hover { background: var(--accent2); border-color: var(--accent2); }
-    /* Spacer pour pousser les éléments droits */
+    .nav-separator { position: relative; width: 8px; height: 20px; flex: 0 0 8px; margin: 0; align-self: center; }
+    .nav-separator::before { content: ""; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 1px; height: 100%; background: var(--border2); }
     .header-spacer { flex: 1; }
-    /* Éléments côté droit */
     .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .header-btn { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; }
+    .header-btn { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap; position: relative; }
     .header-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
     .header-icon-btn { background: none; border: 1px solid var(--border2); color: var(--muted); width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; position: relative; flex-shrink: 0; }
     .header-icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
     .user-badge { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
-    .notif-badge { position: absolute; top: -4px; right: -4px; width: 15px; height: 15px; background: var(--rose); border-radius: 50%; font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .notif-badge { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; background: var(--rose); border-radius: 50%; font-size: 9px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
-    /* MOBILE BOTTOM NAV — caché sur desktop */
     .mobile-nav { display: none; }
-
-    .main {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-      min-height: 0;
-    }
+    .main { display: flex; flex: 1; overflow: hidden; position: relative; min-height: 0; }
 
     /* HISTORY PANEL */
     .history-panel { width: 230px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; transition: width 0.25s ease; flex-shrink: 0; }
@@ -136,26 +96,8 @@
     .conv-item-shared { border-left: 3px solid var(--green); }
 
     /* CHAT AREA */
-    .chat-area {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          border-right: 1px solid var(--border);
-          min-width: 0;
-          min-height: 0;
-          background: var(--bg);
-        }
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      min-height: 0;
-    }
+    .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); min-width: 0; min-height: 0; background: var(--bg); }
+    #messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 28px 24px; display: flex; flex-direction: column; gap: 20px; min-height: 0; }
     #messages::-webkit-scrollbar { width: 4px; }
     #messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
@@ -303,117 +245,42 @@
     .notif-decline:hover { border-color: var(--rose); color: var(--rose); }
     .notif-empty { padding: 20px; text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
 
-.nav-separator {
-    position: relative;
-    width: 8px;
-    height: 20px;
-    flex: 0 0 8px;
-    margin: 0;
-    align-self: center;
-}
-
-.nav-separator::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-    width: 1px;
-    height: 100%;
-    background: var(--border2);
-}
-
-    .notif-text2{
-        display: none;
-    }
-
-    /* ===================== RESPONSIVE MOBILE ===================== */
+    /* RESPONSIVE MOBILE */
     @media (max-width: 768px) {
-      /* Auth */
       .auth-box { width: calc(100% - 32px); padding: 36px 24px; border-radius: 20px; }
       .auth-logo { font-size: 26px; }
       .bd1, .bd3 { display: none; }
-
-      /* Header mobile : hamburger | logo | spacer | cloche | quitter */
       header { padding: 0 12px; height: 52px; gap: 6px; }
       .logo { font-size: 18px; margin-right: 0; }
-      /* Cacher les éléments qui passent dans le bottom nav */
       .nav-tabs { display: none; }
       .new-conv-btn { display: none; }
-      /* Garder visible sur mobile */
       .user-badge { display: block; max-width: 80px; font-size: 11px; }
-      /* Cloche reste en haut à droite, profil passe en bas */
-      .header-icon-btn.profile-btn { display: none; }
+      .desktop-only { display: none; }
+      .nav-separator { display: none; }
 
-      /* Bottom nav mobile */
-      .mobile-nav {
-        display: flex; align-items: center; justify-content: space-around;
-        height: 58px; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px);
-        border-top: 1px solid var(--border); flex-shrink: 0; padding: 0 4px;
-        position: relative; z-index: 10;
-      }
-      .mobile-nav-btn {
-        display: flex; flex-direction: column; align-items: center; gap: 2px;
-        background: none; border: none; cursor: pointer; font-family: inherit;
-        padding: 6px 10px; border-radius: 10px; transition: all 0.2s;
-        color: var(--muted); font-size: 10px; font-weight: 500; flex: 1;
-      }
+      .mobile-nav { display: flex; align-items: center; justify-content: space-around; height: 58px; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); border-top: 1px solid var(--border); flex-shrink: 0; padding: 0 4px; position: relative; z-index: 10; }
+      .mobile-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; font-family: inherit; padding: 6px 10px; border-radius: 10px; transition: all 0.2s; color: var(--muted); font-size: 10px; font-weight: 500; flex: 1; }
       .mobile-nav-btn.active { color: var(--accent); background: var(--accent-soft); }
       .mobile-nav-icon { font-size: 19px; line-height: 1; }
-      .mobile-nav-new {
-        background: var(--accent); color: white !important; border-radius: 12px;
-        padding: 8px 14px; box-shadow: 0 2px 10px rgba(91,141,238,0.35);
-        font-size: 11px !important;
-      }
+      .mobile-nav-new { background: var(--accent); color: white !important; border-radius: 12px; padding: 8px 14px; box-shadow: 0 2px 10px rgba(91,141,238,0.35); font-size: 11px !important; }
       .mobile-nav-new:hover, .mobile-nav-new.active { background: var(--accent2); color: white !important; }
-      .mobile-notif-dot { position: relative; }
-      .mobile-notif-badge { position: absolute; top: 4px; right: 8px; width: 14px; height: 14px; background: var(--rose); border-radius: 50%; font-size: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
-      /* Panneaux overlay — bottom = hauteur bottom nav */
-      .history-panel {
-        position: fixed; top: 52px; left: 0; bottom: 58px;
-        width: 285px !important; z-index: 50;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
-        box-shadow: 4px 0 24px rgba(0,0,0,0.1);
-      }
+      .history-panel { position: fixed; top: 52px; left: 0; bottom: 58px; width: 285px !important; z-index: 50; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: 4px 0 24px rgba(0,0,0,0.1); }
       .history-panel.collapsed { width: 285px !important; }
       .history-panel.open { transform: translateX(0) !important; }
-
-      .profile-panel {
-        position: fixed; top: 52px; right: 0; bottom: 58px;
-        width: 285px !important; z-index: 50;
-        transform: translateX(100%);
-        transition: transform 0.3s cubic-bezier(0.25,1,0.5,1);
-        box-shadow: -4px 0 24px rgba(0,0,0,0.1);
-      }
+      .profile-panel { position: fixed; top: 52px; right: 0; bottom: 58px; width: 285px !important; z-index: 50; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25,1,0.5,1); box-shadow: -4px 0 24px rgba(0,0,0,0.1); }
       .profile-panel.collapsed { width: 285px !important; }
       .profile-panel.open { transform: translateX(0) !important; }
 
       .panel-close { display: block; }
       .chat-area { border-right: none; min-height: 0; flex: 1; }
-        footer { padding: 10px 12px 12px; flex-shrink: 0; }
+      footer { padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); flex-shrink: 0; }
       #messages { padding: 16px 14px; gap: 14px; }
       .bubble { max-width: 90%; }
-      footer {
-          padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
-        }
       #inp { font-size: 14px; }
       .send-btn { padding: 11px 14px; }
       .modal-cols { grid-template-columns: 1fr; }
       .notif-panel { right: 8px; left: 8px; width: auto; top: 60px; }
-
-      .desktop-only { display: none; }
-        .notif-text {
-        display: none;
-      }
-
-    .nav-separator{
-        display: none;
-      }
-    .notif-text2{
-        display: block;
-    }
     }
   </style>
 </head>
@@ -494,34 +361,30 @@
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
 
   <header>
-    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique des conversations">☰</button>
+    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">☰</button>
     <div class="logo" onclick="switchView('ai')">Korale</div>
     <div class="nav-tabs">
-          <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
-          <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
-          <div class="nav-separator"></div>
-        <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">
-              <span class="notif-text">Réseau</span>
-              <span class="notif-badge" id="notif-badge" style="display:none">0</span>
-        </button>
-
+      <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
+      <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
+      <div class="nav-separator"></div>
+      <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Réseau</button>
     </div>
     <div class="header-spacer"></div>
     <div class="header-right">
-          <div class="user-badge" id="user-label"></div>
-            <button class="header-btn" id="notif-btn" onclick="toggleNotifs()">
-              <span class="notif-text2">🔔</span> <span class="notif-text">Demandes</span>
-              <span class="notif-badge" id="notif-badge" style="display:none">0</span>
-            </button>
-          <button class="header-btn desktop-only" onclick="toggleProfile()">◈ Analyse</button>
-          <div class="nav-separator"></div>
-          <button class="header-btn" onclick="logout()">Quitter</button>
+      <div class="user-badge" id="user-label"></div>
+      <button class="header-btn" id="notif-btn" onclick="toggleNotifs()" style="position:relative">
+        🔔 Demandes
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
+      <button class="header-btn desktop-only" onclick="toggleProfile()">◈ Analyse</button>
+      <div class="nav-separator desktop-only"></div>
+      <button class="header-btn" onclick="logout()">Quitter</button>
     </div>
   </header>
 
   <!-- BOTTOM NAV MOBILE -->
   <div class="mobile-nav" id="mobile-nav">
-    <button class="mobile-nav-btn" id="mob-tab-ai" onclick="switchView('ai')">
+    <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')">
       <span class="mobile-nav-icon">💬</span>
       IA
     </button>
@@ -529,10 +392,10 @@
       <span class="mobile-nav-icon">＋</span>
       Nouveau
     </button>
-     <button class="mobile-nav-btn" onclick="toggleProfile()">
-          <span class="mobile-nav-icon">◈</span>
-          Analyse
-    </button>   
+    <button class="mobile-nav-btn" onclick="toggleProfile()">
+      <span class="mobile-nav-icon">◈</span>
+      Analyse
+    </button>
     <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')">
       <span class="mobile-nav-icon">🤝</span>
       Réseau
@@ -562,7 +425,7 @@
     <div class="profile-panel" id="profile-panel">
       <div class="profile-header">
         <div class="profile-header-text">
-          <div class="profile-label" id="profile-panel-label">profil de cette conversation</div>
+          <div class="profile-label" id="profile-panel-label">analyse de cette conversation</div>
           <div class="profile-title" id="profile-title">En construction…</div>
         </div>
         <button class="panel-close" onclick="closeAllPanels()">✕</button>
@@ -680,7 +543,7 @@
     document.getElementById('notif-panel').classList.toggle('active');
   }
 
-function updateMobileNav(view) {
+  function updateMobileNav(view) {
     document.getElementById('mob-tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('mob-tab-connexions').classList.toggle('active', view === 'connexions');
     const mobNew = document.getElementById('mob-new');
@@ -697,13 +560,15 @@ function updateMobileNav(view) {
       document.getElementById('history-label-text').textContent = 'Conversations';
       document.getElementById('profile-panel-label').textContent = 'analyse de cette conversation';
       document.getElementById('profile-footer-text').textContent = 'analyse en continu';
+      if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
       renderConversationList();
       if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
       resetProfile();
       document.getElementById('messages').innerHTML = `<div class="msg ai"><div class="av ai">K</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.</div></div>`;
       conversationId = null; history = [];
     } else {
-      document.getElementById('history-label-text').textContent = 'Connexions';
+      document.getElementById('history-label-text').textContent = 'Réseau';
+      if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
       loadSharedConversations();
     }
   }
@@ -742,6 +607,8 @@ function updateMobileNav(view) {
     loadSentRequests();
     loadReceivedRequests();
     setInterval(loadReceivedRequests, 30000);
+    // Fix : bouton IA actif au démarrage sur mobile
+    updateMobileNav('ai');
   }
 
   function logout() {
@@ -840,7 +707,11 @@ function updateMobileNav(view) {
     if (!conversationId) return;
     const res = await fetch(`/api/profile?conversationId=${conversationId}`, { headers:{'Authorization':'Bearer '+token} });
     const profile = await res.json();
-    if (profile && profile.skills) renderProfile(profile);
+    if (profile && profile.skills) {
+      renderProfile(profile);
+      // Déclencher le matching dès que le profil est disponible
+      loadMatching();
+    }
   }
 
   function renderProfile(profile) {
@@ -1066,9 +937,9 @@ function updateMobileNav(view) {
     history.push({role:'assistant', content:full});
     isStreaming = false;
     document.getElementById('send-btn').disabled = false;
-    setTimeout(loadConversations, 1000);
+    // Profil + matching déclenchés ensemble après chaque message
     setTimeout(loadProfile, 3000);
-    setTimeout(loadMatching, 8000);
+    setTimeout(loadConversations, 1000);
   }
 
   function closeModal(e) {
@@ -1122,16 +993,13 @@ function updateMobileNav(view) {
     if (!res.ok) return;
     const requests = await res.json();
     const badge = document.getElementById('notif-badge');
-    const mobBadge = document.getElementById('mob-notif-badge');
     const list = document.getElementById('notif-list');
     if (requests.length === 0) {
       badge.style.display = 'none';
-      if (mobBadge) mobBadge.style.display = 'none';
       list.innerHTML = '<div class="notif-empty">Aucune demande en attente</div>';
       return;
     }
     badge.style.display = 'flex'; badge.textContent = requests.length;
-    if (mobBadge) { mobBadge.style.display = 'flex'; mobBadge.textContent = requests.length; }
     list.innerHTML = requests.map(r => {
       const profile = r.sender_profile || {};
       const summary = profile.summary || r.sender_conv_title || '';
