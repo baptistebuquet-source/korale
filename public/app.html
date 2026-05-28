@@ -398,9 +398,9 @@
       <span class="mobile-nav-icon">🤝</span>
       Réseau
     </button>   
-    <button class="mobile-nav-btn" onclick="toggleProfile()">
+    <button class="mobile-nav-btn" id="mob-contexte-btn" onclick="toggleProfile()">
       <span class="mobile-nav-icon">◈</span>
-      Contexte
+      <span id="mob-contexte-label">Contexte</span>
     </button>
   </div>
 
@@ -552,18 +552,20 @@
     if (mobNew) mobNew.style.display = view === 'ai' ? '' : 'none';
   }
 
-  function switchView(view) {
+function switchView(view) {
     currentView = view;
     document.getElementById('tab-ai').classList.toggle('active', view === 'ai');
     document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
     document.getElementById('new-conv-btn').style.display = view === 'ai' ? '' : 'none';
     updateMobileNav(view);
     const analyseBtn = document.getElementById('analyse-btn');
+    const mobLabel = document.getElementById('mob-contexte-label');
     if (view === 'ai') {
       document.getElementById('history-label-text').textContent = 'Conversations';
       document.getElementById('profile-panel-label').textContent = 'contexte de la conversation';
       document.getElementById('profile-footer-text').textContent = 'analyse en continu';
       if (analyseBtn) analyseBtn.textContent = '◈ Contexte';
+      if (mobLabel) mobLabel.textContent = 'Contexte';
       if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
       renderConversationList();
       if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
@@ -574,6 +576,7 @@
       document.getElementById('history-label-text').textContent = 'Réseau';
       document.getElementById('profile-panel-label').textContent = 'détails';
       if (analyseBtn) analyseBtn.textContent = '◈ Détails';
+      if (mobLabel) mobLabel.textContent = 'Détails';
       if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
       if (isMobile()) {
         const panel = document.getElementById('history-panel');
@@ -821,6 +824,8 @@
         document.getElementById('profile-footer-text').textContent = 'connexion active';
         const analyseBtn = document.getElementById('analyse-btn');
         if (analyseBtn) analyseBtn.textContent = '◈ Détails';
+        const mobLabel = document.getElementById('mob-contexte-label');
+        if (mobLabel) mobLabel.textContent = 'Détails';
         document.getElementById('profile-body').innerHTML = `
           <div class="shared-profiles">
             <div class="shared-profile-card">
@@ -843,6 +848,7 @@
             </div>
           </div>
         `;
+        document.getElementById('messages').innerHTML = '';
         renderSharedMessages(sc, otherName);
         renderSharedList();
         sharedPollingInterval = setInterval(async () => {
@@ -873,7 +879,7 @@
           const initial = isMe ? (user.name?.[0]?.toUpperCase()||'V') : (otherName?.[0]?.toUpperCase()||'?');
           return `<div class="msg ${isMe?'user':'other'}">
             <div class="av ${isMe?'user':'other'}">${initial}</div>
-            <div>${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}<div class="bubble">${escapeHtml(m.text)}</div></div>
+            <div class="bubble">${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}${escapeHtml(m.text)}</div>
           </div>`;
         }).join('');
       } else {
@@ -885,7 +891,7 @@
           const div = document.createElement('div');
           div.className = `msg ${isMe?'user':'other'}`;
           div.innerHTML = `<div class="av ${isMe?'user':'other'}">${initial}</div>
-            <div>${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}<div class="bubble">${escapeHtml(m.text)}</div></div>`;
+            <div class="bubble">${!isMe?`<div class="msg-sender">${m.sender_name}</div>`:''}${escapeHtml(m.text)}</div>`;
           msgs.appendChild(div);
         });
       }
