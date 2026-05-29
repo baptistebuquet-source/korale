@@ -7,24 +7,13 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 
 const app = express();
-
-// Augmenter la limite pour accepter les images en base64 (défaut 100kb trop petit)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
-});
-app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/app.html'));
-});
-
-app.get('/hljs/highlight.min.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'node_modules/highlight.js/lib/core.js'));
-});
-app.get('/hljs/github-dark.css', (req, res) => {
-  res.sendFile(path.join(__dirname, 'node_modules/highlight.js/styles/github-dark.css'));
-});
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
+app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public/app.html')));
+app.get('/hljs/highlight.min.js', (req, res) => res.sendFile(path.join(__dirname, 'node_modules/highlight.js/lib/core.js')));
+app.get('/hljs/github-dark.css', (req, res) => res.sendFile(path.join(__dirname, 'node_modules/highlight.js/styles/github-dark.css')));
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const JWT_SECRET = process.env.JWT_SECRET || 'korale_secret_key';
@@ -101,24 +90,35 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// ── UTILITAIRE : extraire le texte d'un message (content string ou array) ──
+// Extraire le texte d'un message (content string ou array)
 function extractTextFromContent(content) {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) {
-    return content
-      .filter(c => c.type === 'text')
-      .map(c => c.text)
-      .join('\n');
+    return content.filter(c => c.type === 'text').map(c => c.text).join('\n');
   }
   return '';
 }
 
-// ── ANALYSE PROFIL ─────────────────────────────────────────────────────────
+// FIX : sauvegarder les messages en BDD en retirant les données base64 des images
+// pour éviter de faire grossir la BDD inutilement (les images sont en session mémoire côté client)
+function stripImagesFromMessages(messages) {
+  return messages.map(m => {
+    if (!Array.isArray(m.content)) return m;
+    const strippedContent = m.content.map(c => {
+      if (c.type === 'image') {
+        // On garde une trace que c'était une image mais sans la data
+        return { type: 'text', text: '[image]' };
+      }
+      return c;
+    });
+    return { ...m, content: strippedContent };
+  });
+}
+
 async function analyzeConversationProfile(messages) {
-  // On extrait uniquement le texte pour l'analyse (les images ne sont pas pertinentes pour le profil)
   const conversation = messages
     .map(m => `${m.role}: ${extractTextFromContent(m.content)}`)
-    .filter(line => line.trim() !== `${line.split(':')[0]}:`) // ignorer les messages vides
+    .filter(line => line.trim().length > (line.split(':')[0].length + 1))
     .join('\n');
 
   if (!conversation.trim()) return null;
@@ -148,7 +148,7 @@ Réponds UNIQUEMENT en JSON valide:
   "summary": "résumé en une phrase de ce dont parle cette conversation"
 }
 
-Maximum 6 compétences, 3 projets. Scores entre 0 et 100 basés uniquement sur cette conversation. JSON uniquement.`
+Maximum 6 compétences, 3 projets. Scores entre 0 et 100. JSON uniquement.`
     }]
   });
   try {
@@ -174,7 +174,7 @@ async function generateTitle(messages) {
   return result.content[0].text.trim();
 }
 
-// ── AUTH ───────────────────────────────────────────────────────────────────
+// AUTH
 app.post('/api/register', async (req, res) => {
   const { email, password, name } = req.body;
   try {
@@ -188,12 +188,8 @@ app.post('/api/register', async (req, res) => {
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
     res.json({ token, user });
   } catch (e) {
-    console.log('Erreur inscription:', e.message);
-    if (e.code === '23505') {
-      res.status(400).json({ error: 'Email déjà utilisé' });
-    } else {
-      res.status(500).json({ error: 'Erreur: ' + e.message });
-    }
+    if (e.code === '23505') res.status(400).json({ error: 'Email déjà utilisé' });
+    else res.status(500).json({ error: 'Erreur: ' + e.message });
   }
 });
 
@@ -211,7 +207,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// ── PROFILE ────────────────────────────────────────────────────────────────
+// PROFILE
 app.get('/api/profile', authMiddleware, async (req, res) => {
   const { conversationId } = req.query;
   if (conversationId) {
@@ -228,7 +224,7 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
   res.json(result.rows[0]?.profile || {});
 });
 
-// ── CONVERSATIONS ──────────────────────────────────────────────────────────
+// CONVERSATIONS
 app.get('/api/conversations/list', authMiddleware, async (req, res) => {
   const result = await pool.query(
     'SELECT id, title, created_at, updated_at, profile FROM conversations WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 50',
@@ -254,7 +250,7 @@ app.post('/api/conversations', authMiddleware, async (req, res) => {
   res.json({ id: result.rows[0].id });
 });
 
-// ── CHAT (streaming) ────────────────────────────────────────────────────────
+// CHAT (streaming)
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { messages, conversationId } = req.body;
 
@@ -262,14 +258,10 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
-  // Les messages du frontend ont déjà le bon format :
-  // - content: string (texte seul)
-  // - content: array (texte + images)
-  // L'API Anthropic accepte les deux formats nativement.
   const stream = client.messages.stream({
     model: 'claude-sonnet-4-5',
     max_tokens: 4096,
-    system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile. IMPORTANT: Pour toutes les équations mathématiques, utilise TOUJOURS la notation LaTeX : $...$ pour les équations inline et $$...$$ pour les équations centrées sur leur propre ligne. N'utilise JAMAIS de blocs code pour les équations mathématiques. Si l'utilisateur partage une image, décris-la et réponds en fonction de son contenu.",
+    system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile. IMPORTANT: Pour toutes les équations mathématiques, utilise TOUJOURS la notation LaTeX : $...$ pour les équations inline et $$...$$ pour les équations centrées sur leur propre ligne. N'utilise JAMAIS de blocs code pour les équations mathématiques. Si l'utilisateur partage une image, décris-la et réponds en fonction de son contenu. Si l'utilisateur partage le contenu d'un fichier PDF ou texte, analyse-le en détail.",
     messages: messages,
   });
 
@@ -282,7 +274,8 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   }
 
   if (conversationId) {
-    const allMessages = messages.concat([{ role: 'assistant', content: fullResponse }]);
+    // FIX : on retire les images base64 avant de sauvegarder en BDD (trop lourd)
+    const allMessages = stripImagesFromMessages(messages).concat([{ role: 'assistant', content: fullResponse }]);
     await pool.query(
       'UPDATE conversations SET messages = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3',
       [JSON.stringify(allMessages), conversationId, req.user.id]
@@ -307,7 +300,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   res.end();
 });
 
-// ── MATCHING ────────────────────────────────────────────────────────────────
+// MATCHING
 app.get('/api/matching', authMiddleware, async (req, res) => {
   const { context, conversationId } = req.query;
   let myProfile = {};
@@ -331,9 +324,7 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     SELECT DISTINCT ON (c.user_id) c.profile, u.name, u.id as user_id, c.id as conv_id
     FROM conversations c
     JOIN users u ON c.user_id = u.id
-    WHERE c.user_id != $1
-      AND c.profile != '{}'
-      AND c.profile IS NOT NULL
+    WHERE c.user_id != $1 AND c.profile != '{}' AND c.profile IS NOT NULL
     ORDER BY c.user_id, c.updated_at DESC
   `, [req.user.id]);
 
@@ -353,28 +344,19 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     max_tokens: 1024,
     messages: [{
       role: 'user',
-      content: `Tu es un moteur de matching pour Korale, une plateforme de collaboration.
+      content: `Tu es un moteur de matching pour Korale.
 
-Profil de l'utilisateur pour cette conversation:
+Profil de l'utilisateur:
 - Compétences: ${mySkills.join(', ')}
 - Vision: ${myTraits.vision||0}%, Technicité: ${myTraits.technicite||0}%, Entrepreneuriat: ${myTraits.entrepreneuriat||0}%, Créativité: ${myTraits.creativite||0}%, Collaboration: ${myTraits.collaboration||0}%, Leadership: ${myTraits.leadership||0}%
 - Résumé: ${myProfile.summary || 'non disponible'}
-
-Contexte de la conversation: "${context || 'général'}"
+Contexte: "${context || 'général'}"
 
 Profils disponibles:
 ${profilesText}
 
-Calcule un score de compatibilité (0-100) pour chaque profil en tenant compte:
-1. De la complémentarité des compétences
-2. De l'équilibre des traits
-3. Du contexte de la conversation
-
 Réponds UNIQUEMENT en JSON:
-[
-  {"name": "prénom", "score": 85, "reason": "raison courte en 5 mots max"},
-  ...
-]
+[{"name": "prénom", "score": 85, "reason": "raison courte en 5 mots max"}]
 Trie par score décroissant. JSON uniquement.`
     }]
   });
@@ -382,19 +364,17 @@ Trie par score décroissant. JSON uniquement.`
   try {
     let text = analysis.content[0].text.trim();
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const matches = JSON.parse(text);
-    res.json(matches.slice(0, 3));
+    res.json(JSON.parse(text).slice(0, 3));
   } catch(e) {
     res.json([]);
   }
 });
 
-// ── USER PROFILES ───────────────────────────────────────────────────────────
+// USER PROFILES
 app.get('/api/user-profile/:userId', authMiddleware, async (req, res) => {
   const result = await pool.query(`
     SELECT DISTINCT ON (c.user_id) c.id, c.profile, c.title, u.name
-    FROM conversations c
-    JOIN users u ON c.user_id = u.id
+    FROM conversations c JOIN users u ON c.user_id = u.id
     WHERE c.user_id = $1 AND c.profile != '{}' AND c.profile IS NOT NULL
     ORDER BY c.user_id, c.updated_at DESC
   `, [req.params.userId]);
@@ -405,8 +385,7 @@ app.get('/api/user-profile/:userId', authMiddleware, async (req, res) => {
 app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
   const result = await pool.query(`
     SELECT DISTINCT ON (c.user_id) c.id as conv_id, c.profile, u.name, u.id as user_id
-    FROM conversations c
-    JOIN users u ON c.user_id = u.id
+    FROM conversations c JOIN users u ON c.user_id = u.id
     WHERE u.name = $1 AND c.profile != '{}' AND c.profile IS NOT NULL
     ORDER BY c.user_id, c.updated_at DESC
   `, [req.params.name]);
@@ -414,14 +393,13 @@ app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
   res.json(result.rows[0]);
 });
 
-// ── CONNECTION REQUESTS ─────────────────────────────────────────────────────
+// CONNECTION REQUESTS
 app.post('/api/connection-requests', authMiddleware, async (req, res) => {
   const { receiverId, senderConvId, receiverConvId } = req.body;
   try {
     const result = await pool.query(
       `INSERT INTO connection_requests (sender_id, receiver_id, sender_conv_id, receiver_conv_id)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (sender_id, receiver_id, sender_conv_id) DO NOTHING RETURNING *`,
+       VALUES ($1, $2, $3, $4) ON CONFLICT (sender_id, receiver_id, sender_conv_id) DO NOTHING RETURNING *`,
       [req.user.id, receiverId, senderConvId, receiverConvId]
     );
     res.json({ success: true, request: result.rows[0] });
@@ -443,44 +421,35 @@ app.get('/api/connection-requests/received', authMiddleware, async (req, res) =>
 });
 
 app.get('/api/connection-requests/sent', authMiddleware, async (req, res) => {
-  const result = await pool.query(
-    `SELECT * FROM connection_requests WHERE sender_id = $1`,
-    [req.user.id]
-  );
+  const result = await pool.query(`SELECT * FROM connection_requests WHERE sender_id = $1`, [req.user.id]);
   res.json(result.rows);
 });
 
 app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
   const { status } = req.body;
   const result = await pool.query(
-    `UPDATE connection_requests SET status = $1, updated_at = NOW()
-     WHERE id = $2 AND receiver_id = $3 RETURNING *`,
+    `UPDATE connection_requests SET status = $1, updated_at = NOW() WHERE id = $2 AND receiver_id = $3 RETURNING *`,
     [status, req.params.id, req.user.id]
   );
   const request = result.rows[0];
   if (!request) return res.status(404).json({ error: 'Non trouvée' });
-
   if (status === 'accepted') {
     await pool.query(
-      `INSERT INTO shared_conversations
-       (request_id, user1_id, user2_id, user1_conv_id, user2_conv_id)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT DO NOTHING`,
-      [request.id, request.sender_id, request.receiver_id,
-       request.sender_conv_id, request.receiver_conv_id]
+      `INSERT INTO shared_conversations (request_id, user1_id, user2_id, user1_conv_id, user2_conv_id)
+       VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`,
+      [request.id, request.sender_id, request.receiver_id, request.sender_conv_id, request.receiver_conv_id]
     );
   }
   res.json(request);
 });
 
-// ── SHARED CONVERSATIONS ────────────────────────────────────────────────────
+// SHARED CONVERSATIONS
 app.get('/api/shared-conversations', authMiddleware, async (req, res) => {
   const result = await pool.query(`
     SELECT sc.*,
       u1.name as user1_name, u1.email as user1_email,
       u2.name as user2_name, u2.email as user2_email,
-      c1.profile as user1_profile,
-      c2.profile as user2_profile
+      c1.profile as user1_profile, c2.profile as user2_profile
     FROM shared_conversations sc
     JOIN users u1 ON sc.user1_id = u1.id
     JOIN users u2 ON sc.user2_id = u2.id
@@ -497,8 +466,7 @@ app.get('/api/shared-conversations/:id', authMiddleware, async (req, res) => {
     SELECT sc.*,
       u1.name as user1_name, u1.email as user1_email,
       u2.name as user2_name, u2.email as user2_email,
-      c1.profile as user1_profile,
-      c2.profile as user2_profile
+      c1.profile as user1_profile, c2.profile as user2_profile
     FROM shared_conversations sc
     JOIN users u1 ON sc.user1_id = u1.id
     JOIN users u2 ON sc.user2_id = u2.id
@@ -512,8 +480,6 @@ app.get('/api/shared-conversations/:id', authMiddleware, async (req, res) => {
 
 app.post('/api/shared-conversations/:id/messages', authMiddleware, async (req, res) => {
   const { text, attachments } = req.body;
-
-  // Valider : texte OU pièces jointes obligatoires
   const hasText = text && text.trim();
   const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
   if (!hasText && !hasAttachments) return res.status(400).json({ error: 'Message vide' });
@@ -525,34 +491,26 @@ app.post('/api/shared-conversations/:id/messages', authMiddleware, async (req, r
   if (!conv.rows[0]) return res.status(404).json({ error: 'Non trouvée' });
 
   const messages = Array.isArray(conv.rows[0].messages) ? conv.rows[0].messages : [];
-
   const newMsg = {
     sender_id: req.user.id,
     sender_name: req.user.name || req.user.email,
     text: hasText ? text.trim() : '',
-    // On stocke les pièces jointes dans le message
-    // Note : les dataUrl base64 peuvent être volumineuses.
-    // Pour production, il faudrait uploader vers S3/Cloudinary et stocker l'URL.
-    // Ici on stocke directement en JSONB pour simplifier.
     attachments: hasAttachments ? attachments.map(a => ({
       name: a.name,
       type: a.type,
       isImage: a.isImage,
-      dataUrl: a.dataUrl
+      dataUrl: a.dataUrl  // images uniquement (les fichiers sont intégrés dans text)
     })) : [],
     created_at: new Date().toISOString()
   };
 
   messages.push(newMsg);
-
   await pool.query(
     'UPDATE shared_conversations SET messages = $1, updated_at = NOW() WHERE id = $2',
     [JSON.stringify(messages), req.params.id]
   );
-
   res.json(newMsg);
 });
 
-// ── START ───────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Korale running on port ${PORT}`));
