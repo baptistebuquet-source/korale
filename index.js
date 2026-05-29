@@ -102,16 +102,25 @@ function extractTextFromContent(content) {
 // FIX : sauvegarder les messages en BDD en retirant les données base64 des images
 // pour éviter de faire grossir la BDD inutilement (les images sont en session mémoire côté client)
 function stripImagesFromMessages(messages) {
+  if (!Array.isArray(messages)) return [];
   return messages.map(m => {
-    if (!Array.isArray(m.content)) return m;
-    const strippedContent = m.content.map(c => {
-      if (c.type === 'image') {
-        // On garde une trace que c'était une image mais sans la data
-        return { type: 'text', text: '[image]' };
+    if (!m || typeof m !== 'object') return m;
+    const content = m.content;
+    // Si content est une string, on ne touche pas
+    if (typeof content === 'string') return m;
+    // Si content est un array, on retire les images
+    if (Array.isArray(content)) {
+      const strippedContent = content
+        .map(c => c.type === 'image' ? { type: 'text', text: '[image envoyée]' } : c)
+        .filter(c => !(c.type === 'text' && c.text === '[image envoyée]' && content.filter(x => x.type !== 'image').length === 0));
+      // Si après strip il ne reste que du texte vide, on met une string vide
+      const textOnly = strippedContent.filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
+      if (strippedContent.length === 0 || (strippedContent.every(c => c.type === 'text' && c.text === '[image envoyée]'))) {
+        return { ...m, content: '[image]' };
       }
-      return c;
-    });
-    return { ...m, content: strippedContent };
+      return { ...m, content: strippedContent };
+    }
+    return m;
   });
 }
 

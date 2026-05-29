@@ -190,6 +190,18 @@
     .profile-footer{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-shrink:0;}
     .f-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
     .f-text{font-size:10px;color:var(--muted);}
+    /* PANEL DOCS */
+    .doc-section{display:flex;flex-direction:column;gap:6px;}
+    .doc-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:all 0.2s;text-decoration:none;}
+    .doc-item:hover{border-color:var(--accent);background:var(--accent-soft);}
+    .doc-item-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;}
+    .doc-item-icon{width:36px;height:36px;border-radius:6px;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+    .doc-item-info{flex:1;min-width:0;}
+    .doc-item-name{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .doc-item-meta{font-size:10px;color:var(--muted);margin-top:1px;}
+    .doc-item-pdf{border-left:3px solid var(--rose);}
+    .doc-item-image{border-left:3px solid var(--accent);}
+    .doc-item-file{border-left:3px solid var(--green);}
     .empty-state{font-size:11px;color:var(--muted);font-style:italic;}
     .profile-summary{font-size:11px;color:var(--text2);line-height:1.55;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);font-style:italic;}
     .match-card{padding:9px 11px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;}
@@ -423,6 +435,7 @@
         </div>
         <div><div class="sec-label">projets d&eacute;tect&eacute;s</div><div id="proj-list"><span class="empty-state">aucun projet identifi&eacute;</span></div></div>
         <div><div class="sec-label">compatibilit&eacute;s</div><div id="match-list"><span class="empty-state">analyse en cours&hellip;</span></div></div>
+        <div><div class="sec-label">documents joints</div><div class="doc-section" id="doc-list"><span class="empty-state">aucun document</span></div></div>
       </div>
       <div class="profile-footer"><div class="f-dot"></div><div class="f-text" id="profile-footer-text">analyse en continu</div></div>
     </div>
@@ -573,7 +586,7 @@ function logout(){localStorage.removeItem('korale_token');localStorage.removeIte
 
 function resetProfile(){
   document.getElementById('profile-title').textContent='En construction\u2026';
-  document.getElementById('profile-body').innerHTML='<div id="profile-summary-section" style="display:none"><div class="sec-label">r\xe9sum\xe9</div><div class="profile-summary" id="profile-summary"></div></div><div><div class="sec-label">comp\xe9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state">en attente\u2026</span></div></div><div><div class="sec-label">profil de travail</div><div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div><div class="trait"><span class="trait-name">Technicit\xe9</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div><div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div><div class="trait"><span class="trait-name">Cr\xe9ativit\xe9</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div><div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div><div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div><div><div class="sec-label">projets d\xe9tect\xe9s</div><div id="proj-list"><span class="empty-state">aucun projet identifi\xe9</span></div></div><div><div class="sec-label">compatibilit\xe9s</div><div id="match-list"><span class="empty-state">analyse en cours\u2026</span></div></div>';
+  document.getElementById('profile-body').innerHTML='<div id="profile-summary-section" style="display:none"><div class="sec-label">r\xe9sum\xe9</div><div class="profile-summary" id="profile-summary"></div></div><div><div class="sec-label">comp\xe9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state">en attente\u2026</span></div></div><div><div class="sec-label">profil de travail</div><div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div><div class="trait"><span class="trait-name">Technicit\xe9</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div><div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div><div class="trait"><span class="trait-name">Cr\xe9ativit\xe9</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div><div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div><div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div><div><div class="sec-label">projets d\xe9tect\xe9s</div><div id="proj-list"><span class="empty-state">aucun projet identifi\xe9</span></div></div><div><div class="sec-label">compatibilit\xe9s</div><div id="match-list"><span class="empty-state">analyse en cours\u2026</span></div></div><div><div class="sec-label">documents joints</div><div class="doc-section" id="doc-list"><span class="empty-state">aucun document</span></div></div>';
 }
 function renderProfile(profile){
   var skills=Array.isArray(profile.skills)?profile.skills:[];
@@ -657,7 +670,11 @@ async function loadConversation(id){
     div.innerHTML='<div class="av '+role+'">'+initial+'</div><div class="bubble"></div>';
     msgs.appendChild(div);
     var bubble=div.querySelector('.bubble');
-    var content=typeof m.content==='string'?m.content:(Array.isArray(m.content)?m.content.filter(function(c){return c.type==='text';}).map(function(c){return c.text;}).join('\n'):'');
+    var content='';
+    if(typeof m.content==='string'){content=m.content;}
+    else if(Array.isArray(m.content)){content=m.content.filter(function(c){return c&&c.type==='text'&&c.text&&c.text!=='[image envoyée]';}).map(function(c){return c.text;}).join('\n');}
+    // Si vide mais on a une image en session, on met un placeholder
+    if(!content&&role==='user'){content='';}
     renderContent(bubble,content);
     // FIX 4 : ré-afficher images session si dispo
     var sImgs=(sessionImages[id]||[]).filter(function(si){return si.msgIndex===idx;});
@@ -668,6 +685,7 @@ async function loadConversation(id){
   msgs.scrollTop=msgs.scrollHeight;
   renderConversationList();
   if(conv.profile&&conv.profile.skills){renderProfile(conv.profile);loadMatching();}else resetProfile();
+  renderDocPanel();
 }
 function renderContent(bubble,text){
   if(!text)return;
@@ -856,6 +874,36 @@ document.addEventListener('DOMContentLoaded',function(){
   ca.addEventListener('drop',function(e){e.preventDefault();ca.classList.remove('drag-over');Array.from(e.dataTransfer.files).forEach(addAttachment);});
 });
 
+// DOCS PANEL : afficher les fichiers joints dans le panel droit
+function renderDocPanel(){
+  var list=document.getElementById('doc-list');
+  if(!list)return;
+  var docs=conversationId?(convDocs[conversationId]||[]):[];
+  if(!docs.length){list.innerHTML='<span class="empty-state">aucun document</span>';return;}
+  list.innerHTML=docs.map(function(doc,idx){
+    if(doc.type==='image'){
+      return '<div class="doc-item doc-item-image" onclick="zoomDocImage('+idx+')" title="'+escapeHtml(doc.name)+'">'
+        +'<img class="doc-item-thumb" src="'+doc.dataUrl+'" alt="">'
+        +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
+        +'<div class="doc-item-meta">Image &#183; cliquer pour agrandir</div></div></div>';
+    }else if(doc.type==='pdf'){
+      return '<div class="doc-item doc-item-pdf">'
+        +'<div class="doc-item-icon">&#128196;</div>'
+        +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
+        +'<div class="doc-item-meta">PDF &#183; envoy&#233; &#224; l&#39;IA</div></div></div>';
+    }else{
+      return '<div class="doc-item doc-item-file">'
+        +'<div class="doc-item-icon">&#128196;</div>'
+        +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
+        +'<div class="doc-item-meta">Fichier &#183; envoy&#233; &#224; l&#39;IA</div></div></div>';
+    }
+  }).join('');
+}
+function zoomDocImage(idx){
+  var docs=conversationId?(convDocs[conversationId]||[]):[];
+  if(docs[idx]&&docs[idx].dataUrl)zoomImage(docs[idx].dataUrl);
+}
+
 async function sendMsg(){if(currentView==='connexions'&&activeSharedConvId)await sendSharedMessage();else await send();}
 
 async function sendSharedMessage(){
@@ -910,7 +958,7 @@ async function send(){
       sessionImages[conversationId].push({msgIndex:currentMsgIndex,dataUrl:a.dataUrl,name:a.file.name});
       // FIX 5 : enregistrer dans convDocs
       if(!convDocs[conversationId])convDocs[conversationId]=[];
-      convDocs[conversationId].push({type:'image',name:a.file.name});
+      convDocs[conversationId].push({type:'image',name:a.file.name,dataUrl:a.dataUrl});
     }else{
       // FIX 3 : PDF -> texte, pas de base64
       var fileText=a.isPdf?await extractPdfText(a.file):await readFileAsText(a.file);
@@ -949,6 +997,7 @@ async function send(){
   history.push({role:'assistant',content:full});
   isStreaming=false;document.getElementById('send-btn').disabled=false;
   setTimeout(loadProfile,3000);setTimeout(loadConversations,1000);
+  renderDocPanel();
 }
 
 async function copyEmail(email){
