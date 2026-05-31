@@ -171,9 +171,21 @@ app.post('/api/conversations', authMiddleware, async (req, res) => {
   res.json({id: r.rows[0].id});
 });
 
+// SUPPRESSION CONVERSATION IA
+app.delete('/api/conversations/:id', authMiddleware, async (req, res) => {
+  try {
+    // Nettoyer les dépendances (FK) avant suppression
+    await pool.query('DELETE FROM shared_conversations WHERE user1_conv_id=$1 OR user2_conv_id=$1', [req.params.id]);
+    await pool.query('DELETE FROM connection_requests WHERE sender_conv_id=$1 OR receiver_conv_id=$1', [req.params.id]);
+    const r = await pool.query('DELETE FROM conversations WHERE id=$1 AND user_id=$2 RETURNING id', [req.params.id, req.user.id]);
+    if (!r.rows[0]) return res.status(404).json({ error: 'Non trouvée' });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // CHAT
 app.post('/api/chat', authMiddleware, async (req, res) => {
-  const { messages, saveMessage, conversationId } = req.body;
+  const { messages, saveMessage, conversationId, baseMessages } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -196,15 +208,19 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     }
 
     if (conversationId && saveMessage) {
-      // Lire l'historique BDD existant et ajouter le nouveau message + réponse
-      const existing = await pool.query('SELECT messages FROM conversations WHERE id=$1 AND user_id=$2', [conversationId, req.user.id]);
-      const existingMsgs = Array.isArray(existing.rows[0]?.messages) ? existing.rows[0].messages : [];
-      const allMessages = [...existingMsgs, saveMessage, { role: 'assistant', content: fullResponse }];
+      let priorMsgs;
+      if (Array.isArray(baseMessages)) {
+        priorMsgs = baseMessages; // édition : on repart de la base tronquée
+      } else {
+        const existing = await pool.query('SELECT messages FROM conversations WHERE id=$1 AND user_id=$2', [conversationId, req.user.id]);
+        priorMsgs = Array.isArray(existing.rows[0]?.messages) ? existing.rows[0].messages : [];
+      }
+      const allMessages = [...priorMsgs, saveMessage, { role: 'assistant', content: fullResponse }];
 
       await pool.query('UPDATE conversations SET messages=$1, updated_at=NOW() WHERE id=$2 AND user_id=$3',
         [JSON.stringify(allMessages), conversationId, req.user.id]);
 
-      if (existingMsgs.length === 0) {
+      if (priorMsgs.length === 0) {
         generateTitle(allMessages).then(t => {
           if (t) pool.query('UPDATE conversations SET title=$1 WHERE id=$2', [t, conversationId]);
         }).catch(()=>{});
@@ -373,6 +389,19 @@ app.post('/api/shared-conversations/:id/messages', authMiddleware, async (req, r
   });
   await pool.query('UPDATE shared_conversations SET messages=$1, updated_at=NOW() WHERE id=$2', [JSON.stringify(messages), req.params.id]);
   res.json({ ok: true });
+});
+
+// SUPPRESSION CONTACT PRIVÉ (déconnexion mutuelle)
+app.delete('/api/shared-conversations/:id', authMiddleware, async (req, res) => {
+  try {
+    const conv = await pool.query('SELECT * FROM shared_conversations WHERE id=$1 AND (user1_id=$2 OR user2_id=$2)', [req.params.id, req.user.id]);
+    if (!conv.rows[0]) return res.status(404).json({ error: 'Non trouvée' });
+    const requestId = conv.rows[0].request_id;
+    await pool.query('DELETE FROM shared_conversations WHERE id=$1', [req.params.id]);
+    // On supprime aussi la demande pour permettre une reconnexion ultérieure
+    if (requestId) await pool.query('DELETE FROM connection_requests WHERE id=$1', [requestId]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 const PORT = process.env.PORT || 3000;
