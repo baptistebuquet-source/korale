@@ -85,6 +85,26 @@
     .conv-title{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .conv-date{font-size:10px;color:var(--muted);margin-top:2px;}
     .conv-item-shared{border-left:3px solid var(--green);}
+
+
+/* SUPPRESSION + EDITION */
+    .conv-item{display:flex;align-items:center;gap:6px;}
+    .conv-item-main{flex:1;min-width:0;}
+    .conv-del{opacity:0;background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:3px 5px;border-radius:6px;flex-shrink:0;line-height:1;transition:all 0.15s;}
+    .conv-item:hover .conv-del{opacity:1;}
+    .conv-del:hover{color:var(--rose);background:rgba(232,107,138,0.12);}
+    .msg-edit-btn{align-self:center;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;opacity:0;transition:opacity 0.15s,color 0.15s;padding:4px 6px;border-radius:6px;}
+    .msg.user:hover .msg-edit-btn{opacity:1;}
+    .msg-edit-btn:hover{color:var(--accent);background:var(--surface2);}
+    .edit-textarea{width:100%;min-width:240px;min-height:60px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.45);border-radius:8px;color:white;font-family:inherit;font-size:14px;line-height:1.5;padding:8px 10px;resize:vertical;outline:none;}
+    .edit-textarea::placeholder{color:rgba(255,255,255,0.6);}
+    .edit-actions{display:flex;gap:6px;margin-top:8px;}
+    .edit-save,.edit-cancel{font-size:12px;padding:5px 12px;border-radius:7px;cursor:pointer;font-family:inherit;border:none;transition:all 0.15s;}
+    .edit-save{background:white;color:var(--accent2);font-weight:500;}
+    .edit-cancel{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);}
+
+
+
     .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);min-width:0;min-height:0;background:var(--bg);position:relative;}
     #messages{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:28px 24px;display:flex;flex-direction:column;gap:20px;min-height:0;}
     #messages::-webkit-scrollbar{width:4px;}
@@ -358,7 +378,7 @@
       <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
       <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
       <div class="nav-separator"></div>
-      <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">R&#233;seau</button>
+      <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Réseau</button>
     </div>
     <div class="header-spacer"></div>
     <div class="header-right">
@@ -374,7 +394,7 @@
   <div class="mobile-nav" id="mobile-nav">
     <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')"><span class="mobile-nav-icon">&#128172;</span>IA</button>
     <button class="mobile-nav-btn mobile-nav-new" id="mob-new" onclick="newConversation()"><span class="mobile-nav-icon">&#65291;</span>Nouveau</button>
-    <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')"><span class="mobile-nav-icon">&#129309;</span>R&#233;seau</button>
+    <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')"><span class="mobile-nav-icon">&#129309;</span>Réseau</button>
     <button class="mobile-nav-btn" id="mob-contexte-btn" onclick="toggleProfile()"><span class="mobile-nav-icon">&#9672;</span><span id="mob-contexte-label">Contexte</span></button>
   </div>
   <div class="main">
@@ -477,6 +497,7 @@ let sharedPollingInterval = null;
 let currentMatchData = null;
 let sentRequests = [];
 let pendingAttachments = [];
+let bddMessages = []; // miroir client de l'historique BDD de la conv IA courante
 // Stockage session des images (non persisté en BDD, perdu au refresh — comportement accepté)
 let sessionDocs = {}; // { convId: [ {type:'image'|'pdf'|'file', name, dataUrl?} ] }
 
@@ -533,7 +554,7 @@ function switchView(view) {
     if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
     resetProfile();
     document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
-    conversationId = null; history = [];
+    conversationId = null; history = []; bddMessages = [];
   } else {
     document.getElementById('history-label-text').textContent = 'R&#233;seau';
     document.getElementById('profile-panel-label').textContent = 'd&#233;tails';
@@ -576,7 +597,7 @@ async function showChat() {
   document.getElementById('chat-screen').style.display = 'flex';
   document.getElementById('user-label').textContent = user.name || user.email;
   await loadConversations();
-  conversationId = null; history = [];
+  conversationId = null; history = []; bddMessages = [];
   resetProfile();
   loadSentRequests();
   loadReceivedRequests();
@@ -743,11 +764,30 @@ function addToSessionDocs(key, doc) {
 }
 
 // CONVERSATIONS
-async function loadConversations() {
-  const res = await fetch('/api/conversations/list', { headers:{'Authorization':'Bearer '+token} });
+async function loadConversation(id) {
+  const res = await fetch('/api/conversations/'+id, { headers:{'Authorization':'Bearer '+token} });
   if (!res.ok) return;
-  conversations = await res.json();
-  if (currentView === 'ai') renderConversationList();
+  const conv = await res.json();
+  conversationId = id; activeConvId = id;
+  const rawMessages = Array.isArray(conv.messages) ? conv.messages : [];
+  bddMessages = rawMessages.slice();
+  history = bddMessages.map(toAIMessage).filter(function(m){ return m.content !== ''; });
+
+  renderAIConversation(-1);
+  renderConversationList();
+
+  // Docs : refs BDD + docs session (qui ont les objectUrl)
+  const key = 'ai_'+id;
+  const dbDocs = extractDocsFromHistory(rawMessages);
+  const sessionD = sessionDocs[key] || [];
+  const mergedDocs = dbDocs.map(function(doc) {
+    const match = sessionD.find(function(s) { return s.name === doc.name && s.type === doc.type; });
+    return match ? Object.assign({}, doc, { objectUrl: match.objectUrl, dataUrl: match.dataUrl }) : doc;
+  });
+  renderDocPanel(mergedDocs.length > 0 ? mergedDocs : sessionD);
+
+  if (conv.profile && conv.profile.skills) { renderProfile(conv.profile); loadMatching(); }
+  else resetProfile();
 }
 
 function renderConversationList() {
@@ -766,7 +806,7 @@ function renderConversationList() {
 }
 
 async function newConversation() {
-  conversationId = null; activeConvId = null; history = [];
+  conversationId = null; activeConvId = null; history = []; bddMessages = [];
   document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
   resetProfile();
   renderConversationList();
@@ -869,6 +909,200 @@ function renderContent(bubble, text) {
   });
 }
 
+
+// ---- HELPERS ÉDITION / RENDU CONV IA ----
+function toAIMessage(m) {
+  const role = m.role === 'assistant' ? 'assistant' : 'user';
+  if (typeof m.content === 'string') return { role: role, content: m.content };
+  if (Array.isArray(m.content)) {
+    const textOnly = m.content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n');
+    return { role: role, content: textOnly || '' };
+  }
+  return { role: role, content: '' };
+}
+function extractMsgText(m) {
+  if (typeof m.content === 'string') return m.content;
+  if (Array.isArray(m.content)) return m.content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n');
+  return '';
+}
+function renderMsgInto(bubble, m) {
+  if (typeof m.content === 'string') { renderContent(bubble, m.content); return; }
+  if (!Array.isArray(m.content)) return;
+  const textParts = [], fileParts = [];
+  m.content.forEach(function(c) { if (c.type === 'text') textParts.push(c.text); else fileParts.push(c); });
+  if (textParts.length > 0) renderContent(bubble, textParts.join('\n'));
+  fileParts.forEach(function(c) {
+    if (c.type === 'image_saved' && c.dataUrl) {
+      const img = document.createElement('img');
+      img.src = c.dataUrl; img.className = 'msg-image';
+      img.onclick = function(){ zoomImage(c.dataUrl); };
+      bubble.appendChild(img);
+    } else if (c.type === 'file_ref') {
+      if (c.dataUrl) {
+        const link = document.createElement('a');
+        link.className = 'msg-file'; link.style.cursor = 'pointer';
+        link.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
+          +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
+        (function(durl, dname){ link.onclick = function(){ openDataUrl(durl, dname); }; })(c.dataUrl, c.name);
+        bubble.appendChild(link);
+      } else {
+        const d = document.createElement('div');
+        d.className = 'msg-file'; d.style.opacity = '0.6'; d.title = 'Renvoyez ce fichier';
+        d.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
+          +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
+        bubble.appendChild(d);
+      }
+    }
+  });
+}
+const AI_GREETING = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
+
+// Rend toute la conv IA depuis bddMessages. Si editIdx >= 0, ce message devient éditable.
+function renderAIConversation(editIdx) {
+  if (editIdx === undefined) editIdx = -1;
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = AI_GREETING;
+  bddMessages.forEach(function(m, idx) {
+    const role = m.role === 'assistant' ? 'ai' : m.role;
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+    const initial = role === 'ai' ? '&#10022;' : (user.name && user.name[0] ? user.name[0].toUpperCase() : 'V');
+    div.innerHTML = '<div class="av '+role+'">'+initial+'</div><div class="bubble"></div>';
+    msgs.appendChild(div);
+    const bubble = div.querySelector('.bubble');
+
+    if (role !== 'ai' && idx === editIdx) {
+      bubble.innerHTML = '';
+      const ta = document.createElement('textarea');
+      ta.className = 'edit-textarea';
+      ta.value = extractMsgText(m);
+      const actions = document.createElement('div');
+      actions.className = 'edit-actions';
+      actions.innerHTML = '<button class="edit-save">Enregistrer</button><button class="edit-cancel">Annuler</button>';
+      bubble.appendChild(ta); bubble.appendChild(actions);
+      actions.querySelector('.edit-save').onclick = function(){ saveEditedMessage(idx, ta.value); };
+      actions.querySelector('.edit-cancel').onclick = function(){ renderAIConversation(-1); };
+      setTimeout(function(){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 0);
+      return;
+    }
+
+    renderMsgInto(bubble, m);
+
+    if (role !== 'ai') {
+      const eb = document.createElement('button');
+      eb.className = 'msg-edit-btn'; eb.title = 'Modifier'; eb.innerHTML = '&#9998;';
+      (function(i){ eb.onclick = function(){ startEditMessage(i); }; })(idx);
+      div.appendChild(eb);
+    }
+  });
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function startEditMessage(idx) {
+  if (isStreaming) return;
+  renderAIConversation(idx);
+}
+
+async function saveEditedMessage(idx, newText) {
+  newText = (newText || '').trim();
+  if (!newText || isStreaming) return;
+  const orig = bddMessages[idx];
+
+  // Nouveau message sauvegardé : on conserve les pièces jointes, on remplace le texte
+  let newSaveContent;
+  if (Array.isArray(orig.content)) {
+    const nonText = orig.content.filter(function(c){ return c.type !== 'text'; });
+    newSaveContent = nonText.length ? nonText.concat([{ type: 'text', text: newText }]) : newText;
+  } else {
+    newSaveContent = newText;
+  }
+  const newSaveMsg = { role: 'user', content: newSaveContent };
+
+  const base = bddMessages.slice(0, idx);
+  const aiHistory = base.map(toAIMessage).filter(function(m){ return m.content !== ''; });
+  aiHistory.push({ role: 'user', content: newText });
+
+  // Tronque l'état local et ajoute le message édité
+  bddMessages = base.concat([newSaveMsg]);
+  history = aiHistory.slice();
+  renderAIConversation(-1);
+
+  isStreaming = true;
+  document.getElementById('send-btn').disabled = true;
+
+  const msgs = document.getElementById('messages');
+  const aiDiv = document.createElement('div');
+  aiDiv.className = 'msg ai';
+  aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble"><span class="streaming-text"></span><span class="cursor"></span></div>';
+  msgs.appendChild(aiDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+  const streamingEl = aiDiv.querySelector('.streaming-text');
+  const cursorEl = aiDiv.querySelector('.cursor');
+  const bubble = aiDiv.querySelector('.bubble');
+
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body: JSON.stringify({ messages: history, saveMessage: newSaveMsg, baseMessages: base, conversationId: conversationId })
+  });
+  if (!res.ok) {
+    cursorEl.remove(); bubble.textContent = 'Erreur ' + res.status + ' — réessayez.';
+    isStreaming = false; document.getElementById('send-btn').disabled = false; return;
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '', buffer = '';
+  while (true) {
+    const chunk = await reader.read();
+    if (chunk.done) break;
+    buffer += decoder.decode(chunk.value, {stream:true});
+    const lines = buffer.split('\n'); buffer = lines.pop();
+    for (let j = 0; j < lines.length; j++) {
+      const line = lines[j];
+      if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+        try { const dd = JSON.parse(line.slice(6)); if (dd.text) { full += dd.text; streamingEl.textContent = full; msgs.scrollTop = msgs.scrollHeight; } } catch(e) {}
+      }
+    }
+  }
+  cursorEl.remove(); renderContent(bubble, full); msgs.scrollTop = msgs.scrollHeight;
+  bddMessages.push({ role: 'assistant', content: full });
+  history.push({ role: 'assistant', content: full });
+  isStreaming = false; document.getElementById('send-btn').disabled = false;
+  renderAIConversation(-1); // re-normalise les index + boutons modifier
+  setTimeout(loadProfile, 3000);
+  setTimeout(loadConversations, 1000);
+}
+
+// SUPPRESSIONS
+async function deleteConversation(id, ev) {
+  if (ev) ev.stopPropagation();
+  if (!confirm('Supprimer définitivement cette conversation ?')) return;
+  const res = await fetch('/api/conversations/'+id, { method:'DELETE', headers:{'Authorization':'Bearer '+token} });
+  if (!res.ok) return;
+  conversations = conversations.filter(function(c){ return c.id !== id; });
+  if (activeConvId === id) {
+    conversationId = null; activeConvId = null; history = []; bddMessages = [];
+    document.getElementById('messages').innerHTML = AI_GREETING;
+    resetProfile();
+  }
+  renderConversationList();
+}
+
+async function deleteSharedConversation(id, ev) {
+  if (ev) ev.stopPropagation();
+  if (!confirm('Supprimer ce contact et la conversation associée ?\nCette action est irréversible et concerne les deux participants.')) return;
+  const res = await fetch('/api/shared-conversations/'+id, { method:'DELETE', headers:{'Authorization':'Bearer '+token} });
+  if (!res.ok) return;
+  if (activeSharedConvId === id) {
+    if (sharedPollingInterval) clearInterval(sharedPollingInterval);
+    activeSharedConvId = null;
+    document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;">S\u00e9lectionnez une conversation.</div>';
+    document.getElementById('profile-body').innerHTML = '<span class="empty-state">Aucune connexion s\u00e9lectionn\u00e9e</span>';
+  }
+  await loadSharedConversations();
+  await loadSentRequests();
+}
+
 // MATCHING
 async function loadMatching() {
   if (!conversationId) return;
@@ -918,7 +1152,9 @@ function renderSharedList() {
     const date = new Date(sc.updated_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'});
     const isActive = sc.id === activeSharedConvId;
     return '<div class="conv-item conv-item-shared '+(isActive?'active':'')+'" onclick="openSharedConversation('+sc.id+'); if(isMobile()) closeAllPanels();">'
-      +'<div class="conv-title">&#128172; '+otherName+'</div><div class="conv-date">'+date+'</div></div>';
+      +'<div class="conv-item-main"><div class="conv-title">&#128172; '+otherName+'</div><div class="conv-date">'+date+'</div></div>'
+      +'<button class="conv-del" title="Supprimer le contact" onclick="event.stopPropagation();deleteSharedConversation('+sc.id+',event)">&#10005;</button>'
+      +'</div>';
   }).join('');
 }
 
@@ -1267,6 +1503,17 @@ async function send() {
   const saveMsg = (saveContent.length === 1 && saveContent[0].type === 'text')
     ? saveContent[0].text : saveContent;
 
+  // === AJOUT (h) === garder bddMessages synchro + bouton "modifier" sur ce message
+  const userMsgIdx = bddMessages.length;
+  bddMessages.push({ role: 'user', content: saveMsg });
+  (function(){
+    const eb = document.createElement('button');
+    eb.className = 'msg-edit-btn'; eb.title = 'Modifier'; eb.innerHTML = '&#9998;';
+    eb.onclick = function(){ startEditMessage(userMsgIdx); };
+    userDiv.appendChild(eb);
+  })();
+  // === FIN AJOUT (h) ===
+
   const aiDiv = document.createElement('div');
   aiDiv.className = 'msg ai';
   aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble"><span class="streaming-text"></span><span class="cursor"></span></div>';
@@ -1312,12 +1559,12 @@ async function send() {
   renderContent(bubble, full);
   msgs.scrollTop = msgs.scrollHeight;
   history.push({ role: 'assistant', content: full });
+  bddMessages.push({ role: 'assistant', content: full }); // === AJOUT (h) ===
   isStreaming = false;
   document.getElementById('send-btn').disabled = false;
   setTimeout(loadProfile, 3000);
   setTimeout(loadConversations, 1000);
 }
-
 // EMAIL
 async function copyEmail(email) {
   await navigator.clipboard.writeText(email);
