@@ -764,6 +764,15 @@ function addToSessionDocs(key, doc) {
 }
 
 // CONVERSATIONS
+// CONVERSATIONS
+async function loadConversations() {
+  const res = await fetch('/api/conversations/list', { headers:{'Authorization':'Bearer '+token} });
+  if (!res.ok) return;
+  conversations = await res.json();
+  if (currentView === 'ai') renderConversationList();
+}
+
+
 async function loadConversation(id) {
   const res = await fetch('/api/conversations/'+id, { headers:{'Authorization':'Bearer '+token} });
   if (!res.ok) return;
@@ -801,7 +810,9 @@ function renderConversationList() {
     const title = c.title || 'Conversation';
     const isActive = c.id === activeConvId;
     return '<div class="conv-item '+(isActive?'active':'')+'" onclick="loadConversation('+c.id+'); if(isMobile()) closeAllPanels();">'
-      +'<div class="conv-title">'+title+'</div><div class="conv-date">'+date+'</div></div>';
+      +'<div class="conv-item-main"><div class="conv-title">'+title+'</div><div class="conv-date">'+date+'</div></div>'
+      +'<button class="conv-del" title="Supprimer" onclick="event.stopPropagation();deleteConversation('+c.id+',event)">&#10005;</button>'
+      +'</div>';
   }).join('');
 }
 
