@@ -101,24 +101,20 @@ function extractTextFromContent(content) {
 
 // FIX : sauvegarder les messages en BDD en retirant les données base64 des images
 // pour éviter de faire grossir la BDD inutilement (les images sont en session mémoire côté client)
-function stripImagesFromMessages(messages) {
+// Nettoyage des messages pour la BDD : on ne stocke que texte et refs fichiers
+// Le frontend envoie displayMessages (sans contenu brut) via req.body.displayMessages
+function sanitizeForStorage(messages) {
   if (!Array.isArray(messages)) return [];
   return messages.map(m => {
     if (!m || typeof m !== 'object') return m;
     const content = m.content;
-    // Si content est une string, on ne touche pas
     if (typeof content === 'string') return m;
-    // Si content est un array, on retire les images
     if (Array.isArray(content)) {
-      const strippedContent = content
-        .map(c => c.type === 'image' ? { type: 'text', text: '[image envoyée]' } : c)
-        .filter(c => !(c.type === 'text' && c.text === '[image envoyée]' && content.filter(x => x.type !== 'image').length === 0));
-      // Si après strip il ne reste que du texte vide, on met une string vide
-      const textOnly = strippedContent.filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
-      if (strippedContent.length === 0 || (strippedContent.every(c => c.type === 'text' && c.text === '[image envoyée]'))) {
-        return { ...m, content: '[image]' };
-      }
-      return { ...m, content: strippedContent };
+      // Garder uniquement les blocs texte et refs fichiers (pas les images base64, pas le texte extrait de fichiers)
+      const clean = content.filter(c => c.type === 'text' || c.type === 'file_ref' || c.type === 'image_ref');
+      if (clean.length === 0) return { ...m, content: '' };
+      if (clean.length === 1 && clean[0].type === 'text') return { ...m, content: clean[0].text };
+      return { ...m, content: clean };
     }
     return m;
   });
@@ -283,8 +279,12 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   }
 
   if (conversationId) {
-    // FIX : on retire les images base64 avant de sauvegarder en BDD (trop lourd)
-    const allMessages = stripImagesFromMessages(messages).concat([{ role: 'assistant', content: fullResponse }]);
+    // displayMessages = version BDD des messages (sans contenu brut des fichiers/images)
+    // envoyé par le frontend séparément de messages (qui contient le vrai contenu pour l'IA)
+    const toSave = req.body.displayMessages;
+    const allMessages = Array.isArray(toSave)
+      ? toSave.concat([{ role: 'assistant', content: fullResponse }])
+      : sanitizeForStorage(messages).concat([{ role: 'assistant', content: fullResponse }]);
     await pool.query(
       'UPDATE conversations SET messages = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3',
       [JSON.stringify(allMessages), conversationId, req.user.id]
