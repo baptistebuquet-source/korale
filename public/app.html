@@ -747,7 +747,7 @@ async function loadConversation(id) {
   }).filter(function(m) { return m.content !== ''; });
   const msgs = document.getElementById('messages');
   msgs.innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
-  history.forEach(function(m) {
+  rawMessages.forEach(function(m) {
     const role = m.role === 'assistant' ? 'ai' : m.role;
     const div = document.createElement('div');
     div.className = 'msg ' + role;
@@ -791,7 +791,7 @@ async function loadConversation(id) {
   renderConversationList();
   // Docs : combiner les refs BDD + les docs session (qui ont les objectUrl)
   const key = 'ai_'+id;
-  const dbDocs = extractDocsFromHistory(history);
+  const dbDocs = extractDocsFromHistory(rawMessages);
   const sessionD = sessionDocs[key] || [];
   // Fusionner : pour chaque doc BDD, chercher si on a un objectUrl en session
   const mergedDocs = dbDocs.map(function(doc) {
