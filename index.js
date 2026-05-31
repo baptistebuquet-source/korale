@@ -430,7 +430,13 @@ app.get('/api/connection-requests/received', authMiddleware, async (req, res) =>
 });
 
 app.get('/api/connection-requests/sent', authMiddleware, async (req, res) => {
-  const result = await pool.query(`SELECT * FROM connection_requests WHERE sender_id = $1`, [req.user.id]);
+  const result = await pool.query(`
+    SELECT cr.*, u.name as receiver_name
+    FROM connection_requests cr
+    JOIN users u ON cr.receiver_id = u.id
+    WHERE cr.sender_id = $1
+    ORDER BY cr.created_at DESC
+  `, [req.user.id]);
   res.json(result.rows);
 });
 

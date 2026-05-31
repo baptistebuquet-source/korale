@@ -239,6 +239,8 @@
     .notif-panel.active{display:block;animation:modalIn 0.2s ease;}
     .notif-header{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
     .notif-title{font-size:12px;font-weight:600;color:var(--text);}
+    .notif-tab{background:none;border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+    .notif-tab.active{background:var(--accent-soft);border-color:rgba(91,141,238,0.35);color:var(--accent);font-weight:500;}
     .notif-list{padding:8px;max-height:300px;overflow-y:auto;}
     .notif-item{padding:10px 12px;border-radius:8px;margin-bottom:4px;border:1px solid var(--border);background:var(--surface2);}
     .notif-item-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:3px;}
@@ -336,7 +338,10 @@
 
 <div class="notif-panel" id="notif-panel">
   <div class="notif-header">
-    <div class="notif-title">Demandes re&#231;ues</div>
+    <div style="display:flex;gap:6px;flex:1">
+      <button class="notif-tab active" id="notif-tab-recv" onclick="switchNotifTab('recv')">Re&#231;ues</button>
+      <button class="notif-tab" id="notif-tab-sent" onclick="switchNotifTab('sent')">Envoy&#233;es</button>
+    </div>
     <button class="panel-close" style="display:block" onclick="toggleNotifs()">&#10005;</button>
   </div>
   <div class="notif-list" id="notif-list"><div class="notif-empty">Aucune demande en attente</div></div>
@@ -641,15 +646,17 @@ function renderDocPanel(docs) {
   section.style.display = 'block';
   list.innerHTML = docs.map(function(doc, i) {
     if (doc.type === 'image') {
-      return '<div class="doc-item doc-image" onclick="zoomImage(sessionDocs[currentKey()]['+i+'].dataUrl)">'
-        +'<img class="doc-item-thumb" src="'+doc.dataUrl+'" alt="">'
+      const safeUrl = doc.dataUrl || '';
+      if (!safeUrl) return '';
+      return '<div class="doc-item doc-image" onclick="zoomImage(this.querySelector(\'img\').src)">'
+        +'<img class="doc-item-thumb" src="'+safeUrl+'" alt="">'
         +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
-        +'<div class="doc-item-meta">Image</div></div></div>';
+        +'<div class="doc-item-meta">'+escapeHtml(doc.sender)+' &#183; agrandir</div></div></div>';
     }
     return '<div class="doc-item">'
       +'<div class="doc-item-icon">&#128196;</div>'
       +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
-      +'<div class="doc-item-meta">'+(doc.type === 'pdf' ? 'PDF' : 'Fichier')+'</div></div></div>';
+      +'<div class="doc-item-meta">'+escapeHtml(doc.sender)+'</div></div></div>';
   }).join('');
 }
 
@@ -748,10 +755,22 @@ async function loadMatching() {
   const matches = await res.json();
   const list = document.getElementById('match-list');
   if (!list || matches.length === 0) return;
-  list.innerHTML = matches.map(function(m) {
-    return '<div class="match-card" onclick="openMatchModal(\''+m.name.replace(/'/g,"\\'")+'\','+m.score+',\''+((m.reason||'').replace(/'/g,"\\'")+'\')">') 
-      +'<div class="match-card-top"><div class="match-name">'+m.name+'</div><span class="match-score">'+m.score+'%</span></div>'
-      +'<div class="match-reason">'+m.reason+'</div></div>';
+  // Filtrer profils déjà contactés ou connectés
+  const filteredMatches = matches.filter(function(m) {
+    const alreadySent = sentRequests.some(function(r) { return r.receiver_name === m.name; });
+    const alreadyConnected = sharedConversations.some(function(sc) {
+      return (sc.user1_id === user.id ? sc.user2_name : sc.user1_name) === m.name;
+    });
+    return !alreadySent && !alreadyConnected;
+  });
+  if (filteredMatches.length === 0) {
+    list.innerHTML = '<span class="empty-state">aucun nouveau profil compatible</span>';
+    return;
+  }
+  list.innerHTML = filteredMatches.map(function(m) {
+    const safeName = m.name.replace(/'/g, "\\'");
+    const safeReason = (m.reason||'').replace(/'/g, "\\'");
+    return '<div class="match-card" onclick="openMatchModal(\''+safeName+'\','+m.score+',\''+safeReason+'\')"><div class="match-card-top"><div class="match-name">'+m.name+'</div><span class="match-score">'+m.score+'%</span></div><div class="match-reason">'+m.reason+'</div></div>';
   }).join('');
 }
 
@@ -952,7 +971,9 @@ function addAttachment(file) {
     };
     reader.readAsDataURL(file);
   } else {
-    pendingAttachments.push({ id, file, dataUrl: null, isImage: false, isPdf });
+    // Créer un objectURL pour permettre le téléchargement/ouverture ultérieure
+    const objectUrl = URL.createObjectURL(file);
+    pendingAttachments.push({ id, file, dataUrl: null, objectUrl, isImage: false, isPdf });
     renderAttachmentPreviews();
   }
 }
@@ -984,11 +1005,22 @@ function renderAttachmentsInBubble(bubble, attachments) {
       bubble.appendChild(img);
     } else if (!a.isImage) {
       const link = document.createElement('a');
-      link.href = '#'; link.className = 'msg-file';
-      link.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+escapeHtml(a.file.name)+'</span><span style="margin-left:auto;font-size:10px;opacity:0.6">'+formatSize(a.file.size)+'</span>';
+      link.href = a.objectUrl || '#';
+      if (a.objectUrl) { link.target = '_blank'; link.rel = 'noopener'; }
+      link.className = 'msg-file';
+      const icon = a.isPdf ? '&#128196;' : getFileIcon(a.file ? a.file.name : '');
+      link.innerHTML = '<span class="msg-file-icon">'+icon+'</span><span>'+escapeHtml(a.file ? a.file.name : a.name)+'</span><span style="margin-left:auto;font-size:10px;opacity:0.6">'+(a.file ? formatSize(a.file.size) : '')+'</span>';
       bubble.appendChild(link);
     }
   });
+}
+
+function getFileIcon(name) {
+  if (!name) return '&#128196;';
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return '&#128196;';
+  if (['py','js','ts','html','css','json','md','txt','csv'].includes(ext)) return '&#128196;';
+  return '&#128196;';
 }
 
 // Drag & drop
@@ -1074,7 +1106,7 @@ async function send() {
     } else {
       const fileText = a.isPdf ? await extractPdfText(a.file) : await readFileAsText(a.file);
       messageContent.push({ type: 'text', text: '[Fichier: '+a.file.name+']\n```\n'+fileText+'\n```' });
-      addToSessionDocs(key, { type: a.isPdf ? 'pdf' : 'file', name: a.file.name });
+      addToSessionDocs(key, { type: a.isPdf ? 'pdf' : 'file', name: a.file.name, objectUrl: a.objectUrl || null, size: a.file.size });
     }
   }
   if (text) messageContent.push({ type: 'text', text: text });
@@ -1179,18 +1211,45 @@ async function loadSentRequests() {
   const res = await fetch('/api/connection-requests/sent', { headers: {'Authorization':'Bearer '+token} });
   if (res.ok) sentRequests = await res.json();
 }
+let currentNotifTab = 'recv';
+
+function switchNotifTab(tab) {
+  currentNotifTab = tab;
+  document.getElementById('notif-tab-recv').classList.toggle('active', tab === 'recv');
+  document.getElementById('notif-tab-sent').classList.toggle('active', tab === 'sent');
+  if (tab === 'recv') loadReceivedRequests();
+  else renderSentRequestsList();
+}
+
+function renderSentRequestsList() {
+  const list = document.getElementById('notif-list');
+  if (!sentRequests || sentRequests.length === 0) {
+    list.innerHTML = '<div class="notif-empty">Aucune demande envoy\u00e9e</div>';
+    return;
+  }
+  list.innerHTML = sentRequests.map(function(r) {
+    const statusLabel = r.status === 'pending' ? 'En attente' : (r.status === 'accepted' ? 'Accept\u00e9e &#10003;' : 'Refus\u00e9e');
+    const statusColor = r.status === 'accepted' ? 'var(--green)' : (r.status === 'declined' ? 'var(--rose)' : 'var(--muted)');
+    const name = r.receiver_name || ('Utilisateur #'+r.receiver_id);
+    return '<div class="notif-item"><div class="notif-item-name">'+escapeHtml(name)+'</div>'
+      +'<div class="notif-item-text" style="color:'+statusColor+'">'+statusLabel+'</div></div>';
+  }).join('');
+}
+
 async function loadReceivedRequests() {
   const res = await fetch('/api/connection-requests/received', { headers: {'Authorization':'Bearer '+token} });
   if (!res.ok) return;
   const requests = await res.json();
   const badge = document.getElementById('notif-badge');
   const list = document.getElementById('notif-list');
+  const pending = requests.filter(function(r) { return r.status === 'pending'; });
+  badge.style.display = pending.length > 0 ? 'flex' : 'none';
+  if (pending.length > 0) badge.textContent = pending.length;
+  if (currentNotifTab !== 'recv') return;
   if (requests.length === 0) {
-    badge.style.display = 'none';
-    list.innerHTML = '<div class="notif-empty">Aucune demande en attente</div>';
+    list.innerHTML = '<div class="notif-empty">Aucune demande re\u00e7ue</div>';
     return;
   }
-  badge.style.display = 'flex'; badge.textContent = requests.length;
   list.innerHTML = requests.map(function(r) {
     const profile = r.sender_profile || {};
     const summary = profile.summary || r.sender_conv_title || '';
