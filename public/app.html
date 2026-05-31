@@ -712,20 +712,21 @@ function renderDocPanel(docs) {
         +'<div class="doc-item-meta">Image &#183; cliquer pour agrandir</div></div></div>';
     }
     const typeLabel = doc.type === 'pdf' ? 'PDF' : 'Fichier';
-    // Créer un objectUrl depuis dataUrl si objectUrl absent (après rechargement)
-    const openUrl = doc.objectUrl || (doc.dataUrl ? doc.dataUrl : null);
-    if (openUrl) {
-      return '<a class="doc-item" href="'+openUrl+'" target="_blank" rel="noopener" style="text-decoration:none">'
-        +'<div class="doc-item-icon">&#128196;</div>'
-        +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
-        +'<div class="doc-item-meta">'+typeLabel+' &#183; ouvrir</div></div></a>';
-    }
-    return '<div class="doc-item" style="opacity:0.55" title="Renvoyez ce fichier">'
-      +'<div class="doc-item-icon">&#128196;</div>'
-      +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
-      +'<div class="doc-item-meta">'+typeLabel+' &middot; ancien envoi</div></div></div>';
+        const docId = registerOpenableDoc(doc.dataUrl, doc.name);
+        if (docId) {
+          return '<div class="doc-item doc-openable" onclick="openRegisteredDoc(\''+docId+'\')">'
+            +'<div class="doc-item-icon">&#128196;</div>'
+            +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
+            +'<div class="doc-item-meta">'+typeLabel+' &#183; ouvrir</div></div></div>';
+        }
+        return '<div class="doc-item" style="opacity:0.55" title="Renvoyez ce fichier">'
+          +'<div class="doc-item-icon">&#128196;</div>'
+          +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
+          +'<div class="doc-item-meta">'+typeLabel+' &middot; ancien envoi</div></div></div>';
   }).join('');
 }
+
+
 
 // Cl&#233; courante pour sessionDocs selon le contexte
 function currentKey() {
@@ -824,12 +825,12 @@ async function loadConversation(id) {
           addToSessionDocs('ai_'+conversationId, { type: 'image', name: c.name, dataUrl: c.dataUrl });
         } else if (c.type === 'file_ref') {
           // Fichier : cliquable si dataUrl disponible, sinon icône simple
-          if (c.dataUrl) {
+        if (c.dataUrl) {
             const link = document.createElement('a');
-            link.href = c.dataUrl; link.target = '_blank'; link.rel = 'noopener';
-            link.className = 'msg-file';
+            link.className = 'msg-file'; link.style.cursor = 'pointer';
             link.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
               +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
+            (function(durl, dname){ link.onclick = function(){ openDataUrl(durl, dname); }; })(c.dataUrl, c.name);
             bubble.appendChild(link);
           } else {
             const div = document.createElement('div');
@@ -975,7 +976,7 @@ function renderSharedDocs(sc) {
         docs.push({
           type: a.isImage ? 'image' : 'file',
           name: a.name,
-          dataUrl: a.isImage ? a.dataUrl : null,
+          dataUrl: a.dataUrl || null,
           sender: m.sender_name
         });
       });
@@ -994,6 +995,13 @@ function renderSharedDocs(sc) {
         +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
         +'<div class="doc-item-meta">'+escapeHtml(doc.sender)+'</div></div></div>';
     }
+    const docId = registerOpenableDoc(doc.dataUrl, doc.name);
+    if (docId) {
+      return '<div class="doc-item doc-openable" onclick="openRegisteredDoc(\''+docId+'\')">'
+        +'<div class="doc-item-icon">&#128196;</div>'
+        +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
+        +'<div class="doc-item-meta">'+escapeHtml(doc.sender)+' &#183; ouvrir</div></div></div>';
+    }
     return '<div class="doc-item">'
       +'<div class="doc-item-icon">&#128196;</div>'
       +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
@@ -1006,7 +1014,10 @@ function buildSharedMessageHTML(m, isMe, initial) {
   if (Array.isArray(m.attachments) && m.attachments.length > 0) {
     attachmentsHtml = m.attachments.map(function(a) {
       if (a.isImage) return '<img src="'+a.dataUrl+'" class="msg-image" onclick="zoomImage(\''+a.dataUrl+'\')" alt="'+escapeHtml(a.name)+'">';
-      return '<a href="'+a.dataUrl+'" download="'+escapeHtml(a.name)+'" class="msg-file"><span class="msg-file-icon">&#128196;</span><span>'+escapeHtml(a.name)+'</span></a>';
+      const docId = registerOpenableDoc(a.dataUrl, a.name);
+      const inner = '<span class="msg-file-icon">&#128196;</span><span>'+escapeHtml(a.name)+'</span>';
+      if (docId) return '<a class="msg-file" style="cursor:pointer" onclick="openRegisteredDoc(\''+docId+'\')">'+inner+'</a>';
+      return '<span class="msg-file">'+inner+'</span>';
     }).join('');
   }
   const textHtml = m.text ? escapeHtml(m.text) : '';
@@ -1087,19 +1098,14 @@ function addAttachment(file) {
   const isImage = file.type.startsWith('image/');
   const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
   const id = Date.now() + Math.random();
-  if (isImage) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      pendingAttachments.push({ id, file, dataUrl: e.target.result, isImage: true, isPdf: false });
-      renderAttachmentPreviews();
-    };
-    reader.readAsDataURL(file);
-  } else {
-    // Créer un objectURL pour permettre le téléchargement/ouverture ultérieure
-    const objectUrl = URL.createObjectURL(file);
-    pendingAttachments.push({ id, file, dataUrl: null, objectUrl, isImage: false, isPdf });
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const objectUrl = isImage ? null : URL.createObjectURL(file);
+    pendingAttachments.push({ id, file, dataUrl: dataUrl, objectUrl: objectUrl, isImage: isImage, isPdf: isPdf });
     renderAttachmentPreviews();
-  }
+  };
+  reader.readAsDataURL(file);
 }
 
 function renderAttachmentPreviews() {
