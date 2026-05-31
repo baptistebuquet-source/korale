@@ -1207,6 +1207,13 @@ async function send() {
       conversationId: conversationId
     })
   });
+  if (!res.ok) {
+    cursorEl.remove();
+    bubble.textContent = 'Erreur ' + res.status + ' — réessayez.';
+    isStreaming = false;
+    document.getElementById('send-btn').disabled = false;
+    return;
+  }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let full = ''; let buffer = '';
