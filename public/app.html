@@ -645,7 +645,7 @@ function extractDocsFromHistory(msgs) {
     if (!Array.isArray(m.content)) return;
     m.content.forEach(function(c) {
       if (c.type === 'image_saved') docs.push({ type: 'image', name: c.name || 'image', dataUrl: c.dataUrl || null });
-      else if (c.type === 'file_ref') docs.push({ type: c.fileType || 'file', name: c.name || 'fichier' });
+      else if (c.type === 'file_ref') docs.push({ type: c.fileType || 'file', name: c.name || 'fichier', dataUrl: c.dataUrl || null });
     });
   });
   return docs;
@@ -668,8 +668,10 @@ function renderDocPanel(docs) {
         +'<div class="doc-item-meta">Image &#183; cliquer pour agrandir</div></div></div>';
     }
     const typeLabel = doc.type === 'pdf' ? 'PDF' : 'Fichier';
-    if (doc.objectUrl) {
-      return '<a class="doc-item" href="'+doc.objectUrl+'" target="_blank" rel="noopener" style="text-decoration:none">'
+    // Créer un objectUrl depuis dataUrl si objectUrl absent (après rechargement)
+    const openUrl = doc.objectUrl || (doc.dataUrl ? doc.dataUrl : null);
+    if (openUrl) {
+      return '<a class="doc-item" href="'+openUrl+'" target="_blank" rel="noopener" style="text-decoration:none">'
         +'<div class="doc-item-icon">&#128196;</div>'
         +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
         +'<div class="doc-item-meta">'+typeLabel+' &#183; ouvrir</div></div></a>';
@@ -777,12 +779,21 @@ async function loadConversation(id) {
           // Mettre à jour le panel docs aussi
           addToSessionDocs('ai_'+conversationId, { type: 'image', name: c.name, dataUrl: c.dataUrl });
         } else if (c.type === 'file_ref') {
-          // Fichier : icône avec nom, non cliquable (objectUrl perdu au rechargement)
-          const div = document.createElement('div');
-          div.className = 'msg-file';
-          div.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
-            +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
-          bubble.appendChild(div);
+          // Fichier : cliquable si dataUrl disponible, sinon icône simple
+          if (c.dataUrl) {
+            const link = document.createElement('a');
+            link.href = c.dataUrl; link.target = '_blank'; link.rel = 'noopener';
+            link.className = 'msg-file';
+            link.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
+              +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
+            bubble.appendChild(link);
+          } else {
+            const div = document.createElement('div');
+            div.className = 'msg-file';
+            div.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
+              +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
+            bubble.appendChild(div);
+          }
         }
       });
     }
@@ -1181,9 +1192,14 @@ async function send() {
     } else {
       const fileText = a.isPdf ? await extractPdfText(a.file) : await readFileAsText(a.file);
       aiContent.push({ type: 'text', text: '[Fichier: '+a.file.name+']\n' + '```' + '\n'+fileText+'\n' + '```' });
+      // Lire le fichier en base64 pour persistance en BDD
+      const fileDataUrl = await new Promise(function(resolve) {
+        const fr = new FileReader(); fr.onload = function(e) { resolve(e.target.result); }; fr.onerror = function() { resolve(null); };
+        fr.readAsDataURL(a.file);
+      });
       // En BDD : juste le nom (pas le contenu brut)
-      saveContent.push({ type: 'file_ref', name: a.file.name, fileType: a.isPdf ? 'pdf' : 'file' });
-      addToSessionDocs(key, { type: a.isPdf ? 'pdf' : 'file', name: a.file.name, objectUrl: a.objectUrl || null });
+      saveContent.push({ type: 'file_ref', name: a.file.name, fileType: a.isPdf ? 'pdf' : 'file', dataUrl: fileDataUrl });
+      addToSessionDocs(key, { type: a.isPdf ? 'pdf' : 'file', name: a.file.name, objectUrl: a.objectUrl || null, dataUrl: fileDataUrl });
     }
   }
   if (text) {
