@@ -732,7 +732,19 @@ async function loadConversation(id) {
   if (!res.ok) return;
   const conv = await res.json();
   conversationId = id; activeConvId = id;
-  history = Array.isArray(conv.messages) ? conv.messages : [];
+  const rawMessages = Array.isArray(conv.messages) ? conv.messages : [];
+  // history = version pour l'IA (types valides Anthropic uniquement : 'text', 'image')
+  // On reconstruit depuis les messages BDD en retirant les types non-Anthropic
+  history = rawMessages.map(function(m) {
+    if (typeof m.content === 'string') return { role: m.role === 'assistant' ? 'assistant' : m.role, content: m.content };
+    if (Array.isArray(m.content)) {
+      const clean = m.content.filter(function(c) { return c.type === 'text'; }).map(function(c) { return c; });
+      // image_saved et file_ref sont retirés (on ne peut pas ré-envoyer base64 depuis BDD en multi-tour)
+      const textOnly = clean.map(function(c) { return c.text; }).join('\n');
+      return { role: m.role === 'assistant' ? 'assistant' : m.role, content: textOnly || '' };
+    }
+    return { role: m.role === 'assistant' ? 'assistant' : m.role, content: '' };
+  }).filter(function(m) { return m.content !== ''; });
   const msgs = document.getElementById('messages');
   msgs.innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
   history.forEach(function(m) {
