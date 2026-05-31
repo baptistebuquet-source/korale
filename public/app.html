@@ -676,10 +676,10 @@ function renderDocPanel(docs) {
         +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
         +'<div class="doc-item-meta">'+typeLabel+' &#183; ouvrir</div></div></a>';
     }
-    return '<div class="doc-item" style="opacity:0.6">'
+    return '<div class="doc-item" style="opacity:0.55" title="Renvoyez ce fichier">'
       +'<div class="doc-item-icon">&#128196;</div>'
       +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
-      +'<div class="doc-item-meta">'+typeLabel+'</div></div></div>';
+      +'<div class="doc-item-meta">'+typeLabel+' &middot; ancien envoi</div></div></div>';
   }).join('');
 }
 
@@ -789,7 +789,8 @@ async function loadConversation(id) {
             bubble.appendChild(link);
           } else {
             const div = document.createElement('div');
-            div.className = 'msg-file';
+            div.className = 'msg-file'; div.style.opacity = '0.6';
+            div.title = 'Renvoyez ce fichier';
             div.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
               +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
             bubble.appendChild(div);
