@@ -644,7 +644,7 @@ function extractDocsFromHistory(msgs) {
   msgs.forEach(function(m) {
     if (!Array.isArray(m.content)) return;
     m.content.forEach(function(c) {
-      if (c.type === 'image_ref') docs.push({ type: 'image', name: c.name || 'image' });
+      if (c.type === 'image_saved') docs.push({ type: 'image', name: c.name || 'image', dataUrl: c.dataUrl || null });
       else if (c.type === 'file_ref') docs.push({ type: c.fileType || 'file', name: c.name || 'fichier' });
     });
   });
@@ -661,13 +661,7 @@ function renderDocPanel(docs) {
   section.style.display = 'block';
   list.innerHTML = validDocs.map(function(doc, i) {
     if (doc.type === 'image') {
-      if (!doc.dataUrl) {
-        // Image perdue au rechargement — afficher placeholder grisé
-        return '<div class="doc-item" style="opacity:0.5" title="Image non disponible après rechargement">'
-          +'<div class="doc-item-icon">&#128247;</div>'
-          +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
-          +'<div class="doc-item-meta">Image &#183; non disponible</div></div></div>';
-      }
+      if (!doc.dataUrl) return ''; // pas de dataUrl, on n'affiche pas
       return '<div class="doc-item doc-image" onclick="zoomImage(this.querySelector(\'img\').src)">'
         +'<img class="doc-item-thumb" src="'+doc.dataUrl+'" alt="">'
         +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
@@ -758,25 +752,25 @@ async function loadConversation(id) {
       const fileParts = [];
       m.content.forEach(function(c) {
         if (c.type === 'text') textParts.push(c.text);
-        else if (c.type === 'file_ref' || c.type === 'image_ref') fileParts.push(c);
+        else fileParts.push(c);
       });
       if (textParts.length > 0) renderContent(bubble, textParts.join('\n'));
-      // Afficher les refs fichiers comme icônes (pas de lien car objectUrl perdu au rechargement)
       fileParts.forEach(function(c) {
-        if (c.type === 'image_ref') {
-          // Image perdue au rechargement — afficher placeholder
-          const placeholder = document.createElement('div');
-          placeholder.className = 'msg-file';
-          placeholder.style.opacity = '0.5';
-          placeholder.innerHTML = '<span class="msg-file-icon">&#128247;</span><span>'+(c.name||'image')+'</span><span style="margin-left:auto;font-size:10px;color:var(--muted)">image non disponible apr&#232;s rechargement</span>';
-          bubble.appendChild(placeholder);
-        } else {
-          const link = document.createElement('div');
-          link.className = 'msg-file';
-          link.style.opacity = '0.7';
-          const icon = (c.fileType === 'pdf') ? '&#128196;' : '&#128196;';
-          link.innerHTML = '<span class="msg-file-icon">'+icon+'</span><span>'+(c.name||'fichier')+'</span><span style="margin-left:auto;font-size:10px;color:var(--muted)">'+(c.fileType||'fichier').toUpperCase()+'</span>';
-          bubble.appendChild(link);
+        if (c.type === 'image_saved' && c.dataUrl) {
+          // Image avec dataUrl stockée en BDD : affichage complet
+          const img = document.createElement('img');
+          img.src = c.dataUrl; img.className = 'msg-image';
+          img.onclick = function() { zoomImage(c.dataUrl); };
+          bubble.appendChild(img);
+          // Mettre à jour le panel docs aussi
+          addToSessionDocs('ai_'+conversationId, { type: 'image', name: c.name, dataUrl: c.dataUrl });
+        } else if (c.type === 'file_ref') {
+          // Fichier : icône avec nom, non cliquable (objectUrl perdu au rechargement)
+          const div = document.createElement('div');
+          div.className = 'msg-file';
+          div.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
+            +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
+          bubble.appendChild(div);
         }
       });
     }
@@ -1150,50 +1144,49 @@ async function send() {
 
   const key = 'ai_'+conversationId;
   const msgs = document.getElementById('messages');
+
+  // Afficher le message utilisateur
   const userDiv = document.createElement('div');
   userDiv.className = 'msg user';
   userDiv.innerHTML = '<div class="av user">'+(user.name&&user.name[0]?user.name[0].toUpperCase():'V')+'</div><div class="bubble">'+(text?escapeHtml(text):'')+'</div>';
   renderAttachmentsInBubble(userDiv.querySelector('.bubble'), attachments);
   msgs.appendChild(userDiv);
 
-  // messageContent = ce qu'on envoie à l'IA (avec images base64 et texte extrait des fichiers)
-  // displayContent = ce qu'on sauvegarde en BDD (refs fichiers uniquement, sans contenu brut)
-  const messageContent = [];
-  const displayContent = [];
+  // Construire deux versions du contenu :
+  // aiContent   → envoyé à l'API Anthropic (images base64 + texte extrait)
+  // saveContent → sauvegardé en BDD (image dataUrl pour persistance + refs fichiers)
+  const aiContent = [];
+  const saveContent = [];
 
   for (let i = 0; i < attachments.length; i++) {
     const a = attachments[i];
     if (a.isImage && a.dataUrl) {
       const base64 = a.dataUrl.split(',')[1];
-      // Pour l'IA : image en base64
-      messageContent.push({ type: 'image', source: { type: 'base64', media_type: a.file.type, data: base64 } });
-      // Pour la BDD : ref image (sans données)
-      displayContent.push({ type: 'image_ref', name: a.file.name, mediaType: a.file.type });
-      // Session locale pour le panel docs
+      aiContent.push({ type: 'image', source: { type: 'base64', media_type: a.file.type, data: base64 } });
+      // On stocke le dataUrl en BDD pour pouvoir réafficher l'image après rechargement
+      saveContent.push({ type: 'image_saved', name: a.file.name, dataUrl: a.dataUrl });
       addToSessionDocs(key, { type: 'image', name: a.file.name, dataUrl: a.dataUrl });
     } else {
-      // Pour l'IA : texte extrait du fichier
       const fileText = a.isPdf ? await extractPdfText(a.file) : await readFileAsText(a.file);
-      messageContent.push({ type: 'text', text: '[Fichier: '+a.file.name+']\n' + '\x60\x60\x60' + '\n'+fileText+'\n' + '\x60\x60\x60' });
-      // Pour la BDD : ref fichier (juste nom et type)
-      displayContent.push({ type: 'file_ref', name: a.file.name, fileType: a.isPdf ? 'pdf' : 'file' });
-      // Session locale
+      aiContent.push({ type: 'text', text: '[Fichier: '+a.file.name+']\n' + '```' + '\n'+fileText+'\n' + '```' });
+      // En BDD : juste le nom (pas le contenu brut)
+      saveContent.push({ type: 'file_ref', name: a.file.name, fileType: a.isPdf ? 'pdf' : 'file' });
       addToSessionDocs(key, { type: a.isPdf ? 'pdf' : 'file', name: a.file.name, objectUrl: a.objectUrl || null });
     }
   }
   if (text) {
-    messageContent.push({ type: 'text', text: text });
-    displayContent.push({ type: 'text', text: text });
+    aiContent.push({ type: 'text', text: text });
+    saveContent.push({ type: 'text', text: text });
   }
 
-  // historyContent = ce qu'on envoie à l'IA pour le streaming
-  const historyContent = (messageContent.length === 1 && messageContent[0].type === 'text')
-    ? messageContent[0].text : messageContent;
-  history.push({ role: 'user', content: historyContent });
+  // Ce qu'on envoie à l'IA : array ou string selon le cas
+  const historyMsg = (aiContent.length === 1 && aiContent[0].type === 'text')
+    ? aiContent[0].text : aiContent;
+  history.push({ role: 'user', content: historyMsg });
 
-  // displayHistory = ce qu'on envoie au backend pour sauvegarde en BDD
-  // On reconstruit l'historique complet en version "display"
-  const displayHistory = buildDisplayHistory();
+  // Ce qu'on sauvegarde en BDD pour ce message
+  const saveMsg = (saveContent.length === 1 && saveContent[0].type === 'text')
+    ? saveContent[0].text : saveContent;
 
   const aiDiv = document.createElement('div');
   aiDiv.className = 'msg ai';
@@ -1208,7 +1201,11 @@ async function send() {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
-    body: JSON.stringify({ messages: history, displayMessages: displayHistory, conversationId: conversationId })
+    body: JSON.stringify({
+      messages: history,
+      saveMessage: { role: 'user', content: saveMsg },
+      conversationId: conversationId
+    })
   });
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -1235,25 +1232,6 @@ async function send() {
   setTimeout(loadConversations, 1000);
 }
 
-// Construit l'historique "display" (version BDD) depuis l'historique IA courant
-// On parcourt history et on nettoie les contenus bruts (images base64, texte extrait)
-function buildDisplayHistory() {
-  return history.map(function(m) {
-    if (typeof m.content === 'string') return m;
-    if (!Array.isArray(m.content)) return m;
-    const display = m.content.map(function(c) {
-      if (c.type === 'image') return { type: 'image_ref', name: c.source ? 'image' : 'image' };
-      if (c.type === 'text' && c.text && c.text.startsWith('[Fichier: ')) {
-        const nameLine = c.text.split('\n')[0];
-        const name = nameLine.replace('[Fichier: ', '').replace(']', '');
-        return { type: 'file_ref', name: name, fileType: name.endsWith('.pdf') ? 'pdf' : 'file' };
-      }
-      return c;
-    });
-    if (display.length === 1 && display[0].type === 'text') return { ...m, content: display[0].text };
-    return { ...m, content: display };
-  });
-}
 // EMAIL
 async function copyEmail(email) {
   await navigator.clipboard.writeText(email);

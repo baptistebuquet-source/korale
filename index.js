@@ -279,11 +279,17 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   }
 
   if (conversationId) {
-    // displayMessages = version BDD des messages (sans contenu brut des fichiers/images)
-    // envoyé par le frontend séparément de messages (qui contient le vrai contenu pour l'IA)
-    const toSave = req.body.displayMessages;
-    const allMessages = Array.isArray(toSave)
-      ? toSave.concat([{ role: 'assistant', content: fullResponse }])
+    // saveMessage = version BDD du dernier message user (sans images base64 ni texte extrait)
+    // messages = version complète pour l'IA
+    // On reconstruit l'historique BDD depuis les messages existants + saveMessage + réponse assistant
+    const existingRes = await pool.query(
+      'SELECT messages FROM conversations WHERE id = $1 AND user_id = $2',
+      [conversationId, req.user.id]
+    );
+    const existingMsgs = Array.isArray(existingRes.rows[0]?.messages) ? existingRes.rows[0].messages : [];
+    const saveMessage = req.body.saveMessage;
+    const allMessages = saveMessage
+      ? [...existingMsgs, saveMessage, { role: 'assistant', content: fullResponse }]
       : sanitizeForStorage(messages).concat([{ role: 'assistant', content: fullResponse }]);
     await pool.query(
       'UPDATE conversations SET messages = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3',
