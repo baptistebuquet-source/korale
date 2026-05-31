@@ -273,6 +273,7 @@
     .notif-decline{background:none;border:1px solid var(--border2);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
     .notif-decline:hover{border-color:var(--rose);color:var(--rose);}
     .notif-empty{padding:20px;text-align:center;font-size:12px;color:var(--muted);font-style:italic;}
+    .mobile-nav-icon_context{display: none;}
     @media(max-width:768px){
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
       .auth-logo{font-size:26px;}.bd1,.bd3{display:none;}
@@ -283,6 +284,7 @@
       .mobile-nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 10px;border-radius:10px;transition:all 0.2s;color:var(--muted);font-size:10px;font-weight:500;flex:1;}
       .mobile-nav-btn.active{color:var(--accent);background:var(--accent-soft);}
       .mobile-nav-icon{font-size:19px;line-height:1;}
+      .mobile-nav-icon_context{display: block;}
       .mobile-nav-new{background:var(--accent);color:white!important;border-radius:12px;padding:8px 14px;box-shadow:0 2px 10px rgba(91,141,238,0.35);font-size:11px!important;}
       .mobile-nav-new:hover,.mobile-nav-new.active{background:var(--accent2);color:white!important;}
       .history-panel{position:fixed;top:52px;left:0;bottom:58px;width:285px!important;z-index:50;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(0.25,1,0.5,1);box-shadow:4px 0 24px rgba(0,0,0,0.1);}
@@ -395,7 +397,7 @@
     <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')"><span class="mobile-nav-icon">&#128172;</span>IA</button>
     <button class="mobile-nav-btn mobile-nav-new" id="mob-new" onclick="newConversation()"><span class="mobile-nav-icon">&#65291;</span>Nouveau</button>
     <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')"><span class="mobile-nav-icon">&#129309;</span>Réseau</button>
-    <button class="mobile-nav-btn" id="mob-contexte-btn" onclick="toggleProfile()"><span class="mobile-nav-icon">&#9672;</span><span id="mob-contexte-label">Contexte</span></button>
+    <button class="mobile-nav-btn" id="mob-contexte-btn" onclick="toggleProfile()"><span class="mobile-nav-icon_context">&#9672;</span><span id="mob-contexte-label">Contexte</span></button>
   </div>
   <div class="main">
     <div class="history-panel collapsed" id="history-panel">
@@ -555,11 +557,11 @@ function switchView(view) {
     resetProfile();
     document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
     conversationId = null; history = []; bddMessages = [];
-  } else {
-    document.getElementById('history-label-text').textContent = 'R&#233;seau';
-    document.getElementById('profile-panel-label').textContent = 'd&#233;tails';
-    if (analyseBtn) analyseBtn.textContent = 'D&#233;tails';
-    if (mobLabel) mobLabel.textContent = 'D&#233;tails';
+} else {
+    document.getElementById('history-label-text').textContent = 'Réseau';
+    document.getElementById('profile-panel-label').textContent = 'détails';
+    if (analyseBtn) analyseBtn.textContent = 'Détails';
+    if (mobLabel) mobLabel.textContent = 'Détails';
     if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
     if (isMobile()) {
       document.getElementById('history-panel').classList.add('open');
