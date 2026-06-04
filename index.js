@@ -184,6 +184,44 @@ app.delete('/api/conversations/:id', authMiddleware, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// RÉSUMÉ DOCUMENT (pour compacter l'historique et réduire les coûts)
+app.post('/api/summarize-doc', authMiddleware, async (req, res) => {
+  const { name, text } = req.body;
+  if (!text || !text.trim()) return res.json({ summary: null });
+  try {
+    const r = await client.messages.create({
+      model: 'claude-haiku-4-5', max_tokens: 600,
+      messages: [{ role: 'user', content: `Résume ce document pour qu'une IA de projet garde le contexte essentiel : objectif, sujet, points clés, chiffres importants, et tout élément utile pour comprendre le projet de l'utilisateur. Sois dense et factuel, 200 mots maximum.\n\nDocument « ${name} » :\n${(text || '').slice(0, 30000)}` }]
+    });
+    res.json({ summary: r.content[0].text.trim() });
+  } catch(e) { res.json({ summary: null }); }
+});
+
+
+
+// ENREGISTRE LE RÉSUMÉ D'UN DOC dans le dernier message user de la conversation
+app.post('/api/save-doc-summary', authMiddleware, async (req, res) => {
+  const { conversationId, name, summary } = req.body;
+  if (!conversationId || !name || !summary) return res.json({ ok: false });
+  try {
+    const r = await pool.query('SELECT messages FROM conversations WHERE id=$1 AND user_id=$2', [conversationId, req.user.id]);
+    const messages = Array.isArray(r.rows[0]?.messages) ? r.rows[0].messages : [];
+    // On cherche depuis la fin le dernier message user contenant un file_ref de ce nom
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role === 'user' && Array.isArray(m.content)) {
+        const ref = m.content.find(c => c.type === 'file_ref' && c.name === name);
+        if (ref) { ref.summary = summary; break; }
+      }
+    }
+    await pool.query('UPDATE conversations SET messages=$1 WHERE id=$2 AND user_id=$3',
+      [JSON.stringify(messages), conversationId, req.user.id]);
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false }); }
+});
+
+
 // CHAT
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { messages, saveMessage, conversationId, baseMessages } = req.body;

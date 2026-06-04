@@ -926,16 +926,25 @@ function renderContent(bubble, text) {
 }
 
 
-// ---- HELPERS ÉDITION / RENDU CONV IA ----
 function toAIMessage(m) {
   const role = m.role === 'assistant' ? 'assistant' : 'user';
   if (typeof m.content === 'string') return { role: role, content: m.content };
   if (Array.isArray(m.content)) {
-    const textOnly = m.content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n');
-    return { role: role, content: textOnly || '' };
+    const parts = [];
+    m.content.forEach(function(c) {
+      if (c.type === 'text') parts.push(c.text);
+      // Réinjecte le résumé d'un document joint (généré après coup, stocké en BDD)
+      else if (c.type === 'file_ref' && c.summary) {
+        parts.push('[Document joint « '+(c.name||'fichier')+' » — résumé du contenu pour contexte]\n' + c.summary);
+      }
+    });
+    return { role: role, content: parts.join('\n') || '' };
   }
   return { role: role, content: '' };
 }
+
+
+
 function extractMsgText(m) {
   if (typeof m.content === 'string') return m.content;
   if (Array.isArray(m.content)) return m.content.filter(function(c){ return c.type === 'text'; }).map(function(c){ return c.text; }).join('\n');
@@ -1486,6 +1495,7 @@ async function send() {
   // saveContent → sauvegardé en BDD (image dataUrl pour persistance + refs fichiers)
   const aiContent = [];
   const saveContent = [];
+  const docsToSummarize = []; // documents à compacter après le 1er tour
 
   for (let i = 0; i < attachments.length; i++) {
     const a = attachments[i];
@@ -1498,6 +1508,7 @@ async function send() {
     } else {
       const fileText = a.isPdf ? await extractPdfText(a.file) : await readFileAsText(a.file);
       aiContent.push({ type: 'text', text: '[Fichier: '+a.file.name+']\n' + '```' + '\n'+fileText+'\n' + '```' });
+      docsToSummarize.push({ idx: aiContent.length - 1, name: a.file.name, fullText: fileText });
       // Lire le fichier en base64 pour persistance en BDD
       const fileDataUrl = await new Promise(function(resolve) {
         const fr = new FileReader(); fr.onload = function(e) { resolve(e.target.result); }; fr.onerror = function() { resolve(null); };
@@ -1517,6 +1528,7 @@ async function send() {
   const historyMsg = (aiContent.length === 1 && aiContent[0].type === 'text')
     ? aiContent[0].text : aiContent;
   history.push({ role: 'user', content: historyMsg });
+  const userHistoryEntry = history[history.length - 1];
 
   // Ce qu'on sauvegarde en BDD pour ce message
   const saveMsg = (saveContent.length === 1 && saveContent[0].type === 'text')
@@ -1583,7 +1595,43 @@ async function send() {
   document.getElementById('send-btn').disabled = false;
   setTimeout(loadProfile, 3000);
   setTimeout(loadConversations, 1000);
+  if (docsToSummarize.length > 0) compactDocsInHistory(userHistoryEntry, docsToSummarize);
 }
+
+
+
+// Remplace le texte brut des documents par un résumé dans l'historique envoyé à l'IA,
+// après le tour où le document a été soumis. Invisible pour l'utilisateur.
+async function compactDocsInHistory(entry, docs) {
+  if (!entry) return;
+  for (let i = 0; i < docs.length; i++) {
+    const d = docs[i];
+    let summary = null;
+    try {
+      const r = await fetch('/api/summarize-doc', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify({ name: d.name, text: d.fullText })
+      });
+      if (r.ok) { const data = await r.json(); summary = data.summary; }
+    } catch(e) {}
+    if (!summary) continue;
+    const compact = '[Document joint « '+d.name+' » — résumé du contenu pour contexte]\n' + summary;
+    // Persiste le résumé en BDD pour le retrouver après rechargement
+    fetch('/api/save-doc-summary', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ conversationId: conversationId, name: d.name, summary: summary })
+    }).catch(function(){});
+    if (typeof entry.content === 'string') {
+      entry.content = compact;
+    } else if (Array.isArray(entry.content) && entry.content[d.idx]) {
+      entry.content[d.idx] = { type: 'text', text: compact };
+    }
+  }
+}
+
+
 // EMAIL
 async function copyEmail(email) {
   await navigator.clipboard.writeText(email);
