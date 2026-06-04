@@ -500,6 +500,7 @@ let pendingAttachments = [];
 let bddMessages = []; // miroir client de l'historique BDD de la conv IA courante
 // Stockage session des images (non persisté en BDD, perdu au refresh — comportement accepté)
 let sessionDocs = {}; // { convId: [ {type:'image'|'pdf'|'file', name, dataUrl?} ] }
+let aiTurnCount = 0; // compte les échanges de la conv IA courante pour throttler profil/matching
 
 if (token && user) showChat();
 
@@ -554,8 +555,8 @@ function switchView(view) {
     if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
     resetProfile();
     document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
-    conversationId = null; history = []; bddMessages = [];
-} else {
+    conversationId = null; history = []; bddMessages = []; aiTurnCount = 0;
+  } else {
     document.getElementById('history-label-text').textContent = 'Réseau';
     document.getElementById('profile-panel-label').textContent = 'détails';
     document.getElementById('profile-title').textContent = 'Réseau';
@@ -785,6 +786,7 @@ async function loadConversation(id) {
   conversationId = id; activeConvId = id;
   const rawMessages = Array.isArray(conv.messages) ? conv.messages : [];
   bddMessages = rawMessages.slice();
+  aiTurnCount = Math.ceil(bddMessages.length / 2);
   history = bddMessages.map(toAIMessage).filter(function(m){ return m.content !== ''; });
 
   renderAIConversation(-1);
@@ -822,7 +824,7 @@ function renderConversationList() {
 }
 
 async function newConversation() {
-  conversationId = null; activeConvId = null; history = []; bddMessages = [];
+  conversationId = null; activeConvId = null; history = []; bddMessages = []; aiTurnCount = 0;
   document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
   resetProfile();
   renderConversationList();
@@ -830,91 +832,6 @@ async function newConversation() {
   if (currentView !== 'ai') switchView('ai');
 }
 
-async function loadConversation(id) {
-  const res = await fetch('/api/conversations/'+id, { headers:{'Authorization':'Bearer '+token} });
-  if (!res.ok) return;
-  const conv = await res.json();
-  conversationId = id; activeConvId = id;
-  const rawMessages = Array.isArray(conv.messages) ? conv.messages : [];
-  // history = version pour l'IA (types valides Anthropic uniquement : 'text', 'image')
-  // On reconstruit depuis les messages BDD en retirant les types non-Anthropic
-  history = rawMessages.map(function(m) {
-    if (typeof m.content === 'string') return { role: m.role === 'assistant' ? 'assistant' : m.role, content: m.content };
-    if (Array.isArray(m.content)) {
-      const clean = m.content.filter(function(c) { return c.type === 'text'; }).map(function(c) { return c; });
-      // image_saved et file_ref sont retirés (on ne peut pas ré-envoyer base64 depuis BDD en multi-tour)
-      const textOnly = clean.map(function(c) { return c.text; }).join('\n');
-      return { role: m.role === 'assistant' ? 'assistant' : m.role, content: textOnly || '' };
-    }
-    return { role: m.role === 'assistant' ? 'assistant' : m.role, content: '' };
-  }).filter(function(m) { return m.content !== ''; });
-  const msgs = document.getElementById('messages');
-  msgs.innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
-  rawMessages.forEach(function(m) {
-    const role = m.role === 'assistant' ? 'ai' : m.role;
-    const div = document.createElement('div');
-    div.className = 'msg ' + role;
-    const initial = role === 'ai' ? '&#10022;' : (user.name && user.name[0] ? user.name[0].toUpperCase() : 'V');
-    div.innerHTML = '<div class="av '+role+'">'+initial+'</div><div class="bubble"></div>';
-    msgs.appendChild(div);
-    const bubble = div.querySelector('.bubble');
-
-    if (typeof m.content === 'string') {
-      renderContent(bubble, m.content);
-    } else if (Array.isArray(m.content)) {
-      // Extraire texte et refs fichiers séparément
-      const textParts = [];
-      const fileParts = [];
-      m.content.forEach(function(c) {
-        if (c.type === 'text') textParts.push(c.text);
-        else fileParts.push(c);
-      });
-      if (textParts.length > 0) renderContent(bubble, textParts.join('\n'));
-      fileParts.forEach(function(c) {
-        if (c.type === 'image_saved' && c.dataUrl) {
-          // Image avec dataUrl stockée en BDD : affichage complet
-          const img = document.createElement('img');
-          img.src = c.dataUrl; img.className = 'msg-image';
-          img.onclick = function() { zoomImage(c.dataUrl); };
-          bubble.appendChild(img);
-          // Mettre à jour le panel docs aussi
-          addToSessionDocs('ai_'+conversationId, { type: 'image', name: c.name, dataUrl: c.dataUrl });
-        } else if (c.type === 'file_ref') {
-          // Fichier : cliquable si dataUrl disponible, sinon icône simple
-        if (c.dataUrl) {
-            const link = document.createElement('a');
-            link.className = 'msg-file'; link.style.cursor = 'pointer';
-            link.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
-              +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
-            (function(durl, dname){ link.onclick = function(){ openDataUrl(durl, dname); }; })(c.dataUrl, c.name);
-            bubble.appendChild(link);
-          } else {
-            const div = document.createElement('div');
-            div.className = 'msg-file'; div.style.opacity = '0.6';
-            div.title = 'Renvoyez ce fichier';
-            div.innerHTML = '<span class="msg-file-icon">&#128196;</span><span>'+(c.name||'fichier')+'</span>'
-              +'<span style="margin-left:auto;font-size:10px;opacity:0.6">'+(c.fileType||'').toUpperCase()+'</span>';
-            bubble.appendChild(div);
-          }
-        }
-      });
-    }
-  });
-  msgs.scrollTop = msgs.scrollHeight;
-  renderConversationList();
-  // Docs : combiner les refs BDD + les docs session (qui ont les objectUrl)
-  const key = 'ai_'+id;
-  const dbDocs = extractDocsFromHistory(rawMessages);
-  const sessionD = sessionDocs[key] || [];
-  // Fusionner : pour chaque doc BDD, chercher si on a un objectUrl en session
-  const mergedDocs = dbDocs.map(function(doc) {
-    const match = sessionD.find(function(s) { return s.name === doc.name && s.type === doc.type; });
-    return match ? Object.assign({}, doc, { objectUrl: match.objectUrl, dataUrl: match.dataUrl }) : doc;
-  });
-  renderDocPanel(mergedDocs.length > 0 ? mergedDocs : sessionD);
-  if (conv.profile && conv.profile.skills) { renderProfile(conv.profile); loadMatching(); }
-  else resetProfile();
-}
 
 function renderContent(bubble, text) {
   if (!text) return;
@@ -1593,7 +1510,9 @@ async function send() {
   bddMessages.push({ role: 'assistant', content: full }); // === AJOUT (h) ===
   isStreaming = false;
   document.getElementById('send-btn').disabled = false;
-  setTimeout(loadProfile, 3000);
+    aiTurnCount++;
+  // On ne rafraîchit profil + matching que quand le serveur les a (re)calculés : 1er tour, puis tous les 3.
+  if (aiTurnCount === 1 || aiTurnCount % 3 === 0) setTimeout(loadProfile, 3000);
   setTimeout(loadConversations, 1000);
   if (docsToSummarize.length > 0) compactDocsInHistory(userHistoryEntry, docsToSummarize);
 }

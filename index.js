@@ -264,10 +264,17 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
           if (t) pool.query('UPDATE conversations SET title=$1 WHERE id=$2', [t, conversationId]);
         }).catch(()=>{});
       }
-      analyzeConversationProfile(allMessages).then(async profile => {
-        if (profile) await pool.query('UPDATE conversations SET profile=$1 WHERE id=$2 AND user_id=$3',
-          [JSON.stringify(profile), conversationId, req.user.id]);
-      }).catch(()=>{});
+// Throttling : on ne réanalyse le profil que périodiquement, pas à chaque message.
+      // allMessages alterne user/assistant → 2 messages = 1 tour. On analyse au 1er tour,
+      // puis tous les 3 tours (= tous les 6 messages).
+      const turnCount = Math.ceil(allMessages.length / 2);
+      const shouldAnalyze = (turnCount === 1) || (turnCount % 3 === 0);
+      if (shouldAnalyze) {
+        analyzeConversationProfile(allMessages).then(async profile => {
+          if (profile) await pool.query('UPDATE conversations SET profile=$1 WHERE id=$2 AND user_id=$3',
+            [JSON.stringify(profile), conversationId, req.user.id]);
+        }).catch(()=>{});
+      }
     }
   } catch(err) {
     console.error('Chat error:', err.message);
