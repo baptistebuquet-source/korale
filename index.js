@@ -96,12 +96,13 @@ function prepareForStorage(displayMessages) {
 
 async function analyzeConversationProfile(messages) {
   const conversation = messages
-    .map(m => `${m.role}: ${extractText(m.content)}`)
+    .map(m => `${m.role}: ${extractText(m.content).slice(0, 1500)}`)
     .filter(line => line.trim().length > line.split(':')[0].length + 1)
-    .join('\n');
+    .join('\n')
+    .slice(0, 12000); // plafond global de sécurité
   if (!conversation.trim()) return null;
   const analysis = await client.messages.create({
-    model: 'claude-sonnet-4-5', max_tokens: 1024,
+    model: 'claude-haiku-4-5', max_tokens: 1024,
     messages: [{ role: 'user', content: `Analyse cette conversation et extrais le profil utilisateur.\n\n${conversation}\n\nRéponds UNIQUEMENT en JSON:\n{"skills":[],"projects":[],"traits":{"vision":0,"technicite":0,"entrepreneuriat":0,"creativite":0,"collaboration":0,"leadership":0},"summary":"résumé en une phrase"}\n\nMax 6 compétences, 3 projets. Scores 0-100. JSON uniquement.` }]
   });
   try {
@@ -112,9 +113,9 @@ async function analyzeConversationProfile(messages) {
 
 async function generateTitle(messages) {
   if (messages.length < 2) return null;
-  const first = messages.slice(0,2).map(m => `${m.role}: ${extractText(m.content)}`).join('\n');
+  const first = messages.slice(0,2).map(m => `${m.role}: ${extractText(m.content).slice(0, 2000)}`).join('\n');
   const result = await client.messages.create({
-    model: 'claude-sonnet-4-5', max_tokens: 50,
+    model: 'claude-haiku-4-5', max_tokens: 50,
     messages: [{ role: 'user', content: `Titre court (4 mots max) pour:\n${first}\nTitre uniquement.` }]
   });
   return result.content[0].text.trim();
@@ -252,7 +253,6 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     myProfile = r.rows[0]?.profile || {};
   }
   if (!myProfile.skills?.length) return res.json([]);
-
   const others = await pool.query(`
     SELECT DISTINCT ON (c.user_id) c.profile, u.name, u.id as user_id, c.id as conv_id
     FROM conversations c JOIN users u ON c.user_id=u.id
@@ -260,7 +260,6 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     ORDER BY c.user_id, c.updated_at DESC
   `, [req.user.id]);
   if (!others.rows.length) return res.json([]);
-
   const mySkills = myProfile.skills || [];
   const myTraits = myProfile.traits || {};
   const profilesText = others.rows.map(p => {
@@ -269,17 +268,15 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     const traits = prof.traits || {};
     return `- ${p.name}: [${skills.join(', ')}], vision=${traits.vision||0}%, technicité=${traits.technicite||0}%, entrepreneuriat=${traits.entrepreneuriat||0}%, créativité=${traits.creativite||0}%, collaboration=${traits.collaboration||0}%, leadership=${traits.leadership||0}%`;
   }).join('\n');
-
   try {
     const analysis = await client.messages.create({
-      model: 'claude-sonnet-4-5', max_tokens: 512,
+      model: 'claude-haiku-4-5', max_tokens: 512,
       messages: [{ role: 'user', content: `Matching Korale.\nMoi: ${mySkills.join(', ')}, vision=${myTraits.vision||0}%, technicité=${myTraits.technicite||0}%, entrepreneuriat=${myTraits.entrepreneuriat||0}%\nContexte: "${context||'général'}"\n\nProfils:\n${profilesText}\n\nJSON uniquement:\n[{"name":"prénom","score":85,"reason":"raison 5 mots"}]\nTrié par score. JSON uniquement.` }]
     });
     let text = analysis.content[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
     res.json(JSON.parse(text).slice(0,3));
   } catch(e) { res.json([]); }
 });
-
 // USER PROFILES
 app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
   const r = await pool.query(`

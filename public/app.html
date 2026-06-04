@@ -1339,7 +1339,10 @@ async function extractPdfText(file) {
       pages.push('--- Page '+i+' ---\n'+content.items.map(function(it){return it.str;}).join(' '));
     }
     if (pdf.numPages > 20) pages.push('... ('+(pdf.numPages-20)+' pages suppl\u00e9mentaires non incluses)');
-    return pages.join('\n\n');
+    let result = pages.join('\n\n');
+    const MAX = 40000; // ~10-12k tokens max par PDF
+    if (result.length > MAX) result = result.slice(0, MAX) + '\n\n[... document tronqué]';
+    return result;
   } catch(e) { return '[Erreur PDF: '+e.message+']'; }
 }
 
