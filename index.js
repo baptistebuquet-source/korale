@@ -57,6 +57,16 @@ async function initDB() {
       messages JSONB DEFAULT '[]',
       created_at TIMESTAMP DEFAULT NOW(), updated_at TIMESTAMP DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS usage_monthly (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id),
+      period VARCHAR(7) NOT NULL,          -- format 'YYYY-MM'
+      cost_usd DOUBLE PRECISION DEFAULT 0, -- coût réel cumulé
+      input_tokens BIGINT DEFAULT 0,
+      output_tokens BIGINT DEFAULT 0,
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(user_id, period)
+    );
   `);
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS title VARCHAR(255)`);
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS profile JSONB DEFAULT '{}'`);
@@ -69,6 +79,62 @@ function authMiddleware(req, res, next) {
   if (!token) return res.status(401).json({ error: 'Non autorisé' });
   try { req.user = jwt.verify(token, JWT_SECRET); next(); }
   catch { res.status(401).json({ error: 'Token invalide' }); }
+}
+
+// ===== BUDGET / USAGE =====
+const MONTHLY_BUDGET_USD = 5.0; // coût API autorisé par utilisateur / mois (marge incluse)
+
+// Prix par token (USD / token)
+const PRICES = {
+  'claude-sonnet-4-6': { in: 3.0 / 1e6, out: 15.0 / 1e6 },
+  'claude-sonnet-4-5': { in: 3.0 / 1e6, out: 15.0 / 1e6 },
+  'claude-haiku-4-5':  { in: 1.0 / 1e6, out: 5.0 / 1e6 }
+};
+function priceFor(model) {
+  return PRICES[model] || PRICES['claude-sonnet-4-6'];
+}
+
+// Prix moyen pondéré pour convertir le budget $ en "tokens équivalents" affichés à l'utilisateur.
+// Hypothèse : ~70% input / 30% output, à cheval Sonnet. Ajustable.
+const AVG_PRICE_PER_TOKEN = 0.7 * (3.0 / 1e6) + 0.3 * (15.0 / 1e6); // ≈ 6.6e-6 $/token
+const MONTHLY_TOKEN_QUOTA = Math.round(MONTHLY_BUDGET_USD / AVG_PRICE_PER_TOKEN);
+
+function currentPeriod() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+async function getUsage(userId) {
+  const period = currentPeriod();
+  const r = await pool.query(
+    'SELECT cost_usd, input_tokens, output_tokens FROM usage_monthly WHERE user_id=$1 AND period=$2',
+    [userId, period]
+  );
+  const row = r.rows[0] || { cost_usd: 0, input_tokens: 0, output_tokens: 0 };
+  return {
+    period,
+    costUsd: Number(row.cost_usd) || 0,
+    inputTokens: Number(row.input_tokens) || 0,
+    outputTokens: Number(row.output_tokens) || 0,
+    budgetUsd: MONTHLY_BUDGET_USD,
+    tokenQuota: MONTHLY_TOKEN_QUOTA
+  };
+}
+
+async function addUsage(userId, model, inputTokens, outputTokens) {
+  const period = currentPeriod();
+  const p = priceFor(model);
+  const cost = (inputTokens || 0) * p.in + (outputTokens || 0) * p.out;
+  await pool.query(`
+    INSERT INTO usage_monthly (user_id, period, cost_usd, input_tokens, output_tokens, updated_at)
+    VALUES ($1,$2,$3,$4,$5,NOW())
+    ON CONFLICT (user_id, period) DO UPDATE SET
+      cost_usd = usage_monthly.cost_usd + EXCLUDED.cost_usd,
+      input_tokens = usage_monthly.input_tokens + EXCLUDED.input_tokens,
+      output_tokens = usage_monthly.output_tokens + EXCLUDED.output_tokens,
+      updated_at = NOW()
+  `, [userId, period, cost, inputTokens || 0, outputTokens || 0]);
+  return cost;
 }
 
 function extractText(content) {
@@ -157,6 +223,24 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
   res.json(r.rows[0]?.profile || {});
 });
 
+// USAGE / JAUGE
+app.get('/api/usage', authMiddleware, async (req, res) => {
+  try {
+    const u = await getUsage(req.user.id);
+    // Conversion du coût en "tokens équivalents consommés" pour l'affichage
+    const tokensUsed = Math.round(u.costUsd / AVG_PRICE_PER_TOKEN);
+    res.json({
+      period: u.period,
+      tokensUsed: tokensUsed,
+      tokenQuota: u.tokenQuota,
+      costUsd: u.costUsd,
+      budgetUsd: u.budgetUsd,
+      percent: Math.min(100, Math.round((u.costUsd / u.budgetUsd) * 100)),
+      blocked: u.costUsd >= u.budgetUsd
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // CONVERSATIONS
 app.get('/api/conversations/list', authMiddleware, async (req, res) => {
   const r = await pool.query('SELECT id,title,created_at,updated_at,profile FROM conversations WHERE user_id=$1 ORDER BY updated_at DESC LIMIT 50', [req.user.id]);
@@ -226,25 +310,41 @@ app.post('/api/save-doc-summary', authMiddleware, async (req, res) => {
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { messages, saveMessage, conversationId, baseMessages } = req.body;
 
+  // Garde-fou budget : on refuse si l'utilisateur a dépassé son quota mensuel
+  const usageCheck = await getUsage(req.user.id);
+  if (usageCheck.costUsd >= usageCheck.budgetUsd) {
+    return res.status(402).json({
+      error: 'quota_exceeded',
+      message: 'Vous avez atteint votre quota mensuel. Il se réinitialise le 1er du mois prochain.'
+    });
+  }
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
   try {
     const stream = client.messages.stream({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 4096,
-      system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile. Pour les équations mathématiques, utilise LaTeX: $...$ inline et $$...$$ centré. Si l'utilisateur partage une image, décris-la et réponds en fonction. Si l'utilisateur partage un fichier, analyse-le.",
+      model: 'claude-sonnet-4-6',
+      max_tokens: 3000,
+      system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile.\n\nRÉPONDS DE MANIÈRE CONCISE par défaut : va à l'essentiel, évite les répétitions et le remplissage. Une réponse courte et dense vaut mieux qu'une longue. Développe en détail UNIQUEMENT si l'utilisateur le demande, ou si le sujet (code, explication technique, raisonnement complexe) le justifie vraiment.\n\nPour les équations mathématiques, utilise LaTeX: $...$ inline et $$...$$ centré. Si l'utilisateur partage une image, décris-la et réponds en fonction. Si l'utilisateur partage un fichier, analyse-le.",
       messages: messages,
     });
 
     let fullResponse = '';
+    let usageIn = 0, usageOut = 0;
     for await (const chunk of stream) {
-      if (chunk.type === 'content_block_delta') {
+      if (chunk.type === 'content_block_delta' && chunk.delta.text) {
         fullResponse += chunk.delta.text;
         res.write(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`);
+      } else if (chunk.type === 'message_start' && chunk.message?.usage) {
+        usageIn = chunk.message.usage.input_tokens || 0;
+      } else if (chunk.type === 'message_delta' && chunk.usage) {
+        usageOut = chunk.usage.output_tokens || 0;
       }
     }
+    // Comptabilise la consommation réelle de cet appel principal (Sonnet)
+    await addUsage(req.user.id, 'claude-sonnet-4-6', usageIn, usageOut).catch(()=>{});
 
     if (conversationId && saveMessage) {
       let priorMsgs;
@@ -264,7 +364,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
           if (t) pool.query('UPDATE conversations SET title=$1 WHERE id=$2', [t, conversationId]);
         }).catch(()=>{});
       }
-// Throttling : on ne réanalyse le profil que périodiquement, pas à chaque message.
+      // Throttling : on ne réanalyse le profil que périodiquement, pas à chaque message.
       // allMessages alterne user/assistant → 2 messages = 1 tour. On analyse au 1er tour,
       // puis tous les 3 tours (= tous les 6 messages).
       const turnCount = Math.ceil(allMessages.length / 2);
