@@ -273,6 +273,18 @@
     .notif-decline{background:none;border:1px solid var(--border2);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
     .notif-decline:hover{border-color:var(--rose);color:var(--rose);}
     .notif-empty{padding:20px;text-align:center;font-size:12px;color:var(--muted);font-style:italic;}
+/* JAUGE USAGE */
+    .usage-box{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;}
+    .usage-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+    .usage-label{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:500;}
+    .usage-count{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
+    .usage-bar-bg{height:4px;background:var(--bg2);border-radius:3px;overflow:hidden;}
+    .usage-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),#5de8a5);transition:width 0.5s ease,background 0.3s;}
+    .usage-bar-fill.warn{background:linear-gradient(90deg,#f5a623,#f7c66a);}
+    .usage-bar-fill.full{background:linear-gradient(90deg,var(--rose),#f09ac4);}
+
+
+
     @media(max-width:768px){
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
       .auth-logo{font-size:26px;}.bd1,.bd3{display:none;}
@@ -443,6 +455,13 @@
         <div><div class="sec-label">compatibilit&#233;s</div><div id="match-list"><span class="empty-state">analyse en cours&#8230;</span></div></div>
         <div id="docs-section" style="display:none"><div class="sec-label">documents joints</div><div class="doc-list" id="doc-list"></div></div>
       </div>
+      <div class="usage-box" id="usage-box" style="display:none">
+        <div class="usage-top">
+          <span class="usage-label">Tokens ce mois</span>
+          <span class="usage-count" id="usage-count">— / —</span>
+        </div>
+        <div class="usage-bar-bg"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
+      </div>
       <div class="profile-footer"><div class="f-dot"></div><div class="f-text" id="profile-footer-text">analyse en continu</div></div>
     </div>
   </div>
@@ -605,6 +624,7 @@ async function showChat() {
   await loadConversations();
   conversationId = null; history = []; bddMessages = [];
   resetProfile();
+  loadUsage();
   loadSentRequests();
   loadReceivedRequests();
   setInterval(loadReceivedRequests, 30000);
@@ -664,6 +684,32 @@ async function loadProfile() {
   const res = await fetch('/api/profile?conversationId='+conversationId, { headers:{'Authorization':'Bearer '+token} });
   const profile = await res.json();
   if (profile && profile.skills) { renderProfile(profile); loadMatching(); }
+}
+
+
+
+// JAUGE USAGE — coût/tokens du mois
+function formatTokenCount(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.0', '') + 'M';
+  if (n >= 1e3) return Math.round(n / 1e3) + 'k';
+  return String(n);
+}
+async function loadUsage() {
+  try {
+    const res = await fetch('/api/usage', { headers: {'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    const u = await res.json();
+    const box = document.getElementById('usage-box');
+    const count = document.getElementById('usage-count');
+    const bar = document.getElementById('usage-bar');
+    if (!box || !count || !bar) return;
+    box.style.display = 'block';
+    count.textContent = formatTokenCount(u.tokensUsed) + ' / ' + formatTokenCount(u.tokenQuota);
+    bar.style.width = Math.min(100, u.percent) + '%';
+    bar.classList.remove('warn', 'full');
+    if (u.percent >= 100) bar.classList.add('full');
+    else if (u.percent >= 80) bar.classList.add('warn');
+  } catch(e) {}
 }
 
 // Extrait les refs fichiers depuis l'historique BDD
@@ -949,7 +995,6 @@ async function saveEditedMessage(idx, newText) {
   newText = (newText || '').trim();
   if (!newText || isStreaming) return;
   const orig = bddMessages[idx];
-
   // Nouveau message sauvegardé : on conserve les pièces jointes, on remplace le texte
   let newSaveContent;
   if (Array.isArray(orig.content)) {
@@ -959,19 +1004,15 @@ async function saveEditedMessage(idx, newText) {
     newSaveContent = newText;
   }
   const newSaveMsg = { role: 'user', content: newSaveContent };
-
   const base = bddMessages.slice(0, idx);
   const aiHistory = base.map(toAIMessage).filter(function(m){ return m.content !== ''; });
   aiHistory.push({ role: 'user', content: newText });
-
   // Tronque l'état local et ajoute le message édité
   bddMessages = base.concat([newSaveMsg]);
   history = aiHistory.slice();
   renderAIConversation(-1);
-
   isStreaming = true;
   document.getElementById('send-btn').disabled = true;
-
   const msgs = document.getElementById('messages');
   const aiDiv = document.createElement('div');
   aiDiv.className = 'msg ai';
@@ -981,14 +1022,21 @@ async function saveEditedMessage(idx, newText) {
   const streamingEl = aiDiv.querySelector('.streaming-text');
   const cursorEl = aiDiv.querySelector('.cursor');
   const bubble = aiDiv.querySelector('.bubble');
-
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
     body: JSON.stringify({ messages: history, saveMessage: newSaveMsg, baseMessages: base, conversationId: conversationId })
   });
   if (!res.ok) {
-    cursorEl.remove(); bubble.textContent = 'Erreur ' + res.status + ' — réessayez.';
+    cursorEl.remove();
+    if (res.status === 402) {
+      let msg = 'Vous avez atteint votre quota mensuel. Il se réinitialise le 1er du mois prochain.';
+      try { const d = await res.json(); if (d.message) msg = d.message; } catch(e) {}
+      renderContent(bubble, '⚠️ ' + msg);
+      loadUsage();
+    } else {
+      bubble.textContent = 'Erreur ' + res.status + ' — réessayez.';
+    }
     isStreaming = false; document.getElementById('send-btn').disabled = false; return;
   }
   const reader = res.body.getReader();
@@ -1013,6 +1061,7 @@ async function saveEditedMessage(idx, newText) {
   renderAIConversation(-1); // re-normalise les index + boutons modifier
   setTimeout(loadProfile, 3000);
   setTimeout(loadConversations, 1000);
+  loadUsage();
 }
 
 // SUPPRESSIONS
@@ -1483,7 +1532,14 @@ async function send() {
   });
   if (!res.ok) {
     cursorEl.remove();
-    bubble.textContent = 'Erreur ' + res.status + ' — réessayez.';
+    if (res.status === 402) {
+      let msg = 'Vous avez atteint votre quota mensuel. Il se réinitialise le 1er du mois prochain.';
+      try { const d = await res.json(); if (d.message) msg = d.message; } catch(e) {}
+      renderContent(bubble, '⚠️ ' + msg);
+      loadUsage();
+    } else {
+      bubble.textContent = 'Erreur ' + res.status + ' — réessayez.';
+    }
     isStreaming = false;
     document.getElementById('send-btn').disabled = false;
     return;
@@ -1510,13 +1566,13 @@ async function send() {
   bddMessages.push({ role: 'assistant', content: full }); // === AJOUT (h) ===
   isStreaming = false;
   document.getElementById('send-btn').disabled = false;
-    aiTurnCount++;
+  aiTurnCount++;
   // On ne rafraîchit profil + matching que quand le serveur les a (re)calculés : 1er tour, puis tous les 3.
   if (aiTurnCount === 1 || aiTurnCount % 3 === 0) setTimeout(loadProfile, 3000);
   setTimeout(loadConversations, 1000);
+  loadUsage();
   if (docsToSummarize.length > 0) compactDocsInHistory(userHistoryEntry, docsToSummarize);
 }
-
 
 
 // Remplace le texte brut des documents par un résumé dans l'historique envoyé à l'IA,
