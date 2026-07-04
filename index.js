@@ -82,7 +82,7 @@ function authMiddleware(req, res, next) {
 }
 
 // ===== BUDGET / USAGE =====
-const MONTHLY_BUDGET_USD = 5.0; // coût API autorisé par utilisateur / mois (marge incluse)
+const MONTHLY_BUDGET_USD = 0.1; // coût API autorisé par utilisateur / mois (marge incluse)
 
 // Prix par token (USD / token)
 const PRICES = {
