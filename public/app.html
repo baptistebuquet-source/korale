@@ -285,6 +285,17 @@
 
 
 
+
+/* BOUTON NOUVELLE CONV DANS LA COLONNE */
+    .side-new-btn{margin:10px 10px 4px;padding:9px 12px;background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:9px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 2px 8px rgba(91,141,238,.25);flex-shrink:0;}
+    .side-new-btn:hover{background:var(--accent2);border-color:var(--accent2);}
+    /* BOUTON FLOTTANT CONTEXTE / DETAILS */
+    .fab-context{position:absolute;top:14px;right:16px;z-index:15;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid var(--border2);color:var(--text2);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+    .fab-context:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+
+
+
     @media(max-width:768px){
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
       .auth-logo{font-size:26px;}.bd1,.bd3{display:none;}
@@ -304,6 +315,7 @@
       .panel-close{display:block;}.chat-area{border-right:none;min-height:0;flex:1;}
       .footer-inner{padding:10px 12px calc(12px + env(safe-area-inset-bottom));}
       #messages{padding:16px 14px;gap:14px;}.bubble{max-width:90%;}
+      .fab-context{top:10px;right:10px;font-size:11px;padding:5px 12px;}
       #inp{font-size:14px;}.send-btn{padding:11px 14px;}
       .modal-cols{grid-template-columns:1fr;}
       .notif-panel{right:8px;left:8px;width:auto;top:60px;}
@@ -383,42 +395,39 @@
 
 <div id="chat-screen">
   <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
-  <header>
-    <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">&#9776;</button>
-    <div class="logo" onclick="switchView('ai')">Korale</div>
-    <div class="nav-tabs">
-      <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
-      <button class="new-conv-btn" id="new-conv-btn" onclick="newConversation()">+ Nouvelle</button>
-      <div class="nav-separator"></div>
-      <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Réseau</button>
-    </div>
-    <div class="header-spacer"></div>
-    <div class="header-right">
-      <div class="user-badge" id="user-label"></div>
-      <button class="header-btn" id="notif-btn" onclick="toggleNotifs()" style="position:relative">
-        Demandes<span class="notif-badge" id="notif-badge" style="display:none">0</span>
-      </button>
-      <button class="header-btn desktop-only" id="analyse-btn" onclick="toggleProfile()">Contexte</button>
-      <div class="nav-separator desktop-only"></div>
-      <button class="header-btn" onclick="logout()">Quitter</button>
-    </div>
-  </header>
-  <div class="mobile-nav" id="mobile-nav">
-    <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')"><span class="mobile-nav-icon">&#128172;</span>IA</button>
-    <button class="mobile-nav-btn mobile-nav-new" id="mob-new" onclick="newConversation()"><span class="mobile-nav-icon">&#65291;</span>Nouveau</button>
-    <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')"><span class="mobile-nav-icon">&#129309;</span>Réseau</button>
-    <button class="mobile-nav-btn" id="mob-contexte-btn" onclick="toggleProfile()"><span class="mobile-nav-icon">&#9672;</span><span id="mob-contexte-label">Contexte</span></button>
-  </div>
+    <header>
+        <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">&#9776;</button>
+        <div class="logo" onclick="switchView('ai')">Korale</div>
+        <div class="nav-tabs">
+          <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
+          <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Réseau</button>
+        </div>
+        <div class="header-spacer"></div>
+        <div class="header-right">
+          <div class="user-badge" id="user-label"></div>
+          <button class="header-btn" id="notif-btn" onclick="toggleNotifs()" style="position:relative">
+            Demandes<span class="notif-badge" id="notif-badge" style="display:none">0</span>
+          </button>
+          <div class="nav-separator desktop-only"></div>
+          <button class="header-btn" onclick="logout()">Quitter</button>
+        </div>
+      </header>
+    <div class="mobile-nav" id="mobile-nav">
+        <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')"><span class="mobile-nav-icon">&#128172;</span>IA</button>
+        <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')"><span class="mobile-nav-icon">&#129309;</span>Réseau</button>
+      </div>
   <div class="main">
     <div class="history-panel collapsed" id="history-panel">
-      <div class="history-header">
-        <div class="history-label" id="history-label-text">Conversations</div>
-        <button class="panel-close" onclick="closeAllPanels()">&#10005;</button>
-      </div>
-      <div class="history-list" id="history-list"></div>
-    </div>
-    <div class="chat-area" id="chat-area">
-      <div id="messages">
+          <div class="history-header">
+            <div class="history-label" id="history-label-text">Conversations</div>
+            <button class="panel-close" onclick="closeAllPanels()">&#10005;</button>
+          </div>
+          <button class="side-new-btn" id="side-new-btn" onclick="newConversation()">+ Nouvelle conversation</button>
+          <div class="history-list" id="history-list"></div>
+        </div>
+        <div class="chat-area" id="chat-area">
+          <button class="fab-context" id="fab-context" onclick="toggleProfile()">Contexte</button>
+          <div id="messages">
         <div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>
       </div>
       <footer>
@@ -551,24 +560,21 @@ function toggleNotifs() { document.getElementById('notif-panel').classList.toggl
 function updateMobileNav(view) {
   document.getElementById('mob-tab-ai').classList.toggle('active', view === 'ai');
   document.getElementById('mob-tab-connexions').classList.toggle('active', view === 'connexions');
-  const mobNew = document.getElementById('mob-new');
-  if (mobNew) mobNew.style.display = view === 'ai' ? '' : 'none';
 }
 
 function switchView(view) {
   currentView = view;
   document.getElementById('tab-ai').classList.toggle('active', view === 'ai');
   document.getElementById('tab-connexions').classList.toggle('active', view === 'connexions');
-  document.getElementById('new-conv-btn').style.display = view === 'ai' ? '' : 'none';
   updateMobileNav(view);
-  const analyseBtn = document.getElementById('analyse-btn');
-  const mobLabel = document.getElementById('mob-contexte-label');
+  const sideNew = document.getElementById('side-new-btn');
+  if (sideNew) sideNew.style.display = view === 'ai' ? '' : 'none';
+  const fab = document.getElementById('fab-context');
   if (view === 'ai') {
     document.getElementById('history-label-text').textContent = 'Conversations';
     document.getElementById('profile-panel-label').textContent = 'contexte de la conversation';
     document.getElementById('profile-footer-text').textContent = 'analyse en continu';
-    if (analyseBtn) analyseBtn.textContent = 'Contexte';
-    if (mobLabel) mobLabel.textContent = 'Contexte';
+    if (fab) fab.textContent = 'Contexte';
     if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
     renderConversationList();
     if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
@@ -580,8 +586,7 @@ function switchView(view) {
     document.getElementById('profile-panel-label').textContent = 'détails';
     document.getElementById('profile-title').textContent = 'Réseau';
     document.getElementById('profile-footer-text').textContent = 'connexions';
-    if (analyseBtn) analyseBtn.textContent = 'Détails';
-    if (mobLabel) mobLabel.textContent = 'Détails';
+    if (fab) fab.textContent = 'Détails';
     if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
     if (isMobile()) {
       document.getElementById('history-panel').classList.add('open');
@@ -1163,10 +1168,8 @@ async function openSharedConversation(id) {
   document.getElementById('profile-panel-label').textContent = 'd\u00e9tails de la connexion';
   document.getElementById('profile-title').textContent = 'Vous & '+otherName;
   document.getElementById('profile-footer-text').textContent = 'connexion active';
-  const analyseBtn = document.getElementById('analyse-btn');
-  if (analyseBtn) analyseBtn.textContent = 'D\u00e9tails';
-  const mobLabel = document.getElementById('mob-contexte-label');
-  if (mobLabel) mobLabel.textContent = 'D\u00e9tails';
+    const fab = document.getElementById('fab-context');
+  if (fab) fab.textContent = 'D\u00e9tails';
   document.getElementById('profile-body').innerHTML =
     '<div class="shared-profiles">'
     +'<div class="shared-profile-card"><div class="shared-profile-name">'+(user.name||user.email)+'<span class="shared-profile-you">Vous</span></div>'
