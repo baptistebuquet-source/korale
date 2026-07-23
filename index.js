@@ -31,7 +31,7 @@ const DEFAULT_PLAN = 'avance';
 
 const PLANS = {
   free: {
-    label: 'Découverte',
+    label: 'Essai',
     budgetUsd: 0.30,        // ~10 messages
     canConnect: false,      // voit les matchs mais ne peut pas contacter
     maxConnections: 0,
@@ -388,7 +388,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
       error: 'quota_exceeded',
       plan: usageCheck.plan,
       message: isFree
-        ? "Vous avez utilisé tout votre crédit de découverte. Passez à un abonnement pour continuer à discuter avec Korale."
+        ? "Vous avez utilisé tout votre crédit d'essai. Passez à un abonnement pour continuer à discuter avec Korale."
         : "Vous avez atteint votre quota mensuel (" + usageCheck.planLabel + "). Il se réinitialise le 1er du mois prochain."
     });
   }
@@ -520,7 +520,7 @@ app.post('/api/connection-requests', authMiddleware, async (req, res) => {
       return res.status(403).json({
         error: 'plan_required',
         plan: plan,
-        message: "Le palier Découverte permet de voir vos profils compatibles, mais pas de les contacter. Passez à Avancé pour envoyer des demandes de connexion."
+        message: "Le palier Essai permet de voir vos profils compatibles, mais pas de les contacter. Passez à Avancé pour envoyer des demandes de connexion."
       });
     }
     if (cfg.maxConnections !== null) {

@@ -1673,7 +1673,7 @@ async function openMatchModal(matchName, score, reason) {
     btn.textContent = 'Demande envoy\u00e9e'; btn.disabled = true;
   } else if (!canConnect) {
     btn.textContent = 'R\u00e9serv\u00e9 aux abonn\u00e9s'; btn.disabled = true;
-    addUpgradeNote('Le palier D\u00e9couverte vous permet de voir vos profils compatibles. Passez \u00e0 Avanc\u00e9 pour contacter ' + escapeHtml(matchName) + '.');
+    addUpgradeNote('Le palier ' + (userUsage.planLabel || 'D\u00e9couverte') + ' vous permet de voir vos profils compatibles. Passez \u00e0 Avanc\u00e9 pour contacter ' + escapeHtml(matchName));
   } else if (limitReached) {
     btn.textContent = 'Limite atteinte'; btn.disabled = true;
     addUpgradeNote('Vous avez utilis\u00e9 vos ' + userUsage.maxConnections + ' demandes de connexion ce mois-ci. Passez \u00e0 Pro pour des connexions illimit\u00e9es.');
