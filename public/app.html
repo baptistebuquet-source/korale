@@ -284,6 +284,12 @@
     .usage-bar-fill.full{background:linear-gradient(90deg,var(--rose),#f09ac4);}
 
 
+    .plan-badge{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:10px;background:var(--accent-soft);color:var(--accent2);border:1px solid rgba(91,141,238,.25);}
+    .plan-badge.free{background:var(--surface2);color:var(--muted);border-color:var(--border2);}
+    .plan-badge.pro{background:rgba(46,204,138,.12);color:#1fa870;border-color:rgba(46,204,138,.3);}
+    .upgrade-note{font-size:11px;color:var(--text2);background:var(--accent-soft);border:1px solid rgba(91,141,238,.2);border-radius:8px;padding:8px 10px;line-height:1.5;margin-top:10px;}
+
+
 
 
 /* BOUTON NOUVELLE CONV DANS LA COLONNE */
@@ -468,7 +474,7 @@
       </div>
       <div class="usage-box" id="usage-box" style="display:none">
         <div class="usage-top">
-          <span class="usage-label">Tokens ce mois</span>
+          <span class="usage-label">Tokens ce mois <span class="plan-badge" id="plan-badge" style="display:none"></span></span>
           <span class="usage-count" id="usage-count">— / —</span>
         </div>
         <div class="usage-bar-bg"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
@@ -531,6 +537,9 @@ let bddMessages = []; // miroir client de l'historique BDD de la conv IA courant
 // Stockage session des images (non persisté en BDD, perdu au refresh — comportement accepté)
 let sessionDocs = {}; // { convId: [ {type:'image'|'pdf'|'file', name, dataUrl?} ] }
 let aiTurnCount = 0; // compte les échanges de la conv IA courante pour throttler profil/matching
+
+let userPlan = 'avance';   // palier courant (renvoyé par /api/usage)
+let userUsage = null;      // dernier état de la jauge + limites du palier
 
 if (token && user) showChat();
 
@@ -702,9 +711,17 @@ async function loadUsage() {
     const res = await fetch('/api/usage', { headers: {'Authorization':'Bearer '+token} });
     if (!res.ok) return;
     const u = await res.json();
+    userUsage = u;
+    userPlan = u.plan || 'avance';
     const box = document.getElementById('usage-box');
     const count = document.getElementById('usage-count');
     const bar = document.getElementById('usage-bar');
+    const badge = document.getElementById('plan-badge');
+    if (badge) {
+      badge.textContent = u.planLabel || '';
+      badge.className = 'plan-badge' + (u.plan === 'free' ? ' free' : (u.plan === 'pro' ? ' pro' : ''));
+      badge.style.display = 'inline-block';
+    }
     if (!box || !count || !bar) return;
     box.style.display = 'block';
     count.textContent = formatTokenCount(u.tokensUsed) + ' / ' + formatTokenCount(u.tokenQuota);
@@ -1641,11 +1658,43 @@ async function openMatchModal(matchName, score, reason) {
   document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+p+'</div>';}).join('') : '<span class="empty-state">aucun</span>';
   const tl = [['vision','Vision','v'],['technicite','Technicit\u00e9','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Cr\u00e9ativit\u00e9','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
   document.getElementById('modal-traits').innerHTML = tl.map(function(arr){return '<div class="trait"><span class="trait-name">'+arr[1]+'</span><div class="bar-bg"><div class="bar-fill '+arr[2]+'" style="width:'+(traits[arr[0]]||0)+'%"></div></div><span class="trait-pct">'+(traits[arr[0]]||0)+'%</span></div>';}).join('');
+
+  // Ancienne note d'upgrade éventuelle : on la retire avant de recalculer
+  const oldNote = document.getElementById('modal-upgrade-note');
+  if (oldNote) oldNote.remove();
+
   const alreadySent = sentRequests.some(function(r){return r.receiver_id===data.user_id&&r.status==='pending';});
   const btn = document.getElementById('modal-request-btn');
-  btn.textContent = alreadySent ? 'Demande envoy\u00e9e' : 'Envoyer une demande';
-  btn.disabled = alreadySent;
+  const canConnect = !userUsage || userUsage.canConnect !== false;
+  const limitReached = userUsage && userUsage.maxConnections !== null && userUsage.maxConnections !== undefined
+    && userUsage.connectionsUsed >= userUsage.maxConnections;
+
+  if (alreadySent) {
+    btn.textContent = 'Demande envoy\u00e9e'; btn.disabled = true;
+  } else if (!canConnect) {
+    btn.textContent = 'R\u00e9serv\u00e9 aux abonn\u00e9s'; btn.disabled = true;
+    addUpgradeNote('Le palier D\u00e9couverte vous permet de voir vos profils compatibles. Passez \u00e0 Avanc\u00e9 pour contacter ' + escapeHtml(matchName) + '.');
+  } else if (limitReached) {
+    btn.textContent = 'Limite atteinte'; btn.disabled = true;
+    addUpgradeNote('Vous avez utilis\u00e9 vos ' + userUsage.maxConnections + ' demandes de connexion ce mois-ci. Passez \u00e0 Pro pour des connexions illimit\u00e9es.');
+  } else {
+    btn.textContent = 'Envoyer une demande'; btn.disabled = false;
+    if (userUsage && userUsage.maxConnections !== null && userUsage.maxConnections !== undefined) {
+      addUpgradeNote('Demandes de connexion ce mois : ' + userUsage.connectionsUsed + ' / ' + userUsage.maxConnections + '.');
+    }
+  }
   document.getElementById('modal-bg').classList.add('active');
+}
+
+// Petite note informative sous les colonnes de la modale
+function addUpgradeNote(html) {
+  const body = document.querySelector('.modal-body');
+  if (!body) return;
+  const note = document.createElement('div');
+  note.className = 'upgrade-note';
+  note.id = 'modal-upgrade-note';
+  note.innerHTML = html;
+  body.appendChild(note);
 }
 async function sendRequest() {
   if (!currentMatchData || !conversationId) return;
@@ -1655,8 +1704,21 @@ async function sendRequest() {
     method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
     body: JSON.stringify({ receiverId: currentMatchData.user_id, senderConvId: conversationId, receiverConvId: currentMatchData.conv_id })
   });
-  if (res.ok) { btn.textContent = 'Demande envoy\u00e9e'; await loadSentRequests(); }
-  else { btn.textContent = 'Erreur \u2014 r\u00e9essayer'; btn.disabled = false; }
+  if (res.ok) {
+    btn.textContent = 'Demande envoy\u00e9e';
+    await loadSentRequests();
+    loadUsage();
+  } else if (res.status === 403) {
+    let msg = "Votre palier ne permet pas d'envoyer cette demande.";
+    try { const d = await res.json(); if (d.message) msg = d.message; } catch(e) {}
+    btn.textContent = 'Non disponible';
+    const oldNote = document.getElementById('modal-upgrade-note');
+    if (oldNote) oldNote.remove();
+    addUpgradeNote(escapeHtml(msg));
+    loadUsage();
+  } else {
+    btn.textContent = 'Erreur \u2014 r\u00e9essayer'; btn.disabled = false;
+  }
 }
 
 // REQUESTS

@@ -23,6 +23,39 @@ const pool = new Pool({
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
+// ===== PALIERS D'ABONNEMENT =====
+// Plan attribué par défaut aux nouveaux comptes.
+// PHASE D'AMORCAGE : 'avance' (tout le monde a le palier payant gratuitement).
+// Le jour du lancement payant : remplacer par 'free'.
+const DEFAULT_PLAN = 'avance';
+
+const PLANS = {
+  free: {
+    label: 'Découverte',
+    budgetUsd: 0.30,        // ~10 messages
+    canConnect: false,      // voit les matchs mais ne peut pas contacter
+    maxConnections: 0,
+    priorityMatching: false
+  },
+  avance: {
+    label: 'Avancé',
+    budgetUsd: 5.0,         // ~180 messages / mois
+    canConnect: true,
+    maxConnections: 5,      // demandes de connexion par mois
+    priorityMatching: false
+  },
+  pro: {
+    label: 'Pro',
+    budgetUsd: 15.0,        // ~550 messages / mois
+    canConnect: true,
+    maxConnections: null,   // null = illimité
+    priorityMatching: true
+  }
+};
+function planConfig(plan) {
+  return PLANS[plan] || PLANS[DEFAULT_PLAN];
+}
+
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -70,6 +103,9 @@ async function initDB() {
   `);
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS title VARCHAR(255)`);
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS profile JSONB DEFAULT '{}'`);
+  // Palier d'abonnement (ajout rétro-compatible : les comptes existants prennent la valeur par défaut)
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT '${DEFAULT_PLAN}'`);
+  await pool.query(`UPDATE users SET plan='${DEFAULT_PLAN}' WHERE plan IS NULL`);
   console.log('DB ready');
 }
 initDB();
@@ -82,7 +118,6 @@ function authMiddleware(req, res, next) {
 }
 
 // ===== BUDGET / USAGE =====
-const MONTHLY_BUDGET_USD = 5.0; // coût API autorisé par utilisateur / mois (marge incluse)
 
 // Prix par token (USD / token)
 const PRICES = {
@@ -97,15 +132,35 @@ function priceFor(model) {
 // Prix moyen pondéré pour convertir le budget $ en "tokens équivalents" affichés à l'utilisateur.
 // Hypothèse : ~70% input / 30% output, à cheval Sonnet. Ajustable.
 const AVG_PRICE_PER_TOKEN = 0.7 * (3.0 / 1e6) + 0.3 * (15.0 / 1e6); // ≈ 6.6e-6 $/token
-const MONTHLY_TOKEN_QUOTA = Math.round(MONTHLY_BUDGET_USD / AVG_PRICE_PER_TOKEN);
 
 function currentPeriod() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 }
 
+async function getUserPlan(userId) {
+  try {
+    const r = await pool.query('SELECT plan FROM users WHERE id=$1', [userId]);
+    return r.rows[0]?.plan || DEFAULT_PLAN;
+  } catch(e) { return DEFAULT_PLAN; }
+}
+
+// Nombre de demandes de connexion envoyées ce mois-ci
+async function getConnectionsThisMonth(userId) {
+  try {
+    const r = await pool.query(
+      `SELECT COUNT(*)::int AS n FROM connection_requests
+       WHERE sender_id=$1 AND created_at >= date_trunc('month', NOW())`,
+      [userId]
+    );
+    return r.rows[0]?.n || 0;
+  } catch(e) { return 0; }
+}
+
 async function getUsage(userId) {
   const period = currentPeriod();
+  const plan = await getUserPlan(userId);
+  const cfg = planConfig(plan);
   const r = await pool.query(
     'SELECT cost_usd, input_tokens, output_tokens FROM usage_monthly WHERE user_id=$1 AND period=$2',
     [userId, period]
@@ -113,11 +168,13 @@ async function getUsage(userId) {
   const row = r.rows[0] || { cost_usd: 0, input_tokens: 0, output_tokens: 0 };
   return {
     period,
+    plan,
+    planLabel: cfg.label,
     costUsd: Number(row.cost_usd) || 0,
     inputTokens: Number(row.input_tokens) || 0,
     outputTokens: Number(row.output_tokens) || 0,
-    budgetUsd: MONTHLY_BUDGET_USD,
-    tokenQuota: MONTHLY_TOKEN_QUOTA
+    budgetUsd: cfg.budgetUsd,
+    tokenQuota: Math.round(cfg.budgetUsd / AVG_PRICE_PER_TOKEN)
   };
 }
 
@@ -192,7 +249,10 @@ app.post('/api/register', async (req, res) => {
   const { email, password, name } = req.body;
   try {
     const hash = await bcrypt.hash(password, 10);
-    const result = await pool.query('INSERT INTO users (email,password,name) VALUES ($1,$2,$3) RETURNING id,email,name', [email,hash,name]);
+    const result = await pool.query(
+      'INSERT INTO users (email,password,name,plan) VALUES ($1,$2,$3,$4) RETURNING id,email,name,plan',
+      [email, hash, name, DEFAULT_PLAN]
+    );
     const user = result.rows[0];
     await pool.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
     res.json({ token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET), user });
@@ -208,7 +268,10 @@ app.post('/api/login', async (req, res) => {
     const result = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
     const user = result.rows[0];
     if (!user || !await bcrypt.compare(password, user.password)) return res.status(401).json({error:'Identifiants incorrects'});
-    res.json({ token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET), user:{id:user.id,email:user.email,name:user.name} });
+    res.json({
+      token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET),
+      user:{ id:user.id, email:user.email, name:user.name, plan: user.plan || DEFAULT_PLAN }
+    });
   } catch(e) { res.status(500).json({error:'Erreur serveur'}); }
 });
 
@@ -223,20 +286,27 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
   res.json(r.rows[0]?.profile || {});
 });
 
-// USAGE / JAUGE
+// USAGE / JAUGE / PALIER
 app.get('/api/usage', authMiddleware, async (req, res) => {
   try {
     const u = await getUsage(req.user.id);
+    const cfg = planConfig(u.plan);
+    const connectionsUsed = await getConnectionsThisMonth(req.user.id);
     // Conversion du coût en "tokens équivalents consommés" pour l'affichage
     const tokensUsed = Math.round(u.costUsd / AVG_PRICE_PER_TOKEN);
     res.json({
       period: u.period,
+      plan: u.plan,
+      planLabel: u.planLabel,
       tokensUsed: tokensUsed,
       tokenQuota: u.tokenQuota,
       costUsd: u.costUsd,
       budgetUsd: u.budgetUsd,
       percent: Math.min(100, Math.round((u.costUsd / u.budgetUsd) * 100)),
-      blocked: u.costUsd >= u.budgetUsd
+      blocked: u.costUsd >= u.budgetUsd,
+      canConnect: cfg.canConnect,
+      maxConnections: cfg.maxConnections,
+      connectionsUsed: connectionsUsed
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -310,12 +380,16 @@ app.post('/api/save-doc-summary', authMiddleware, async (req, res) => {
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { messages, saveMessage, conversationId, baseMessages } = req.body;
 
-  // Garde-fou budget : on refuse si l'utilisateur a dépassé son quota mensuel
+  // Garde-fou budget : on refuse si l'utilisateur a dépassé le quota de son palier
   const usageCheck = await getUsage(req.user.id);
   if (usageCheck.costUsd >= usageCheck.budgetUsd) {
+    const isFree = usageCheck.plan === 'free';
     return res.status(402).json({
       error: 'quota_exceeded',
-      message: 'Vous avez atteint votre quota mensuel. Il se réinitialise le 1er du mois prochain.'
+      plan: usageCheck.plan,
+      message: isFree
+        ? "Vous avez utilisé tout votre crédit de découverte. Passez à un abonnement pour continuer à discuter avec Korale."
+        : "Vous avez atteint votre quota mensuel (" + usageCheck.planLabel + "). Il se réinitialise le 1er du mois prochain."
     });
   }
 
@@ -438,6 +512,29 @@ app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
 app.post('/api/connection-requests', authMiddleware, async (req, res) => {
   const { receiverId, senderConvId, receiverConvId } = req.body;
   try {
+    // === GATING PAR PALIER ===
+    const plan = await getUserPlan(req.user.id);
+    const cfg = planConfig(plan);
+
+    if (!cfg.canConnect) {
+      return res.status(403).json({
+        error: 'plan_required',
+        plan: plan,
+        message: "Le palier Découverte permet de voir vos profils compatibles, mais pas de les contacter. Passez à Avancé pour envoyer des demandes de connexion."
+      });
+    }
+    if (cfg.maxConnections !== null) {
+      const used = await getConnectionsThisMonth(req.user.id);
+      if (used >= cfg.maxConnections) {
+        return res.status(403).json({
+          error: 'connection_limit',
+          plan: plan,
+          message: "Vous avez utilisé vos " + cfg.maxConnections + " demandes de connexion ce mois-ci. Passez à Pro pour des connexions illimitées."
+        });
+      }
+    }
+    // === FIN GATING ===
+
     const r = await pool.query(
       `INSERT INTO connection_requests (sender_id,receiver_id,sender_conv_id,receiver_conv_id)
        VALUES ($1,$2,$3,$4) ON CONFLICT (sender_id,receiver_id,sender_conv_id) DO NOTHING RETURNING *`,
