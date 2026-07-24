@@ -300,7 +300,23 @@
     .fab-context:hover{border-color:var(--accent);color:var(--accent2);background:#fff;box-shadow:0 3px 14px rgba(91,141,238,.2);}
 
 
-
+/* MODALE VÉRIFICATION EMAIL */
+    #verify-screen{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#eef4ff 0%,#f7f5f2 50%,#eaf4ef 100%);}
+    .verify-box{background:#fff;border-radius:20px;padding:36px 32px;width:400px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.12);text-align:center;}
+    .verify-logo{font-size:22px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+    .verify-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;}
+    .verify-sub{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:22px;}
+    .verify-sub b{color:var(--text);}
+    .code-inputs{display:flex;gap:8px;justify-content:center;margin-bottom:20px;}
+    .code-inputs input{width:44px;height:54px;text-align:center;font-size:24px;font-weight:600;border:1.5px solid var(--border2);border-radius:10px;background:var(--bg2);color:var(--text);font-family:'JetBrains Mono',monospace;transition:all .15s;}
+    .code-inputs input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft);}
+    .verify-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .2s;}
+    .verify-btn:hover{background:var(--accent2);}
+    .verify-btn:disabled{opacity:.5;cursor:not-allowed;}
+    .verify-error{color:var(--rose);font-size:12.5px;margin-top:12px;min-height:16px;}
+    .verify-resend{margin-top:16px;font-size:12.5px;color:var(--text2);}
+    .verify-resend a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:500;}
+    .verify-resend a:hover{text-decoration:underline;}
 
     @media(max-width:768px){
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
@@ -352,6 +368,25 @@
     <button class="auth-btn" onclick="submitAuth()">Continuer</button>
     <div class="auth-error" id="auth-error"></div>
     <a class="auth-back" href="/">&#8592; Retour &#224; l&#39;accueil</a>
+  </div>
+</div>
+
+<div id="verify-screen">
+  <div class="verify-box">
+    <div class="verify-logo">Korale</div>
+    <div class="verify-title">Vérifiez votre email</div>
+    <div class="verify-sub">Nous avons envoyé un code à 6 chiffres à<br><b id="verify-email"></b></div>
+    <div class="code-inputs" id="code-inputs">
+      <input type="text" inputmode="numeric" maxlength="1" data-i="0">
+      <input type="text" inputmode="numeric" maxlength="1" data-i="1">
+      <input type="text" inputmode="numeric" maxlength="1" data-i="2">
+      <input type="text" inputmode="numeric" maxlength="1" data-i="3">
+      <input type="text" inputmode="numeric" maxlength="1" data-i="4">
+      <input type="text" inputmode="numeric" maxlength="1" data-i="5">
+    </div>
+    <button class="verify-btn" id="verify-btn" onclick="submitCode()">Valider</button>
+    <div class="verify-error" id="verify-error"></div>
+    <div class="verify-resend">Pas reçu ? <a onclick="resendCode()" id="resend-link">Renvoyer le code</a></div>
   </div>
 </div>
 
@@ -540,6 +575,7 @@ let aiTurnCount = 0; // compte les échanges de la conv IA courante pour throttl
 
 let userPlan = 'avance';   // palier courant (renvoyé par /api/usage)
 let userUsage = null;      // dernier état de la jauge + limites du palier
+let pendingVerifyEmail = null; // email en attente de vérification
 
 if (token && user) showChat();
 
@@ -623,12 +659,110 @@ async function submitAuth() {
   const body = authMode==='login' ? {email,password} : {email,password,name};
   const res = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
   const data = await res.json();
-  if (!res.ok) { document.getElementById('auth-error').textContent = data.error; return; }
+  // Cas : compte à vérifier (inscription, ou connexion d'un compte non vérifié)
+  if (data.needVerification) {
+    openVerifyScreen(data.email || email);
+    return;
+  }
+  if (!res.ok) { document.getElementById('auth-error').textContent = data.error || 'Erreur'; return; }
   token = data.token; user = data.user;
   localStorage.setItem('korale_token', token);
   localStorage.setItem('korale_user', JSON.stringify(user));
   showChat();
 }
+
+// ===== VÉRIFICATION EMAIL =====
+function openVerifyScreen(email) {
+  pendingVerifyEmail = email;
+  document.getElementById('verify-email').textContent = email;
+  document.getElementById('verify-error').textContent = '';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('verify-screen').style.display = 'flex';
+  const inputs = document.querySelectorAll('#code-inputs input');
+  inputs.forEach(function(i){ i.value = ''; });
+  setTimeout(function(){ inputs[0].focus(); }, 100);
+}
+
+function getEnteredCode() {
+  const inputs = document.querySelectorAll('#code-inputs input');
+  let code = '';
+  inputs.forEach(function(i){ code += (i.value || '').trim(); });
+  return code;
+}
+
+async function submitCode() {
+  const code = getEnteredCode();
+  const errEl = document.getElementById('verify-error');
+  if (code.length !== 6) { errEl.textContent = 'Entrez les 6 chiffres.'; return; }
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true; btn.textContent = 'Vérification…';
+  try {
+    const res = await fetch('/api/verify-code', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: pendingVerifyEmail, code: code })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.message || data.error || 'Code incorrect';
+      btn.disabled = false; btn.textContent = 'Valider';
+      return;
+    }
+    token = data.token; user = data.user;
+    localStorage.setItem('korale_token', token);
+    localStorage.setItem('korale_user', JSON.stringify(user));
+    document.getElementById('verify-screen').style.display = 'none';
+    showChat();
+  } catch(e) {
+    errEl.textContent = 'Erreur réseau, réessayez.';
+    btn.disabled = false; btn.textContent = 'Valider';
+  }
+}
+
+async function resendCode() {
+  const link = document.getElementById('resend-link');
+  const errEl = document.getElementById('verify-error');
+  link.textContent = 'Envoi…';
+  try {
+    const res = await fetch('/api/resend-code', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: pendingVerifyEmail })
+    });
+    const data = await res.json();
+    if (data.alreadyVerified) {
+      errEl.textContent = 'Ce compte est déjà vérifié, connectez-vous.';
+    } else if (res.ok) {
+      errEl.style.color = 'var(--green)';
+      errEl.textContent = 'Nouveau code envoyé !';
+      setTimeout(function(){ errEl.style.color = ''; errEl.textContent = ''; }, 3000);
+    } else {
+      errEl.textContent = data.error || 'Erreur';
+    }
+  } catch(e) { errEl.textContent = 'Erreur réseau.'; }
+  link.textContent = 'Renvoyer le code';
+}
+
+// Navigation clavier entre les cases du code
+document.addEventListener('DOMContentLoaded', function() {
+  const inputs = document.querySelectorAll('#code-inputs input');
+  inputs.forEach(function(inp, idx) {
+    inp.addEventListener('input', function(e) {
+      // Ne garder qu'un chiffre
+      inp.value = inp.value.replace(/[^0-9]/g, '').slice(0,1);
+      if (inp.value && idx < inputs.length - 1) inputs[idx+1].focus();
+      if (getEnteredCode().length === 6) submitCode();
+    });
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && !inp.value && idx > 0) inputs[idx-1].focus();
+    });
+    inp.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const txt = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g,'').slice(0,6);
+      inputs.forEach(function(x, i){ x.value = txt[i] || ''; });
+      if (txt.length === 6) submitCode();
+      else if (txt.length) inputs[Math.min(txt.length, 5)].focus();
+    });
+  });
+});
 async function showChat() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('chat-screen').style.display = 'flex';

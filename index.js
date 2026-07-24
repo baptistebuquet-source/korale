@@ -18,6 +18,29 @@ app.get('/hljs/github-dark.css', (req, res) => res.sendFile(path.join(__dirname,
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const JWT_SECRET = process.env.JWT_SECRET || 'korale_secret_key';
 
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
+const MAIL_FROM = process.env.MAIL_FROM || 'Korale <noreply@korale.fr>';
+
+// Génère un code numérique à 6 chiffres
+function genVerifyCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+async function sendVerificationEmail(email, name, code) {
+  return resend.emails.send({
+    from: MAIL_FROM,
+    to: email,
+    subject: 'Votre code de vérification Korale',
+    html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:440px;margin:0 auto;padding:32px 24px;color:#1a1a2e">
+      <div style="font-size:22px;font-weight:700;color:#5b8dee;margin-bottom:8px">Korale</div>
+      <p style="font-size:15px;line-height:1.5;color:#444">Bonjour ${name || ''},</p>
+      <p style="font-size:15px;line-height:1.5;color:#444">Voici votre code de vérification pour activer votre compte :</p>
+      <div style="font-size:34px;font-weight:700;letter-spacing:8px;text-align:center;background:#eef4ff;color:#3a63c8;padding:18px;border-radius:12px;margin:20px 0">${code}</div>
+      <p style="font-size:13px;line-height:1.5;color:#888">Ce code expire dans 15 minutes. Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.</p>
+    </div>`
+  });
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
@@ -106,6 +129,13 @@ async function initDB() {
   // Palier d'abonnement (ajout rétro-compatible : les comptes existants prennent la valeur par défaut)
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT '${DEFAULT_PLAN}'`);
   await pool.query(`UPDATE users SET plan='${DEFAULT_PLAN}' WHERE plan IS NULL`);
+
+// Vérification email (comptes existants marqués vérifiés pour ne pas les bloquer)
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT true`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_code VARCHAR(6)`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_expires TIMESTAMP`);
+
+  
   console.log('DB ready');
 }
 initDB();
@@ -244,30 +274,85 @@ async function generateTitle(messages) {
   return result.content[0].text.trim();
 }
 
-// AUTH
 app.post('/api/register', async (req, res) => {
   const { email, password, name } = req.body;
   try {
     const hash = await bcrypt.hash(password, 10);
+    const code = genVerifyCode();
+    const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
     const result = await pool.query(
-      'INSERT INTO users (email,password,name,plan) VALUES ($1,$2,$3,$4) RETURNING id,email,name,plan',
-      [email, hash, name, DEFAULT_PLAN]
+      'INSERT INTO users (email,password,name,plan,verified,verify_code,verify_expires) VALUES ($1,$2,$3,$4,false,$5,$6) RETURNING id,email,name,plan',
+      [email, hash, name, DEFAULT_PLAN, code, expires]
     );
     const user = result.rows[0];
     await pool.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
-    res.json({ token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET), user });
+    // Envoi de l'email de vérification (non bloquant pour la réponse)
+    sendVerificationEmail(email, name, code).catch(e => console.error('Mail error:', e.message));
+    // On NE renvoie PAS de token : le compte doit d'abord être vérifié
+    res.json({ needVerification: true, email: email });
   } catch(e) {
     if (e.code==='23505') res.status(400).json({error:'Email déjà utilisé'});
     else res.status(500).json({error:e.message});
   }
 });
 
+// VÉRIFICATION DU CODE
+app.post('/api/verify-code', async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'Champs manquants' });
+  try {
+    const r = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
+    const user = r.rows[0];
+    if (!user) return res.status(404).json({ error: 'Compte introuvable' });
+    if (user.verified) {
+      // déjà vérifié : on connecte directement
+      return res.json({ token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET), user:{id:user.id,email:user.email,name:user.name,plan:user.plan||DEFAULT_PLAN} });
+    }
+    if (!user.verify_code || user.verify_code !== String(code).trim()) {
+      return res.status(400).json({ error: 'Code incorrect' });
+    }
+    if (user.verify_expires && new Date(user.verify_expires) < new Date()) {
+      return res.status(400).json({ error: 'expired', message: 'Code expiré. Demandez-en un nouveau.' });
+    }
+    await pool.query('UPDATE users SET verified=true, verify_code=NULL, verify_expires=NULL WHERE id=$1', [user.id]);
+    res.json({
+      token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET),
+      user:{ id:user.id, email:user.email, name:user.name, plan: user.plan || DEFAULT_PLAN }
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// RENVOI D'UN NOUVEAU CODE
+app.post('/api/resend-code', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email manquant' });
+  try {
+    const r = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
+    const user = r.rows[0];
+    if (!user) return res.status(404).json({ error: 'Compte introuvable' });
+    if (user.verified) return res.json({ alreadyVerified: true });
+    const code = genVerifyCode();
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
+    await pool.query('UPDATE users SET verify_code=$1, verify_expires=$2 WHERE id=$3', [code, expires, user.id]);
+    sendVerificationEmail(email, user.name, code).catch(e => console.error('Mail error:', e.message));
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
     const user = result.rows[0];
     if (!user || !await bcrypt.compare(password, user.password)) return res.status(401).json({error:'Identifiants incorrects'});
+    // Compte non vérifié : on renvoie un signal spécial (le front ouvrira la fenêtre de code)
+    if (user.verified === false) {
+      // On régénère un code frais et on le renvoie par email
+      const code = genVerifyCode();
+      const expires = new Date(Date.now() + 15 * 60 * 1000);
+      await pool.query('UPDATE users SET verify_code=$1, verify_expires=$2 WHERE id=$3', [code, expires, user.id]);
+      sendVerificationEmail(email, user.name, code).catch(e => console.error('Mail error:', e.message));
+      return res.status(403).json({ needVerification: true, email: email });
+    }
     res.json({
       token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET),
       user:{ id:user.id, email:user.email, name:user.name, plan: user.plan || DEFAULT_PLAN }
