@@ -346,6 +346,8 @@
       .notif-panel{right:8px;left:8px;width:auto;top:60px;}
         .modal-footer .btn-primary{font-size:13px;padding:10px 14px;}
       .modal-footer{flex-wrap:nowrap;gap:8px;}
+      .modal{max-height:80vh;}
+      .modal-body{padding:16px 18px;gap:14px;}
     }
   </style>
 </head>
@@ -828,11 +830,15 @@ function renderProfile(profile) {
   }
 }
 
-async function loadProfile() {
+async function loadProfile(allowMatching) {
   if (!conversationId) return;
   const res = await fetch('/api/profile?conversationId='+conversationId, { headers:{'Authorization':'Bearer '+token} });
   const profile = await res.json();
-  if (profile && profile.skills) { renderProfile(profile); loadMatching(); }
+  if (profile && profile.skills) {
+    renderProfile(profile);
+    // Le matching ne se lance qu'une fois le projet suffisamment cerné (5+ messages)
+    if (allowMatching) loadMatching();
+  }
 }
 
 
@@ -1005,7 +1011,11 @@ async function loadConversation(id) {
   });
   renderDocPanel(mergedDocs.length > 0 ? mergedDocs : sessionD);
 
-  if (conv.profile && conv.profile.skills) { renderProfile(conv.profile); loadMatching(); }
+if (conv.profile && conv.profile.skills) {
+    renderProfile(conv.profile);
+    // Conversation rechargée : si elle a déjà 5+ messages, on autorise le matching
+    if (bddMessages.length >= 5) loadMatching();
+  }
   else resetProfile();
 }
 
@@ -1421,7 +1431,7 @@ function renderSharedMessages(sc, otherName) {
   const existing = msgs.querySelectorAll('.msg').length;
   if (existing === messages.length) return;
   if (messages.length === 0) {
-    msgs.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">D\u00e9but de votre conversation avec <strong>'+otherName+'</strong>.<br>Dites bonjour !</div>';
+    msgs.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Vous êtes maintenant connecté avec <strong>'+escapeHtml(otherName)+'</strong>.<br>Envoyez le premier message pour démarrer la conversation.</div>';
     return;
   }
   if (existing === 0) {
@@ -1727,9 +1737,13 @@ async function send() {
   bddMessages.push({ role: 'assistant', content: full }); // === AJOUT (h) ===
   isStreaming = false;
   document.getElementById('send-btn').disabled = false;
-  aiTurnCount++;
-  // On ne rafraîchit profil + matching que quand le serveur les a (re)calculés : 1er tour, puis tous les 3.
-  if (aiTurnCount === 1 || aiTurnCount % 3 === 0) setTimeout(loadProfile, 3000);
+    aiTurnCount++;
+  // Profil : rafraîchi dès le 1er tour puis tous les 3 (comme avant).
+  // Matching : seulement à partir de 5 messages échangés (le temps que l'IA cerne le projet).
+  const totalMessages = bddMessages.length; // user + assistant confondus
+  if (aiTurnCount === 1 || aiTurnCount % 3 === 0) {
+    setTimeout(function(){ loadProfile(totalMessages >= 5); }, 3000);
+  }
   setTimeout(loadConversations, 1000);
   loadUsage();
   if (docsToSummarize.length > 0) compactDocsInHistory(userHistoryEntry, docsToSummarize);
