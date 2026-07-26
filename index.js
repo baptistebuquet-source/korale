@@ -41,6 +41,33 @@ async function sendVerificationEmail(email, name, code) {
   });
 }
 
+// Email de notification réseau (nouvelle demande reçue, ou demande acceptée)
+async function sendNotificationEmail(toEmail, toName, kind, otherName) {
+  let subject, intro, cta;
+  if (kind === 'request') {
+    subject = otherName + ' souhaite se connecter avec vous sur Korale';
+    intro = '<b>' + (otherName || 'Un membre') + '</b> a vu votre profil et souhaite se connecter avec vous pour échanger sur vos projets.';
+    cta = 'Ouvrez Korale, onglet « Demandes », pour accepter ou refuser.';
+  } else { // 'accepted'
+    subject = otherName + ' a accepté votre demande de connexion';
+    intro = '<b>' + (otherName || 'Un membre') + '</b> a accepté votre demande de connexion sur Korale. Vous pouvez maintenant discuter directement.';
+    cta = 'Ouvrez Korale, onglet « Réseau », pour démarrer la conversation.';
+  }
+  return resend.emails.send({
+    from: MAIL_FROM,
+    to: toEmail,
+    subject: subject,
+    html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:460px;margin:0 auto;padding:32px 24px;color:#1a1a2e">
+      <div style="font-size:22px;font-weight:700;color:#5b8dee;margin-bottom:16px">Korale</div>
+      <p style="font-size:15px;line-height:1.55;color:#333">Bonjour ${toName || ''},</p>
+      <p style="font-size:15px;line-height:1.55;color:#333">${intro}</p>
+      <p style="font-size:14px;line-height:1.55;color:#666;background:#eef4ff;border-radius:10px;padding:14px 16px;margin:18px 0">${cta}</p>
+      <a href="https://korale.fr/app" style="display:inline-block;background:#5b8dee;color:#fff;text-decoration:none;font-size:14px;font-weight:500;padding:11px 22px;border-radius:10px">Ouvrir Korale</a>
+      <p style="font-size:12px;line-height:1.5;color:#aaa;margin-top:24px">Vous recevez cet email car vous êtes membre de Korale.</p>
+    </div>`
+  }).catch(e => console.error('Notif mail error:', e.message));
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
@@ -135,7 +162,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_code VARCHAR(6)`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_expires TIMESTAMP`);
 
-  
+
   console.log('DB ready');
 }
 initDB();
@@ -619,13 +646,21 @@ app.post('/api/connection-requests', authMiddleware, async (req, res) => {
       }
     }
     // === FIN GATING ===
-
     const r = await pool.query(
-      `INSERT INTO connection_requests (sender_id,receiver_id,sender_conv_id,receiver_conv_id)
-       VALUES ($1,$2,$3,$4) ON CONFLICT (sender_id,receiver_id,sender_conv_id) DO NOTHING RETURNING *`,
-      [req.user.id, receiverId, senderConvId, receiverConvId]
-    );
-    res.json({ success: true, request: r.rows[0] });
+          `INSERT INTO connection_requests (sender_id,receiver_id,sender_conv_id,receiver_conv_id)
+           VALUES ($1,$2,$3,$4) ON CONFLICT (sender_id,receiver_id,sender_conv_id) DO NOTHING RETURNING *`,
+          [req.user.id, receiverId, senderConvId, receiverConvId]
+        );
+        // Notification email au destinataire (seulement si une nouvelle demande a bien été créée)
+        if (r.rows[0]) {
+          pool.query('SELECT email, name FROM users WHERE id=$1', [receiverId]).then(function(u) {
+            const dest = u.rows[0];
+            if (dest && dest.email) {
+              sendNotificationEmail(dest.email, dest.name, 'request', req.user.name || req.user.email);
+            }
+          }).catch(()=>{});
+        }
+        res.json({ success: true, request: r.rows[0] });
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -662,6 +697,17 @@ app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING`,
       [request.id, request.sender_id, request.receiver_id, request.sender_conv_id, request.receiver_conv_id]
     );
+    // Notification email à l'expéditeur d'origine : sa demande a été acceptée
+    pool.query('SELECT email, name FROM users WHERE id=$1', [request.sender_id]).then(function(u) {
+      const sender = u.rows[0];
+      if (sender && sender.email) {
+        // Nom de celui qui accepte (le receiver = l'utilisateur courant)
+        pool.query('SELECT name FROM users WHERE id=$1', [request.receiver_id]).then(function(rc) {
+          const accepterName = rc.rows[0]?.name || 'Un membre';
+          sendNotificationEmail(sender.email, sender.name, 'accepted', accepterName);
+        }).catch(()=>{});
+      }
+    }).catch(()=>{});
   }
   res.json(request);
 });
