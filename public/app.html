@@ -1282,7 +1282,7 @@ async function loadMatching() {
   cards.forEach(function(card) {
     card.addEventListener('click', function() {
       const m = filteredMatches[parseInt(card.getAttribute('data-idx'), 10)];
-      if (m) openMatchModal(m.name, m.score, m.reason || '');
+      if (m) openMatchModal(m.name, m.score, m.reason || '', m.user_id);
     });
   });   
 }
@@ -1785,8 +1785,11 @@ function closeModal(e) {
   document.getElementById('modal-bg').classList.remove('active');
   currentMatchData = null;
 }
-async function openMatchModal(matchName, score, reason) {
-  const res = await fetch('/api/user-profile-by-name/'+encodeURIComponent(matchName), { headers: {'Authorization':'Bearer '+token} });
+async function openMatchModal(matchName, score, reason, userId) {
+  const url = userId
+    ? '/api/user-profile-by-id/' + encodeURIComponent(userId)
+    : '/api/user-profile-by-name/' + encodeURIComponent(matchName);
+  const res = await fetch(url, { headers: {'Authorization':'Bearer '+token} });
   if (!res.ok) return;
   const data = await res.json();
   currentMatchData = Object.assign({}, data, {score, reason});

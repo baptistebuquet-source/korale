@@ -599,13 +599,36 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     const traits = prof.traits || {};
     return `- ${p.name}: [${skills.join(', ')}], vision=${traits.vision||0}%, technicité=${traits.technicite||0}%, entrepreneuriat=${traits.entrepreneuriat||0}%, créativité=${traits.creativite||0}%, collaboration=${traits.collaboration||0}%, leadership=${traits.leadership||0}%`;
   }).join('\n');
-  try {
+try {
     const analysis = await client.messages.create({
       model: 'claude-haiku-4-5', max_tokens: 512,
-      messages: [{ role: 'user', content: `Matching Korale.\nMoi: ${mySkills.join(', ')}, vision=${myTraits.vision||0}%, technicité=${myTraits.technicite||0}%, entrepreneuriat=${myTraits.entrepreneuriat||0}%\nContexte: "${context||'général'}"\n\nProfils:\n${profilesText}\n\nJSON uniquement:\n[{"name":"prénom","score":85,"reason":"raison 5 mots"}]\nTrié par score. JSON uniquement.` }]
+      messages: [{ role: 'user', content: `Matching Korale.\nMoi: ${mySkills.join(', ')}, vision=${myTraits.vision||0}%, technicité=${myTraits.technicite||0}%, entrepreneuriat=${myTraits.entrepreneuriat||0}%\nContexte: "${context||'général'}"\n\nProfils:\n${profilesText}\n\nJSON uniquement:\n[{"name":"prénom exact","score":85,"reason":"raison 5 mots"}]\nUtilise EXACTEMENT les noms fournis, sans rien ajouter. Trié par score. JSON uniquement.` }]
     });
     let text = analysis.content[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    res.json(JSON.parse(text).slice(0,3));
+    let parsed = JSON.parse(text).slice(0,3);
+    // Rattache l'user_id réel en re-mappant sur les profils envoyés (par nom, tolérant)
+    const byName = {};
+    others.rows.forEach(function(p){ byName[(p.name||'').trim().toLowerCase()] = p; });
+    parsed = parsed.map(function(m){
+      const key = (m.name||'').trim().toLowerCase();
+      // match exact, sinon match sur le profil dont le nom est contenu dans celui renvoyé par l'IA
+      let ref = byName[key];
+      if (!ref) {
+        const found = others.rows.find(function(p){
+          const pn = (p.name||'').trim().toLowerCase();
+          return key.indexOf(pn) !== -1 || pn.indexOf(key) !== -1;
+        });
+        if (found) ref = found;
+      }
+      return {
+        name: ref ? ref.name : m.name, // on renvoie le VRAI nom, pas celui reformulé par l'IA
+        score: m.score,
+        reason: m.reason,
+        user_id: ref ? ref.user_id : null,
+        conv_id: ref ? ref.conv_id : null
+      };
+    }).filter(function(m){ return m.user_id !== null; }); // on écarte les profils fantômes
+    res.json(parsed);
   } catch(e) { res.json([]); }
 });
 // USER PROFILES
@@ -616,6 +639,19 @@ app.get('/api/user-profile-by-name/:name', authMiddleware, async (req, res) => {
     WHERE u.name=$1 AND c.profile!='{}' AND c.profile IS NOT NULL
     ORDER BY c.user_id, c.updated_at DESC
   `, [req.params.name]);
+  if (!r.rows[0]) return res.status(404).json({error:'Non trouvé'});
+  res.json(r.rows[0]);
+});
+
+
+// PROFIL PAR ID (plus fiable que par nom)
+app.get('/api/user-profile-by-id/:id', authMiddleware, async (req, res) => {
+  const r = await pool.query(`
+    SELECT DISTINCT ON (c.user_id) c.id as conv_id, c.profile, u.name, u.id as user_id
+    FROM conversations c JOIN users u ON c.user_id=u.id
+    WHERE u.id=$1 AND c.profile!='{}' AND c.profile IS NOT NULL
+    ORDER BY c.user_id, c.updated_at DESC
+  `, [req.params.id]);
   if (!r.rows[0]) return res.status(404).json({error:'Non trouvé'});
   res.json(r.rows[0]);
 });
