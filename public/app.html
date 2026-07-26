@@ -317,6 +317,7 @@
     .verify-resend{margin-top:16px;font-size:12.5px;color:var(--text2);}
     .verify-resend a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:500;}
     .verify-resend a:hover{text-decoration:underline;}
+    #modal-request-btn{white-space:nowrap;min-width:0;}
 
     @media(max-width:768px){
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
@@ -343,6 +344,8 @@
       #inp{font-size:14px;}.send-btn{padding:11px 14px;}
       .modal-cols{grid-template-columns:1fr;}
       .notif-panel{right:8px;left:8px;width:auto;top:60px;}
+        .modal-footer .btn-primary{font-size:13px;padding:10px 14px;}
+      .modal-footer{flex-wrap:nowrap;gap:8px;}
     }
   </style>
 </head>
@@ -416,7 +419,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal()">Fermer</button>
-      <button class="btn-primary" id="modal-request-btn" onclick="sendRequest()">Envoyer une demande</button>
+      <button class="btn-primary" id="modal-request-btn" onclick="sendRequest()">Se connecter</button>
       <div class="modal-compat">
         <div class="modal-compat-score" id="modal-score"></div>
         <div class="modal-compat-label">match</div>
@@ -1271,11 +1274,17 @@ async function loadMatching() {
     list.innerHTML = '<span class="empty-state">aucun nouveau profil compatible</span>';
     return;
   }
-  list.innerHTML = filteredMatches.map(function(m) {
-    const safeName = m.name.replace(/'/g, "\\'");
-    const safeReason = (m.reason||'').replace(/'/g, "\\'");
-    return '<div class="match-card" onclick="openMatchModal(\''+safeName+'\','+m.score+',\''+safeReason+'\')"><div class="match-card-top"><div class="match-name">'+m.name+'</div><span class="match-score">'+m.score+'%</span></div><div class="match-reason">'+m.reason+'</div></div>';
+ list.innerHTML = filteredMatches.map(function(m, idx) {
+    return '<div class="match-card" data-idx="'+idx+'"><div class="match-card-top"><div class="match-name">'+escapeHtml(m.name)+'</div><span class="match-score">'+m.score+'%</span></div><div class="match-reason">'+escapeHtml(m.reason||'')+'</div></div>';
   }).join('');
+  // Attache les clics proprement (évite les soucis de noms avec parenthèses, apostrophes, etc.)
+  const cards = list.querySelectorAll('.match-card');
+  cards.forEach(function(card) {
+    card.addEventListener('click', function() {
+      const m = filteredMatches[parseInt(card.getAttribute('data-idx'), 10)];
+      if (m) openMatchModal(m.name, m.score, m.reason || '');
+    });
+  });   
 }
 
 // SHARED CONVERSATIONS
@@ -1812,7 +1821,7 @@ async function openMatchModal(matchName, score, reason) {
     btn.textContent = 'Limite atteinte'; btn.disabled = true;
     addUpgradeNote('Vous avez utilis\u00e9 vos ' + userUsage.maxConnections + ' demandes de connexion ce mois-ci. Passez \u00e0 Pro pour des connexions illimit\u00e9es.');
   } else {
-    btn.textContent = 'Envoyer une demande'; btn.disabled = false;
+    btn.textContent = 'Se connecter'; btn.disabled = false;
     if (userUsage && userUsage.maxConnections !== null && userUsage.maxConnections !== undefined) {
       addUpgradeNote('Demandes de connexion ce mois : ' + userUsage.connectionsUsed + ' / ' + userUsage.maxConnections + '.');
     }
