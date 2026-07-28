@@ -348,6 +348,9 @@
       .modal-footer{flex-wrap:nowrap;gap:8px;}
       .modal{max-height:80vh;}
       .modal-body{padding:16px 18px;gap:14px;}
+
+      .match-card .match-score{font-size:11px;}
+      #modal-request-btn{font-size:12.5px;padding:9px 12px;white-space:nowrap;}
     }
   </style>
 </head>
@@ -1830,7 +1833,7 @@ async function openMatchModal(matchName, score, reason, userId) {
     && userUsage.connectionsUsed >= userUsage.maxConnections;
 
   if (alreadySent) {
-    btn.textContent = 'Demande envoy\u00e9e'; btn.disabled = true;
+    btn.textContent = 'Envoy\u00e9e'; btn.disabled = true;
   } else if (!canConnect) {
     btn.textContent = 'R\u00e9serv\u00e9 aux abonn\u00e9s'; btn.disabled = true;
     addUpgradeNote('Le palier ' + (userUsage.planLabel || 'D\u00e9couverte') + ' vous permet de voir vos profils compatibles. Passez \u00e0 Avanc\u00e9 pour contacter ' + escapeHtml(matchName));
@@ -1842,6 +1845,33 @@ async function openMatchModal(matchName, score, reason, userId) {
     if (userUsage && userUsage.maxConnections !== null && userUsage.maxConnections !== undefined) {
       addUpgradeNote('Demandes de connexion ce mois : ' + userUsage.connectionsUsed + ' / ' + userUsage.maxConnections + '.');
     }
+  }
+  document.getElementById('modal-bg').classList.add('active');
+}
+
+// Ouvre la modale détaillée à partir d'un profil déjà chargé (ex: demande reçue)
+function openProfileModal(name, profile, opts) {
+  opts = opts || {};
+  profile = profile || {};
+  currentMatchData = null; // pas une demande à envoyer depuis ici
+  const skills = Array.isArray(profile.skills) ? profile.skills : [];
+  const projects = Array.isArray(profile.projects) ? profile.projects : [];
+  const traits = profile.traits || {};
+  document.getElementById('modal-name').textContent = name || '';
+  document.getElementById('modal-summary').textContent = profile.summary || '';
+  document.getElementById('modal-score').textContent = opts.score ? opts.score+'%' : '';
+  document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+escapeHtml(s)+'</span>';}).join('') : '<span class="empty-state">aucune</span>';
+  document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+escapeHtml(p)+'</div>';}).join('') : '<span class="empty-state">aucun</span>';
+  const tl = [['vision','Vision','v'],['technicite','Technicit\u00e9','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Cr\u00e9ativit\u00e9','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
+  document.getElementById('modal-traits').innerHTML = tl.map(function(a){return '<div class="trait"><span class="trait-name">'+a[1]+'</span><div class="bar-bg"><div class="bar-fill '+a[2]+'" style="width:'+(traits[a[0]]||0)+'%"></div></div><span class="trait-pct">'+(traits[a[0]]||0)+'%</span></div>';}).join('');
+  const oldNote = document.getElementById('modal-upgrade-note');
+  if (oldNote) oldNote.remove();
+  // Bouton adapté au contexte "demande reçue" : accepter directement
+  const btn = document.getElementById('modal-request-btn');
+  if (opts.requestId) {
+    btn.textContent = 'Accepter la demande';
+    btn.disabled = false;
+    btn.onclick = function(){ respondRequest(opts.requestId, 'accepted'); closeModal(); };
   }
   document.getElementById('modal-bg').classList.add('active');
 }
@@ -1865,7 +1895,7 @@ async function sendRequest() {
     body: JSON.stringify({ receiverId: currentMatchData.user_id, senderConvId: conversationId, receiverConvId: currentMatchData.conv_id })
   });
   if (res.ok) {
-    btn.textContent = 'Demande envoy\u00e9e';
+    btn.textContent = 'Envoy\u00e9e';
     await loadSentRequests();
     loadUsage();
   } else if (res.status === 403) {
@@ -1925,11 +1955,19 @@ async function loadReceivedRequests() {
     list.innerHTML = '<div class="notif-empty">Aucune demande re\u00e7ue</div>';
     return;
   }
-  list.innerHTML = requests.map(function(r) {
+
+list.innerHTML = requests.map(function(r, idx) {
     const profile = r.sender_profile || {};
     const summary = profile.summary || r.sender_conv_title || '';
-    return '<div class="notif-item"><div class="notif-item-name">'+r.sender_name+'</div><div class="notif-item-text">'+summary+'</div><div class="notif-actions"><button class="notif-accept" onclick="respondRequest('+r.id+',\'accepted\')">Accepter</button><button class="notif-decline" onclick="respondRequest('+r.id+',\'declined\')">Refuser</button></div></div>';
+    return '<div class="notif-item" data-ridx="'+idx+'" style="cursor:pointer"><div class="notif-item-name">'+escapeHtml(r.sender_name||'')+'</div><div class="notif-item-text">'+escapeHtml(summary)+'</div><div class="notif-actions"><button class="notif-accept" onclick="event.stopPropagation();respondRequest('+r.id+',\'accepted\')">Accepter</button><button class="notif-decline" onclick="event.stopPropagation();respondRequest('+r.id+',\'declined\')">Refuser</button></div></div>';
   }).join('');
+  // Clic sur la carte (hors boutons) → ouvre le profil complet du demandeur
+  list.querySelectorAll('.notif-item[data-ridx]').forEach(function(card){
+    card.addEventListener('click', function(){
+      const r = requests[parseInt(card.getAttribute('data-ridx'),10)];
+      if (r) openProfileModal(r.sender_name, r.sender_profile || {}, { requestId: r.id });
+    });
+  });
 }
 async function respondRequest(id, status) {
   await fetch('/api/connection-requests/'+id, {
