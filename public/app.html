@@ -1432,7 +1432,7 @@ function renderSharedMessages(sc, otherName) {
   const messages = Array.isArray(sc.messages) ? sc.messages : [];
   const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
   const existing = msgs.querySelectorAll('.msg').length;
-  if (existing === messages.length) return;
+    if (messages.length > 0 && existing === messages.length) return;
   if (messages.length === 0) {
     msgs.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Vous êtes maintenant connecté avec <strong>'+escapeHtml(otherName)+'</strong>.<br>Envoyez le premier message pour démarrer la conversation.</div>';
     return;
