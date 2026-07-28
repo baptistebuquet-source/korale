@@ -296,9 +296,17 @@ async function generateTitle(messages) {
   const first = messages.slice(0,2).map(m => `${m.role}: ${extractText(m.content).slice(0, 2000)}`).join('\n');
   const result = await client.messages.create({
     model: 'claude-haiku-4-5', max_tokens: 50,
-    messages: [{ role: 'user', content: `Titre court (4 mots max) pour:\n${first}\nTitre uniquement.` }]
+    messages: [{ role: 'user', content: `Titre court (4 mots max) pour cette conversation :\n${first}\n\nRéponds UNIQUEMENT avec le titre en texte brut, sans guillemets, sans astérisques, sans formatage markdown, sans ponctuation décorative.` }]
   });
-  return result.content[0].text.trim();
+  let title = result.content[0].text.trim();
+  // Nettoyage de sécurité : on retire tout résidu markdown / guillemets
+  title = title
+    .replace(/\*+/g, '')        // astérisques (gras/italique markdown)
+    .replace(/^#+\s*/g, '')     // titres markdown (#)
+    .replace(/^["'«»]+|["'«»]+$/g, '') // guillemets en début/fin
+    .replace(/`/g, '')          // backticks
+    .trim();
+  return title || null;
 }
 
 app.post('/api/register', async (req, res) => {
