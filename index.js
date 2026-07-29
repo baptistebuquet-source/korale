@@ -592,12 +592,16 @@ app.get('/api/matching', authMiddleware, async (req, res) => {
     myProfile = r.rows[0]?.profile || {};
   }
   if (!myProfile.skills?.length) return res.json([]);
-  const others = await pool.query(`
+const others = await pool.query(`
     SELECT DISTINCT ON (c.user_id) c.profile, u.name, u.id as user_id, c.id as conv_id
     FROM conversations c JOIN users u ON c.user_id=u.id
     WHERE c.user_id!=$1 AND c.profile!='{}' AND c.profile IS NOT NULL
+      AND u.id NOT IN (
+        SELECT receiver_id FROM connection_requests
+        WHERE sender_id=$1 AND sender_conv_id=$2
+      )
     ORDER BY c.user_id, c.updated_at DESC
-  `, [req.user.id]);
+  `, [req.user.id, conversationId || 0]);
   if (!others.rows.length) return res.json([]);
   const mySkills = myProfile.skills || [];
   const myTraits = myProfile.traits || {};
@@ -761,7 +765,8 @@ app.get('/api/shared-conversations', authMiddleware, async (req, res) => {
   const r = await pool.query(`
     SELECT sc.*, u1.name as user1_name, u1.email as user1_email,
       u2.name as user2_name, u2.email as user2_email,
-      c1.profile as user1_profile, c2.profile as user2_profile
+      c1.profile as user1_profile, c2.profile as user2_profile,
+      c1.title as user1_conv_title, c2.title as user2_conv_title
     FROM shared_conversations sc
     JOIN users u1 ON sc.user1_id=u1.id JOIN users u2 ON sc.user2_id=u2.id
     JOIN conversations c1 ON sc.user1_conv_id=c1.id JOIN conversations c2 ON sc.user2_conv_id=c2.id
@@ -774,7 +779,8 @@ app.get('/api/shared-conversations/:id', authMiddleware, async (req, res) => {
   const r = await pool.query(`
     SELECT sc.*, u1.name as user1_name, u1.email as user1_email,
       u2.name as user2_name, u2.email as user2_email,
-      c1.profile as user1_profile, c2.profile as user2_profile
+      c1.profile as user1_profile, c2.profile as user2_profile,
+      c1.title as user1_conv_title, c2.title as user2_conv_title
     FROM shared_conversations sc
     JOIN users u1 ON sc.user1_id=u1.id JOIN users u2 ON sc.user2_id=u2.id
     JOIN conversations c1 ON sc.user1_conv_id=c1.id JOIN conversations c2 ON sc.user2_conv_id=c2.id

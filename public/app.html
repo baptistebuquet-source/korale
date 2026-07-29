@@ -1314,12 +1314,17 @@ function renderSharedList() {
     list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune connexion accept&#233;e</div>';
     return;
   }
-  list.innerHTML = sharedConversations.map(function(sc) {
+list.innerHTML = sharedConversations.map(function(sc) {
     const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
+    // Titre de MA conversation-projet à l'origine de ce match (celle que je reconnais)
+    const myConvTitle = sc.user1_id === user.id ? sc.user1_conv_title : sc.user2_conv_title;
     const date = new Date(sc.updated_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'});
     const isActive = sc.id === activeSharedConvId;
+    const projectLine = myConvTitle
+      ? '<div class="conv-project-src" style="font-size:10.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">via '+escapeHtml(myConvTitle)+'</div>'
+      : '';
     return '<div class="conv-item conv-item-shared '+(isActive?'active':'')+'" onclick="openSharedConversation('+sc.id+'); if(isMobile()) closeAllPanels();">'
-      +'<div class="conv-item-main"><div class="conv-title">&#128172; '+otherName+'</div><div class="conv-date">'+date+'</div></div>'
+      +'<div class="conv-item-main"><div class="conv-title">&#128172; '+escapeHtml(otherName)+'</div>'+projectLine+'<div class="conv-date">'+date+'</div></div>'
       +'<button class="conv-del" title="Supprimer le contact" onclick="event.stopPropagation();deleteSharedConversation('+sc.id+',event)">&#10005;</button>'
       +'</div>';
   }).join('');
