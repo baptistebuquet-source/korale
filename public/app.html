@@ -319,6 +319,13 @@
     .verify-resend a:hover{text-decoration:underline;}
     #modal-request-btn{white-space:nowrap;min-width:0;}
 
+
+/* HORODATAGE MESSAGES */
+    .msg-time{font-size:10px;color:var(--muted);margin-top:3px;opacity:.75;font-family:'JetBrains Mono',monospace;}
+    .msg.user .msg-time{text-align:right;}
+    .date-sep{text-align:center;margin:18px 0 10px;position:relative;}
+    .date-sep span{background:var(--bg2);color:var(--text2);font-size:11px;font-weight:500;padding:3px 12px;border-radius:12px;border:1px solid var(--border);}   
+
     @media(max-width:768px){
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
       .auth-logo{font-size:26px;}.bd1,.bd3{display:none;}
@@ -1120,12 +1127,23 @@ function renderAIConversation(editIdx) {
   if (editIdx === undefined) editIdx = -1;
   const msgs = document.getElementById('messages');
   msgs.innerHTML = AI_GREETING;
+  let lastDay = null;
   bddMessages.forEach(function(m, idx) {
+    // Séparateur de date si le jour change
+    const dk = dayKey(m.ts);
+    if (dk && dk !== lastDay) {
+      const sep = document.createElement('div');
+      sep.className = 'date-sep';
+      sep.innerHTML = '<span>'+formatDateSep(m.ts)+'</span>';
+      msgs.appendChild(sep);
+      lastDay = dk;
+    }
     const role = m.role === 'assistant' ? 'ai' : m.role;
     const div = document.createElement('div');
     div.className = 'msg ' + role;
     const initial = role === 'ai' ? '&#10022;' : (user.name && user.name[0] ? user.name[0].toUpperCase() : 'V');
-    div.innerHTML = '<div class="av '+role+'">'+initial+'</div><div class="bubble"></div>';
+    div.innerHTML = '<div class="av '+role+'"></div><div class="bubble"></div>';
+    div.querySelector('.av').innerHTML = initial;
     msgs.appendChild(div);
     const bubble = div.querySelector('.bubble');
 
@@ -1145,6 +1163,14 @@ function renderAIConversation(editIdx) {
     }
 
     renderMsgInto(bubble, m);
+
+    // Heure sous la bulle (seulement si le message a un timestamp)
+    if (m.ts) {
+      const t = document.createElement('div');
+      t.className = 'msg-time';
+      t.textContent = formatTime(m.ts);
+      bubble.appendChild(t);
+    }
 
     if (role !== 'ai') {
       const eb = document.createElement('button');
@@ -1225,7 +1251,7 @@ async function saveEditedMessage(idx, newText) {
     }
   }
   cursorEl.remove(); renderContent(bubble, full); msgs.scrollTop = msgs.scrollHeight;
-  bddMessages.push({ role: 'assistant', content: full });
+  bddMessages.push({ role: 'assistant', content: full, ts: new Date().toISOString() }); // === AJOUT (h) ===
   history.push({ role: 'assistant', content: full });
   isStreaming = false; document.getElementById('send-btn').disabled = false;
   renderAIConversation(-1); // re-normalise les index + boutons modifier
@@ -1427,9 +1453,10 @@ function buildSharedMessageHTML(m, isMe, initial) {
     }).join('');
   }
   const textHtml = m.text ? escapeHtml(m.text) : '';
+  const timeHtml = m.created_at ? '<div class="msg-time">'+formatTime(m.created_at)+'</div>' : '';
   return '<div class="msg '+(isMe?'user':'other')+'">'
     +'<div class="av '+(isMe?'user':'other')+'">'+initial+'</div>'
-    +'<div class="bubble">'+(!isMe?'<div class="msg-sender">'+escapeHtml(m.sender_name)+'</div>':'')+textHtml+attachmentsHtml+'</div></div>';
+    +'<div class="bubble">'+(!isMe?'<div class="msg-sender">'+escapeHtml(m.sender_name)+'</div>':'')+textHtml+attachmentsHtml+timeHtml+'</div></div>';
 }
 
 function renderSharedMessages(sc, otherName) {
@@ -1437,26 +1464,25 @@ function renderSharedMessages(sc, otherName) {
   const messages = Array.isArray(sc.messages) ? sc.messages : [];
   const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
   const existing = msgs.querySelectorAll('.msg').length;
-    if (messages.length > 0 && existing === messages.length) return;
+  if (messages.length > 0 && existing === messages.length) return;
   if (messages.length === 0) {
     msgs.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Vous êtes maintenant connecté avec <strong>'+escapeHtml(otherName)+'</strong>.<br>Envoyez le premier message pour démarrer la conversation.</div>';
     return;
   }
-  if (existing === 0) {
-    msgs.innerHTML = messages.map(function(m) {
-      const isMe = m.sender_id === user.id;
-      const initial = isMe ? (user.name&&user.name[0]?user.name[0].toUpperCase():'V') : (otherName&&otherName[0]?otherName[0].toUpperCase():'?');
-      return buildSharedMessageHTML(m, isMe, initial);
-    }).join('');
-  } else {
-    messages.slice(existing).forEach(function(m) {
-      const isMe = m.sender_id === user.id;
-      const initial = isMe ? (user.name&&user.name[0]?user.name[0].toUpperCase():'V') : (otherName&&otherName[0]?otherName[0].toUpperCase():'?');
-      const div = document.createElement('div');
-      div.innerHTML = buildSharedMessageHTML(m, isMe, initial);
-      msgs.appendChild(div.firstElementChild);
-    });
-  }
+  // Rendu complet avec séparateurs de date
+  let html = '';
+  let lastDay = null;
+  messages.forEach(function(m) {
+    const dk = dayKey(m.created_at);
+    if (dk && dk !== lastDay) {
+      html += '<div class="date-sep"><span>'+formatDateSep(m.created_at)+'</span></div>';
+      lastDay = dk;
+    }
+    const isMe = m.sender_id === user.id;
+    const initial = isMe ? (user.name&&user.name[0]?user.name[0].toUpperCase():'V') : (otherName&&otherName[0]?otherName[0].toUpperCase():'?');
+    html += buildSharedMessageHTML(m, isMe, initial);
+  });
+  msgs.innerHTML = html;
   if (atBottom) msgs.scrollTop = msgs.scrollHeight;
 }
 
@@ -1478,6 +1504,35 @@ function readFileAsText(file) {
     reader.readAsText(file);
   });
 }
+
+
+// Formate une heure : "14:32"
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+// Formate un séparateur de date : "Aujourd'hui", "Hier", ou "26 juillet 2026"
+function formatDateSep(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const day = new Date(d); day.setHours(0,0,0,0);
+  const diff = Math.round((today - day) / 86400000);
+  if (diff === 0) return "Aujourd'hui";
+  if (diff === 1) return 'Hier';
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+// Clé de jour (pour détecter un changement de date entre deux messages)
+function dayKey(ts) {
+  if (!ts) return null;
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return null;
+  return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+}
+
 
 // FIX : extraction texte PDF via pdf.js
 async function extractPdfText(file) {
@@ -1681,7 +1736,7 @@ async function send() {
 
   // === AJOUT (h) === garder bddMessages synchro + bouton "modifier" sur ce message
   const userMsgIdx = bddMessages.length;
-  bddMessages.push({ role: 'user', content: saveMsg });
+  bddMessages.push({ role: 'user', content: saveMsg, ts: new Date().toISOString() });
   (function(){
     const eb = document.createElement('button');
     eb.className = 'msg-edit-btn'; eb.title = 'Modifier'; eb.innerHTML = '&#9998;';
@@ -1742,7 +1797,8 @@ async function send() {
   renderContent(bubble, full);
   msgs.scrollTop = msgs.scrollHeight;
   history.push({ role: 'assistant', content: full });
-  bddMessages.push({ role: 'assistant', content: full }); // === AJOUT (h) ===
+  bddMessages.push({ role: 'assistant', content: full, ts: new Date().toISOString() }); // === AJOUT (h) ===
+  renderAIConversation(-1); // re-render pour afficher l'heure + séparateurs proprement
   isStreaming = false;
   document.getElementById('send-btn').disabled = false;
     aiTurnCount++;
