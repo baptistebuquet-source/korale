@@ -1127,17 +1127,7 @@ function renderAIConversation(editIdx) {
   if (editIdx === undefined) editIdx = -1;
   const msgs = document.getElementById('messages');
   msgs.innerHTML = AI_GREETING;
-  let lastDay = null;
   bddMessages.forEach(function(m, idx) {
-    // Séparateur de date si le jour change
-    const dk = dayKey(m.ts);
-    if (dk && dk !== lastDay) {
-      const sep = document.createElement('div');
-      sep.className = 'date-sep';
-      sep.innerHTML = '<span>'+formatDateSep(m.ts)+'</span>';
-      msgs.appendChild(sep);
-      lastDay = dk;
-    }
     const role = m.role === 'assistant' ? 'ai' : m.role;
     const div = document.createElement('div');
     div.className = 'msg ' + role;
@@ -1163,14 +1153,6 @@ function renderAIConversation(editIdx) {
     }
 
     renderMsgInto(bubble, m);
-
-    // Heure sous la bulle (seulement si le message a un timestamp)
-    if (m.ts) {
-      const t = document.createElement('div');
-      t.className = 'msg-time';
-      t.textContent = formatTime(m.ts);
-      bubble.appendChild(t);
-    }
 
     if (role !== 'ai') {
       const eb = document.createElement('button');
