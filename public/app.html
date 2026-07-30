@@ -659,6 +659,8 @@ function switchView(view) {
     if (fab) fab.textContent = 'Détails';
     if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
     activeSharedConvId = null;
+    // Vide immédiatement la liste (évite le flash des conversations IA pendant le chargement réseau)
+    document.getElementById('history-list').innerHTML = '<div class="empty-state" style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Chargement…</div>';
     document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Sélectionnez une conversation dans la liste à gauche pour commencer à discuter.</div>';
     document.getElementById('profile-body').innerHTML = '<div class="empty-state" style="padding:8px">Sélectionnez une connexion pour voir les détails (profils, documents partagés).</div>';
     loadSharedConversations();
