@@ -326,11 +326,13 @@
     .date-sep span{background:var(--bg2);color:var(--text2);font-size:11px;font-weight:500;padding:3px 12px;border-radius:12px;border:1px solid var(--border);}   
 
 /* VOILE STREAMING sur la bulle IA en cours */
-    .bubble.streaming{position:relative;min-height:52px;}
-    .bubble.streaming .streaming-text{filter:blur(1.3px);opacity:.7;transition:filter .2s,opacity .2s;pointer-events:none;}
-    .stream-overlay{position:absolute;inset:0;min-height:52px;display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0.35));backdrop-filter:blur(1px);border-radius:inherit;pointer-events:none;}
+    .bubble.streaming{position:relative;}
+    .bubble.streaming .streaming-text{filter:blur(2px);opacity:.65;transition:filter .2s,opacity .2s;pointer-events:none;}
+    .stream-overlay{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:9px;padding:8px 0;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.75) 40%);border-bottom-left-radius:inherit;border-bottom-right-radius:inherit;pointer-events:none;}
     .stream-overlay .dot{width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:streamspin .7s linear infinite;flex-shrink:0;}
     .stream-overlay .stxt{font-size:12px;color:var(--accent2);font-weight:500;}
+    .stream-overlay{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:9px;padding:8px 0;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.75) 40%);border-bottom-left-radius:inherit;border-bottom-right-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;}
+    .stream-overlay.visible{opacity:1;}
     @keyframes streamspin{to{transform:rotate(360deg)}}
 
     @media(max-width:768px){
@@ -1203,6 +1205,16 @@ async function saveEditedMessage(idx, newText) {
   aiDiv.className = 'msg ai';
   aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">L\'IA rédige sa réponse…</span></div></div>';
   msgs.appendChild(aiDiv);
+  // Affiche le voile "L'IA rédige" après un court délai (évite la bulle vide au tout début)
+  (function(ad){
+    setTimeout(function(){
+      const ov = ad.querySelector('.stream-overlay');
+      const b = ad.querySelector('.bubble');
+      // On n'affiche le voile que si la bulle est encore en streaming (pas déjà finie)
+      if (ov && b && b.classList.contains('streaming')) ov.classList.add('visible');
+    }, 800);
+  })(aiDiv);
+
   msgs.scrollTop = msgs.scrollHeight;
   const streamingEl = aiDiv.querySelector('.streaming-text');
   const cursorEl = aiDiv.querySelector('.cursor');
@@ -1741,6 +1753,17 @@ async function send() {
   aiDiv.className = 'msg ai';
   aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">L\'IA rédige sa réponse…</span></div></div>';
   msgs.appendChild(aiDiv);
+
+// Affiche le voile "L'IA rédige" après un court délai (évite la bulle vide au tout début)
+  (function(ad){
+    setTimeout(function(){
+      const ov = ad.querySelector('.stream-overlay');
+      const b = ad.querySelector('.bubble');
+      // On n'affiche le voile que si la bulle est encore en streaming (pas déjà finie)
+      if (ov && b && b.classList.contains('streaming')) ov.classList.add('visible');
+    }, 800);
+  })(aiDiv);
+
   msgs.scrollTop = msgs.scrollHeight;
 
   const streamingEl = aiDiv.querySelector('.streaming-text');
