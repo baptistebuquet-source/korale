@@ -1212,7 +1212,7 @@ async function saveEditedMessage(idx, newText) {
       const b = ad.querySelector('.bubble');
       // On n'affiche le voile que si la bulle est encore en streaming (pas déjà finie)
       if (ov && b && b.classList.contains('streaming')) ov.classList.add('visible');
-    }, 800);
+    }, 4000);
   })(aiDiv);
 
   msgs.scrollTop = msgs.scrollHeight;
@@ -1761,7 +1761,7 @@ async function send() {
       const b = ad.querySelector('.bubble');
       // On n'affiche le voile que si la bulle est encore en streaming (pas déjà finie)
       if (ov && b && b.classList.contains('streaming')) ov.classList.add('visible');
-    }, 800);
+    }, 4000);
   })(aiDiv);
 
   msgs.scrollTop = msgs.scrollHeight;
