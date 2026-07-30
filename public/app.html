@@ -1205,14 +1205,6 @@ async function saveEditedMessage(idx, newText) {
   aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">L\'IA rédige sa réponse…</span></div></div>';
   msgs.appendChild(aiDiv);
   // Affiche le voile "L'IA rédige" après un court délai (évite la bulle vide au tout début)
-  (function(ad){
-    setTimeout(function(){
-      const ov = ad.querySelector('.stream-overlay');
-      const b = ad.querySelector('.bubble');
-      // On n'affiche le voile que si la bulle est encore en streaming (pas déjà finie)
-      if (ov && b && b.classList.contains('streaming')) ov.classList.add('visible');
-    }, 3000);
-  })(aiDiv);
 
   msgs.scrollTop = msgs.scrollHeight;
   const streamingEl = aiDiv.querySelector('.streaming-text');
@@ -1246,7 +1238,7 @@ async function saveEditedMessage(idx, newText) {
     for (let j = 0; j < lines.length; j++) {
       const line = lines[j];
       if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-        try { const dd = JSON.parse(line.slice(6)); if (dd.text) { full += dd.text; streamingEl.textContent = full; msgs.scrollTop = msgs.scrollHeight; } } catch(e) {}
+        try { const dd = JSON.parse(line.slice(6)); if (dd.text) { full += dd.text; streamingEl.textContent = full; if (full.length > 30) { const _ov = bubble.querySelector('.stream-overlay'); if (_ov && !_ov.classList.contains('visible')) _ov.classList.add('visible'); } msgs.scrollTop = msgs.scrollHeight; } } catch(e) {}
       }
     }
   }
@@ -1753,16 +1745,6 @@ async function send() {
   aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">L\'IA rédige sa réponse…</span></div></div>';
   msgs.appendChild(aiDiv);
 
-// Affiche le voile "L'IA rédige" après un court délai (évite la bulle vide au tout début)
-  (function(ad){
-    setTimeout(function(){
-      const ov = ad.querySelector('.stream-overlay');
-      const b = ad.querySelector('.bubble');
-      // On n'affiche le voile que si la bulle est encore en streaming (pas déjà finie)
-      if (ov && b && b.classList.contains('streaming')) ov.classList.add('visible');
-    }, 3000);
-  })(aiDiv);
-
   msgs.scrollTop = msgs.scrollHeight;
 
   const streamingEl = aiDiv.querySelector('.streaming-text');
@@ -1803,7 +1785,7 @@ async function send() {
     for (let j = 0; j < lines.length; j++) {
       const line = lines[j];
       if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-        try { const dd = JSON.parse(line.slice(6)); if (dd.text) { full+=dd.text; streamingEl.textContent=full; msgs.scrollTop=msgs.scrollHeight; } } catch(e) {}
+        try { const dd = JSON.parse(line.slice(6)); if (dd.text) { full+=dd.text; streamingEl.textContent=full; if (full.length > 30) { const _ov = bubble.querySelector('.stream-overlay'); if (_ov && !_ov.classList.contains('visible')) _ov.classList.add('visible'); } msgs.scrollTop=msgs.scrollHeight; } } catch(e) {}
       }
     }
   }
