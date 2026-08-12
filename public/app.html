@@ -394,12 +394,12 @@
       <div class="auth-tab active" data-i18n="login" onclick="switchTab('login')">Connexion</div>
       <div class="auth-tab" data-i18n="register" onclick="switchTab('register')">Inscription</div>
     </div>
-    <div id="name-field" style="display:none"><input class="auth-input" type="text" id="auth-name" placeholder="Votre pr&#233;nom"/></div>
+    <div id="name-field" style="display:none"><input class="auth-input" type="text" id="auth-name" placeholder="Votre pr&#233;nom" data-i18n="ph_firstname" data-i18n-attr="placeholder"/></div>
     <input class="auth-input" type="email" id="auth-email" placeholder="Email" autocomplete="email"/>
-    <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password"/>
+    <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password" data-i18n="ph_password" data-i18n-attr="placeholder"/>
     <button class="auth-btn" data-i18n="continue" onclick="submitAuth()">Continuer</button>
     <div class="auth-error" id="auth-error"></div>
-    <a class="auth-back" href="/">&#8592; Retour &#224; l&#39;accueil</a>
+    <a class="auth-back" href="/" data-i18n="back_home">&#8592; Retour &#224; l&#39;accueil</a>
   </div>
 </div>
 
@@ -451,7 +451,7 @@
       <button class="btn-primary" id="modal-request-btn" data-i18n="connect" onclick="sendRequest()">Se connecter</button>
       <div class="modal-compat">
         <div class="modal-compat-score" id="modal-score"></div>
-        <div class="modal-compat-label" data-i18n="match">match</div>
+        <div class="modal-compat-label">match</div>
       </div>
     </div>
   </div>
@@ -635,6 +635,7 @@ const I18N = {
     // Auth
     login: 'Connexion', register: 'Inscription', continue: 'Continuer',
     auth_sub: 'Votre assistant IA personnel & collaboratif',
+    ph_firstname: 'Votre prénom', ph_password: 'Mot de passe', back_home: '← Retour à l\'accueil',
     ai_greeting: 'Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.',
     // Vérification email
     verify_title: 'Vérifiez votre email', verify_sub: 'Nous avons envoyé un code à 6 chiffres à',
@@ -685,6 +686,7 @@ const I18N = {
     // Auth
     login: 'Sign in', register: 'Sign up', continue: 'Continue',
     auth_sub: 'Your personal & collaborative AI assistant',
+    ph_firstname: 'Your first name', ph_password: 'Password', back_home: '← Back to home',
     ai_greeting: 'Hello, I\'m Korale, your AI assistant. Tell me about your projects, ideas, or what you\'re working on.',
     // Vérification email
     verify_title: 'Verify your email', verify_sub: 'We sent a 6-digit code to',
@@ -991,15 +993,15 @@ function logout() {
 function resetProfile() {
   document.getElementById('profile-title').textContent = 'En construction\u2026';
   const body = document.getElementById('profile-body');
-  body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label" data-i18n="summary">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
+  body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
     +'<div><div class="sec-label" data-i18n="skills">comp\u00e9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state" data-i18n="waiting">en attente\u2026</span></div></div>'
     +'<div><div class="sec-label" data-i18n="work_profile">profil de travail</div>'
-    +'<div class="trait"><span class="trait-name" data-i18n="vision">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>'
-    +'<div class="trait"><span class="trait-name" data-i18n="technicity">Technicit\u00e9</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>'
-    +'<div class="trait"><span class="trait-name" data-i18n="entrepreneurship">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>'
-    +'<div class="trait"><span class="trait-name" data-i18n="creativity">Cr\u00e9ativit\u00e9</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>'
-    +'<div class="trait"><span class="trait-name" data-i18n="collaboration">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>'
-    +'<div class="trait"><span class="trait-name" data-i18n="leadership">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div>'
+    +'<div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>'
+    +'<div class="trait"><span class="trait-name">Technicit\u00e9</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>'
+    +'<div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>'
+    +'<div class="trait"><span class="trait-name">Cr\u00e9ativit\u00e9</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>'
+    +'<div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>'
+    +'<div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div>'
     +'<div><div class="sec-label" data-i18n="detected_projects">projets d\u00e9tect\u00e9s</div><div id="proj-list"><span class="empty-state" data-i18n="no_project">aucun projet identifi\u00e9</span></div></div>'
     +'<div><div class="sec-label" data-i18n="compatibilities">compatibilit\u00e9s</div><div id="match-list"><span class="empty-state" data-i18n="analyzing">analyse en cours\u2026</span></div></div>'
     +'<div id="docs-section" style="display:none"><div class="sec-label" data-i18n="joined_docs">documents joints</div><div class="doc-list" id="doc-list"></div></div>';
@@ -1337,7 +1339,7 @@ function renderAIConversation(editIdx) {
       ta.value = extractMsgText(m);
       const actions = document.createElement('div');
       actions.className = 'edit-actions';
-      actions.innerHTML = '<button class="edit-save">'+t('save')+'</button><button class="edit-cancel">'+t('cancel')+'</button>';
+      actions.innerHTML = '<button class="edit-save">Enregistrer</button><button class="edit-cancel">Annuler</button>';
       bubble.appendChild(ta); bubble.appendChild(actions);
       actions.querySelector('.edit-save').onclick = function(){ saveEditedMessage(idx, ta.value); };
       actions.querySelector('.edit-cancel').onclick = function(){ renderAIConversation(-1); };
@@ -1387,7 +1389,7 @@ async function saveEditedMessage(idx, newText) {
   const msgs = document.getElementById('messages');
   const aiDiv = document.createElement('div');
   aiDiv.className = 'msg ai';
-  aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">'+t('ai_writing')+'</span></div></div>';
+  aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">L\'IA rédige sa réponse…</span></div></div>';
   msgs.appendChild(aiDiv);
   // Affiche le voile "L'IA rédige" après un court délai (évite la bulle vide au tout début)
 
@@ -1463,7 +1465,7 @@ async function deleteSharedConversation(id, ev) {
   if (activeSharedConvId === id) {
     if (sharedPollingInterval) clearInterval(sharedPollingInterval);
     activeSharedConvId = null;
-    document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;">'+t('select_conversation')+'</div>';
+    document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;">S\u00e9lectionnez une conversation.</div>';
     document.getElementById('profile-body').innerHTML = '<span class="empty-state">'+t('net_no_selected')+'</span>';
   }
   await loadSharedConversations();
@@ -1927,7 +1929,7 @@ async function send() {
 
   const aiDiv = document.createElement('div');
   aiDiv.className = 'msg ai';
-  aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">'+t('ai_writing')+'</span></div></div>';
+  aiDiv.innerHTML = '<div class="av ai">&#10022;</div><div class="bubble streaming"><span class="streaming-text"></span><span class="cursor"></span><div class="stream-overlay"><div class="dot"></div><span class="stxt">L\'IA rédige sa réponse…</span></div></div>';
   msgs.appendChild(aiDiv);
 
   msgs.scrollTop = msgs.scrollHeight;
@@ -2201,7 +2203,7 @@ async function loadReceivedRequests() {
 list.innerHTML = requests.map(function(r, idx) {
     const profile = r.sender_profile || {};
     const summary = profile.summary || r.sender_conv_title || '';
-    return '<div class="notif-item" data-ridx="'+idx+'" style="cursor:pointer"><div class="notif-item-name">'+escapeHtml(r.sender_name||'')+'</div><div class="notif-item-text">'+escapeHtml(summary)+'</div><div class="notif-actions"><button class="notif-accept" onclick="event.stopPropagation();respondRequest('+r.id+',\'accepted\')">'+t('accept')+'</button><button class="notif-decline" onclick="event.stopPropagation();respondRequest('+r.id+',\'declined\')">'+t('decline')+'</button></div></div>';
+    return '<div class="notif-item" data-ridx="'+idx+'" style="cursor:pointer"><div class="notif-item-name">'+escapeHtml(r.sender_name||'')+'</div><div class="notif-item-text">'+escapeHtml(summary)+'</div><div class="notif-actions"><button class="notif-accept" onclick="event.stopPropagation();respondRequest('+r.id+',\'accepted\')">Accepter</button><button class="notif-decline" onclick="event.stopPropagation();respondRequest('+r.id+',\'declined\')">Refuser</button></div></div>';
   }).join('');
   // Clic sur la carte (hors boutons) → ouvre le profil complet du demandeur
   list.querySelectorAll('.notif-item[data-ridx]').forEach(function(card){
