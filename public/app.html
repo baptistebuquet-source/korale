@@ -333,6 +333,12 @@
     .stream-overlay.visible{opacity:1;}
     @keyframes streamspin{to{transform:rotate(360deg)}}
 
+
+    .lang-switch{display:inline-flex;gap:2px;background:var(--bg2);border-radius:8px;padding:2px;}
+    .lang-btn{background:none;border:none;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;padding:3px 8px;border-radius:6px;font-family:inherit;transition:all .15s;text-transform:uppercase;}
+    .lang-btn.active{background:var(--accent);color:#fff;}
+    .lang-btn:not(.active):hover{color:var(--accent);}
+
     @media(max-width:768px){
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
       .auth-logo{font-size:26px;}.bd1,.bd3{display:none;}
@@ -473,7 +479,15 @@
           <button class="header-btn" id="notif-btn" onclick="toggleNotifs()" style="position:relative">
             Demandes<span class="notif-badge" id="notif-badge" style="display:none">0</span>
           </button>
+          
+
+          <div class="lang-switch">
+            <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+          </div>
           <div class="nav-separator desktop-only"></div>
+
+
           <button class="header-btn" onclick="logout()">Quitter</button>
         </div>
       </header>
@@ -574,6 +588,68 @@ function copyCode(btn) {
 
 const isMobile = function() { return window.innerWidth <= 768; };
 
+// ===== I18N =====
+const I18N = {
+  fr: {
+    // (on remplira à l'étape 2 — pour l'instant quelques clés de test)
+    nav_ai: 'IA', nav_network: 'Réseau', requests: 'Demandes', logout: 'Quitter'
+  },
+  en: {
+    nav_ai: 'AI', nav_network: 'Network', requests: 'Requests', logout: 'Sign out'
+  }
+};
+
+// Détection initiale : langue sauvée > langue du compte > langue navigateur > fr
+function detectInitialLang() {
+  const saved = localStorage.getItem('korale_lang');
+  if (saved && I18N[saved]) return saved;
+  const nav = (navigator.language || 'fr').slice(0,2).toLowerCase();
+  return I18N[nav] ? nav : 'fr';
+}
+let currentLang = detectInitialLang();
+
+function t(key) {
+  return (I18N[currentLang] && I18N[currentLang][key]) || I18N.fr[key] || key;
+}
+
+// Applique les traductions à tout élément portant data-i18n
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (el.hasAttribute('data-i18n-attr')) {
+      // Pour traduire un attribut (placeholder, title...) : data-i18n-attr="placeholder"
+      el.setAttribute(el.getAttribute('data-i18n-attr'), val);
+    } else {
+      el.textContent = val;
+    }
+  });
+  document.documentElement.setAttribute('lang', currentLang);
+  updateLangButtons();
+}
+
+// Change la langue, sauvegarde (local + serveur si connecté), ré-applique
+async function setLang(lang) {
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('korale_lang', lang);
+  applyTranslations();
+  if (token) {
+    try {
+      await fetch('/api/set-lang', {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify({ lang: lang })
+      });
+    } catch(e) {}
+  }
+}
+
+function updateLangButtons() {
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-lang') === currentLang);
+  });
+}
+
 // ETAT GLOBAL
 let token = localStorage.getItem('korale_token');
 let user = JSON.parse(localStorage.getItem('korale_user') || 'null');
@@ -598,6 +674,8 @@ let aiTurnCount = 0; // compte les échanges de la conv IA courante pour throttl
 let userPlan = 'avance';   // palier courant (renvoyé par /api/usage)
 let userUsage = null;      // dernier état de la jauge + limites du palier
 let pendingVerifyEmail = null; // email en attente de vérification
+
+applyTranslations();
 
 if (token && user) showChat();
 
@@ -692,6 +770,9 @@ async function submitAuth() {
   token = data.token; user = data.user;
   localStorage.setItem('korale_token', token);
   localStorage.setItem('korale_user', JSON.stringify(user));
+
+  if (user && user.lang && I18N[user.lang]) { currentLang = user.lang; localStorage.setItem('korale_lang', user.lang); applyTranslations(); }
+
   showChat();
 }
 
@@ -735,6 +816,9 @@ async function submitCode() {
     localStorage.setItem('korale_token', token);
     localStorage.setItem('korale_user', JSON.stringify(user));
     document.getElementById('verify-screen').style.display = 'none';
+
+    if (user && user.lang && I18N[user.lang]) { currentLang = user.lang; localStorage.setItem('korale_lang', user.lang); applyTranslations(); }
+    
     showChat();
   } catch(e) {
     errEl.textContent = 'Erreur réseau, réessayez.';

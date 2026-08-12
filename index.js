@@ -161,6 +161,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT true`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_code VARCHAR(6)`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_expires TIMESTAMP`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS lang VARCHAR(5) DEFAULT 'fr'`);
 
 
   console.log('DB ready');
@@ -341,7 +342,7 @@ app.post('/api/verify-code', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'Compte introuvable' });
     if (user.verified) {
       // déjà vérifié : on connecte directement
-      return res.json({ token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET), user:{id:user.id,email:user.email,name:user.name,plan:user.plan||DEFAULT_PLAN} });
+      return res.json({ token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET), user:{id:user.id,email:user.email,name:user.name,plan:user.plan|| DEFAULT_PLAN, lang: user.lang || 'fr' } });
     }
     if (!user.verify_code || user.verify_code !== String(code).trim()) {
       return res.status(400).json({ error: 'Code incorrect' });
@@ -352,7 +353,7 @@ app.post('/api/verify-code', async (req, res) => {
     await pool.query('UPDATE users SET verified=true, verify_code=NULL, verify_expires=NULL WHERE id=$1', [user.id]);
     res.json({
       token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET),
-      user:{ id:user.id, email:user.email, name:user.name, plan: user.plan || DEFAULT_PLAN }
+      user:{ id:user.id, email:user.email, name:user.name, plan: user.plan || DEFAULT_PLAN, lang: user.lang || 'fr' }
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -390,7 +391,7 @@ app.post('/api/login', async (req, res) => {
     }
     res.json({
       token: jwt.sign({id:user.id,email:user.email}, JWT_SECRET),
-      user:{ id:user.id, email:user.email, name:user.name, plan: user.plan || DEFAULT_PLAN }
+      user:{ id:user.id, email:user.email, name:user.name, plan: user.plan || DEFAULT_PLAN, lang: user.lang || 'fr' }
     });
   } catch(e) { res.status(500).json({error:'Erreur serveur'}); }
 });
@@ -428,6 +429,18 @@ app.get('/api/usage', authMiddleware, async (req, res) => {
       maxConnections: cfg.maxConnections,
       connectionsUsed: connectionsUsed
     });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+
+// LANGUE UTILISATEUR
+app.post('/api/set-lang', authMiddleware, async (req, res) => {
+  const { lang } = req.body;
+  const valid = ['fr', 'en'];
+  const chosen = valid.includes(lang) ? lang : 'fr';
+  try {
+    await pool.query('UPDATE users SET lang=$1 WHERE id=$2', [chosen, req.user.id]);
+    res.json({ ok: true, lang: chosen });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
