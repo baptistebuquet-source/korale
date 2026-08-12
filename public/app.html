@@ -407,7 +407,7 @@
   <div class="verify-box">
     <div class="verify-logo">Korale</div>
     <div class="verify-title" data-i18n="verify_title">Vérifiez votre email</div>
-    <div class="verify-sub">Nous avons envoyé un code à 6 chiffres à<br><b id="verify-email"></b></div>
+    <div class="verify-sub"><span data-i18n="verify_sub">Nous avons envoyé un code à 6 chiffres à</span><br><b id="verify-email"></b></div>
     <div class="code-inputs" id="code-inputs">
       <input type="text" inputmode="numeric" maxlength="1" data-i="0">
       <input type="text" inputmode="numeric" maxlength="1" data-i="1">
@@ -437,7 +437,7 @@
           <div class="modal-col-title" data-i18n="their_profile">Son profil</div>
           <div class="sec-label" data-i18n="skills">comp&#233;tences</div>
           <div class="skill-grid" id="modal-skills" style="margin-bottom:14px"></div>
-          <div class="sec-label">projets</div>
+          <div class="sec-label" data-i18n="detected_projects">projets</div>
           <div id="modal-projects"></div>
         </div>
         <div>
@@ -460,8 +460,8 @@
 <div class="notif-panel" id="notif-panel">
   <div class="notif-header">
     <div style="display:flex;gap:6px;flex:1">
-      <button class="notif-tab active" id="notif-tab-recv" onclick="switchNotifTab('recv')">Re&#231;ues</button>
-      <button class="notif-tab" id="notif-tab-sent" onclick="switchNotifTab('sent')">Envoy&#233;es</button>
+      <button class="notif-tab active" id="notif-tab-recv" data-i18n="received" onclick="switchNotifTab('recv')">Re&#231;ues</button>
+      <button class="notif-tab" id="notif-tab-sent" data-i18n="sent" onclick="switchNotifTab('sent')">Envoy&#233;es</button>
     </div>
     <button class="panel-close" style="display:block" onclick="toggleNotifs()">&#10005;</button>
   </div>
@@ -481,7 +481,7 @@
         <div class="header-right">
           <div class="user-badge" id="user-label"></div>
           <button class="header-btn" id="notif-btn" onclick="toggleNotifs()" style="position:relative">
-            Demandes<span class="notif-badge" id="notif-badge" style="display:none">0</span>
+            <span data-i18n="requests">Demandes</span><span class="notif-badge" id="notif-badge" style="display:none">0</span>
           </button>
           
 
@@ -578,15 +578,15 @@ renderer.code = function(token) {
       else highlighted = hljs.highlightAuto(code).value;
     }
   } catch(e) {}
-  return '<div class="code-block"><div class="code-header"><span class="code-lang">'+language+'</span><button class="copy-btn" onclick="copyCode(this)">Copier</button></div><pre><code class="hljs">'+highlighted+'</code></pre></div>';
+  return '<div class="code-block"><div class="code-header"><span class="code-lang">'+language+'</span><button class="copy-btn" onclick="copyCode(this)">'+t('copy')+'</button></div><pre><code class="hljs">'+highlighted+'</code></pre></div>';
 };
 marked.use({ renderer });
 
 function copyCode(btn) {
   const code = btn.closest('.code-block').querySelector('code').innerText;
   navigator.clipboard.writeText(code).then(function() {
-    btn.textContent = 'Copi&#233;'; btn.classList.add('copied');
-    setTimeout(function() { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+    btn.textContent = t('copied'); btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = t('copy'); btn.classList.remove('copied'); }, 2000);
   });
 }
 
@@ -616,7 +616,7 @@ const I18N = {
     net_no_accepted: 'Aucune connexion acceptée', net_no_selected: 'Aucune connexion sélectionnée',
     net_details: 'détails de la connexion', net_active: 'connexion active', net_you: 'Vous',
     connections: 'connexions', net_first_msg: 'Envoyez le premier message pour démarrer la conversation.',
-    no_compatible: 'aucun nouveau profil compatible',
+    no_compatible: ''+t('no_compatible')+'',
     // Demandes
     received: 'Reçues', sent: 'Envoyées', accept: 'Accepter', decline: 'Refuser',
     no_received: 'Aucune demande reçue', no_sent: 'Aucune demande envoyée', no_pending: 'Aucune demande en attente',
@@ -839,6 +839,7 @@ function switchView(view) {
     document.getElementById('profile-body').innerHTML = '<div class="empty-state" style="padding:8px">Sélectionnez une connexion pour voir les détails (profils, documents partagés).</div>';
     loadSharedConversations();
   }
+  applyTranslations();
 }
 
 // AUTH
@@ -991,17 +992,17 @@ function resetProfile() {
   document.getElementById('profile-title').textContent = 'En construction\u2026';
   const body = document.getElementById('profile-body');
   body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
-    +'<div><div class="sec-label">comp\u00e9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state">en attente\u2026</span></div></div>'
-    +'<div><div class="sec-label">profil de travail</div>'
+    +'<div><div class="sec-label" data-i18n="skills">comp\u00e9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state" data-i18n="waiting">en attente\u2026</span></div></div>'
+    +'<div><div class="sec-label" data-i18n="work_profile">profil de travail</div>'
     +'<div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>'
     +'<div class="trait"><span class="trait-name">Technicit\u00e9</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>'
     +'<div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>'
     +'<div class="trait"><span class="trait-name">Cr\u00e9ativit\u00e9</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>'
     +'<div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>'
     +'<div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div>'
-    +'<div><div class="sec-label">projets d\u00e9tect\u00e9s</div><div id="proj-list"><span class="empty-state">aucun projet identifi\u00e9</span></div></div>'
-    +'<div><div class="sec-label">compatibilit\u00e9s</div><div id="match-list"><span class="empty-state">analyse en cours\u2026</span></div></div>'
-    +'<div id="docs-section" style="display:none"><div class="sec-label">documents joints</div><div class="doc-list" id="doc-list"></div></div>';
+    +'<div><div class="sec-label" data-i18n="detected_projects">projets d\u00e9tect\u00e9s</div><div id="proj-list"><span class="empty-state" data-i18n="no_project">aucun projet identifi\u00e9</span></div></div>'
+    +'<div><div class="sec-label" data-i18n="compatibilities">compatibilit\u00e9s</div><div id="match-list"><span class="empty-state" data-i18n="analyzing">analyse en cours\u2026</span></div></div>'
+    +'<div id="docs-section" style="display:none"><div class="sec-label" data-i18n="joined_docs">documents joints</div><div class="doc-list" id="doc-list"></div></div>';
 }
 
 function renderProfile(profile) {
@@ -1028,6 +1029,7 @@ function renderProfile(profile) {
     const pl = document.getElementById('proj-list');
     if (pl) pl.innerHTML = projects.map(function(p) { return '<div class="proj-tag"><div class="proj-dot"></div>'+p+'</div>'; }).join('');
   }
+  applyTranslations();
 }
 
 async function loadProfile(allowMatching) {
@@ -1145,7 +1147,7 @@ function renderDocPanel(docs) {
       return '<div class="doc-item doc-image" onclick="zoomImage(this.querySelector(\'img\').src)">'
         +'<img class="doc-item-thumb" src="'+doc.dataUrl+'" alt="">'
         +'<div class="doc-item-info"><div class="doc-item-name">'+escapeHtml(doc.name)+'</div>'
-        +'<div class="doc-item-meta">Image &#183; cliquer pour agrandir</div></div></div>';
+        +'<div class="doc-item-meta" data-i18n="image_click_zoom">Image &#183; cliquer pour agrandir</div></div></div>';
     }
     const typeLabel = doc.type === 'pdf' ? 'PDF' : 'Fichier';
         const docId = registerOpenableDoc(doc.dataUrl, doc.name);
@@ -1487,7 +1489,7 @@ async function loadMatching() {
     return !alreadySent && !alreadyConnected;
   });
   if (filteredMatches.length === 0) {
-    list.innerHTML = '<span class="empty-state">aucun nouveau profil compatible</span>';
+    list.innerHTML = '<span class="empty-state">'+t('no_compatible')+'</span>';
     return;
   }
  list.innerHTML = filteredMatches.map(function(m, idx) {
@@ -1551,9 +1553,10 @@ async function openSharedConversation(id) {
   if (fab) fab.textContent = t('ctx_details');
   document.getElementById('profile-body').innerHTML =
     '<div class="shared-profiles">'
-    +'<div class="shared-profile-card"><div class="shared-profile-name">'+(user.name||user.email)+'<span class="shared-profile-you">Vous</span></div>'
+    +'<div class="shared-profile-card"><div class="shared-profile-name">'+(user.name||user.email)+'<span class="shared-profile-you" data-i18n="net_you">Vous</span></div>'
     +'<div class="shared-profile-summary">'+(myProfile&&myProfile.summary?myProfile.summary:'Profil en construction')+'</div>'
-    +'<div class="skill-grid" style="margin-bottom:6px">'+((myProfile&&myProfile.skills)||[]).map(function(s){return '<span class="stag">'+s+'</span>';}).join('')+'</div>'
+    +'<div class="skill-grid" style="margin-bottom:6px">'+((myProfile&&myProfile.skills)||[]).map(function(s){return '<span class="stag">'+s+'</span>';
+  applyTranslations();}).join('')+'</div>'
     +'<div class="email-chip" onclick="copyEmail(\''+myEmail+'\')"><span class="email-chip-text">'+myEmail+'</span><span class="email-chip-copy">&#128203; Copier</span></div></div>'
     +'<div class="shared-profile-card"><div class="shared-profile-name">'+otherName+'</div>'
     +'<div class="shared-profile-summary">'+(otherProfile&&otherProfile.summary?otherProfile.summary:'Profil en construction')+'</div>'
@@ -1561,7 +1564,7 @@ async function openSharedConversation(id) {
     +'<div class="email-chip" onclick="copyEmail(\''+otherEmail+'\')"><span class="email-chip-text">'+otherEmail+'</span><span class="email-chip-copy">&#128203; Copier</span></div></div>'
     +'</div>'
     // Section docs pour conv réseau — on lit depuis les messages en BDD
-    +'<div id="docs-section" style="display:none"><div class="sec-label" style="margin-top:16px">documents joints</div><div class="doc-list" id="doc-list"></div></div>';
+    +'<div id="docs-section" style="display:none"><div class="sec-label" style="margin-top:16px" data-i18n="joined_docs">documents joints</div><div class="doc-list" id="doc-list"></div></div>';
 
   // Charger les docs depuis les messages de la conv réseau (stockés en BDD)
   renderSharedDocs(sc);
@@ -2030,7 +2033,7 @@ async function copyEmail(email) {
   document.querySelectorAll('.email-chip').forEach(function(chip) {
     if (chip.querySelector('.email-chip-text').textContent === email) {
       const copy = chip.querySelector('.email-chip-copy');
-      copy.textContent = 'Copi\u00e9'; setTimeout(function() { copy.textContent = 'Copier'; }, 2000);
+      copy.textContent = t('copied'); setTimeout(function() { copy.textContent = t('copy'); }, 2000);
     }
   });
 }
@@ -2056,8 +2059,8 @@ async function openMatchModal(matchName, score, reason, userId) {
   document.getElementById('modal-name').textContent = matchName;
   document.getElementById('modal-summary').textContent = profile.summary || '';
   document.getElementById('modal-score').textContent = score+'%';
-  document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+s+'</span>';}).join('') : '<span class="empty-state">aucune</span>';
-  document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+p+'</div>';}).join('') : '<span class="empty-state">aucun</span>';
+  document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+s+'</span>';}).join('') : '<span class="empty-state">'+t('none_f')+'</span>';
+  document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+p+'</div>';}).join('') : '<span class="empty-state">'+t('none_m')+'</span>';
   const tl = [['vision','Vision','v'],['technicite','Technicit\u00e9','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Cr\u00e9ativit\u00e9','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
   document.getElementById('modal-traits').innerHTML = tl.map(function(arr){return '<div class="trait"><span class="trait-name">'+arr[1]+'</span><div class="bar-bg"><div class="bar-fill '+arr[2]+'" style="width:'+(traits[arr[0]]||0)+'%"></div></div><span class="trait-pct">'+(traits[arr[0]]||0)+'%</span></div>';}).join('');
 
@@ -2099,8 +2102,8 @@ function openProfileModal(name, profile, opts) {
   document.getElementById('modal-name').textContent = name || '';
   document.getElementById('modal-summary').textContent = profile.summary || '';
   document.getElementById('modal-score').textContent = opts.score ? opts.score+'%' : '';
-  document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+escapeHtml(s)+'</span>';}).join('') : '<span class="empty-state">aucune</span>';
-  document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+escapeHtml(p)+'</div>';}).join('') : '<span class="empty-state">aucun</span>';
+  document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+escapeHtml(s)+'</span>';}).join('') : '<span class="empty-state">'+t('none_f')+'</span>';
+  document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+escapeHtml(p)+'</div>';}).join('') : '<span class="empty-state">'+t('none_m')+'</span>';
   const tl = [['vision','Vision','v'],['technicite','Technicit\u00e9','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Cr\u00e9ativit\u00e9','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
   document.getElementById('modal-traits').innerHTML = tl.map(function(a){return '<div class="trait"><span class="trait-name">'+a[1]+'</span><div class="bar-bg"><div class="bar-fill '+a[2]+'" style="width:'+(traits[a[0]]||0)+'%"></div></div><span class="trait-pct">'+(traits[a[0]]||0)+'%</span></div>';}).join('');
   const oldNote = document.getElementById('modal-upgrade-note');
