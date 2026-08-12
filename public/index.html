@@ -122,6 +122,11 @@
       footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px 20px; }
       .mockup { padding: 14px; }
     }
+  
+    .lang-switch{display:inline-flex;gap:2px;background:var(--bg2);border-radius:8px;padding:2px;margin-left:14px;vertical-align:middle;}
+    .lang-btn{background:none;border:none;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;padding:4px 9px;border-radius:6px;font-family:inherit;transition:all .15s;text-transform:uppercase;}
+    .lang-btn.active{background:var(--accent);color:#fff;}
+    .lang-btn:not(.active):hover{color:var(--accent);}
   </style>
 </head>
 <body>
@@ -129,9 +134,13 @@
 <nav>
   <a class="nav-logo" href="/">Korale</a>
   <div class="nav-links">
-    <a class="nav-link" href="#comment">Comment ça marche</a>
-    <a class="nav-link" href="#fonctionnalites">Fonctionnalités</a>
-    <a class="nav-cta" href="/app">Commencer</a>
+    <a class="nav-link" href="#comment" data-i18n="nav_how">Comment ça marche</a>
+    <a class="nav-link" href="#fonctionnalites" data-i18n="nav_features">Fonctionnalités</a>
+    <a class="nav-cta" href="/app" data-i18n="nav_start">Commencer</a>
+    <div class="lang-switch">
+      <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
   </div>
 </nav>
 
@@ -150,15 +159,15 @@
     </div>
     <h1 class="hero-title">
       Votre IA qui vous<br>
-      <em>comprend</em> et vous<br>
-      <em>connecte</em>
+      <em data-i18n="hero_understands">comprend</em> et vous<br>
+      <em data-i18n="hero_connects">connecte</em>
     </h1>
     <p class="hero-sub">
       Korale apprend qui vous êtes à travers vos conversations, construit votre profil en silence, et vous met en relation avec les personnes les plus compatibles avec vos projets.
     </p>
     <div class="hero-actions">
-      <a class="btn-hero" href="/app">Créer mon compte</a>
-      <a class="btn-hero-ghost" href="#comment">Voir comment ça marche</a>
+      <a class="btn-hero" href="/app" data-i18n="hero_cta1">Créer mon compte</a>
+      <a class="btn-hero-ghost" href="#comment" data-i18n="hero_cta2">Voir comment ça marche</a>
     </div>
 
     <div class="hero-visual">
@@ -197,24 +206,24 @@
 <!-- COMMENT ÇA MARCHE -->
 <section id="comment">
   <div class="section-inner">
-    <span class="section-badge">Comment ça marche</span>
-    <h2 class="section-title">Simple comme une conversation</h2>
-    <p class="section-sub">Pas de formulaire, pas de profil à remplir. Korale apprend en vous écoutant.</p>
+    <span class="section-badge" data-i18n="how_label">Comment ça marche</span>
+    <h2 class="section-title" data-i18n="how_title">Simple comme une conversation</h2>
+    <p class="section-sub" data-i18n="how_sub">Pas de formulaire, pas de profil à remplir. Korale apprend en vous écoutant.</p>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
-        <div class="step-title">Parlez à Korale</div>
-        <div class="step-text">Utilisez Korale comme votre assistant IA au quotidien — posez des questions, explorez des idées, travaillez sur vos projets. Chaque conversation est unique.</div>
+        <div class="step-title" data-i18n="step1_title">Parlez à Korale</div>
+        <div class="step-text" data-i18n="step1_desc">Utilisez Korale comme votre assistant IA au quotidien — posez des questions, explorez des idées, travaillez sur vos projets. Chaque conversation est unique.</div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <div class="step-title">Votre profil se construit</div>
-        <div class="step-text">En analysant vos échanges, Korale identifie vos compétences, vos projets, vos traits de travail — vision, technicité, créativité, leadership — et construit votre carte de contexte.</div>
+        <div class="step-title" data-i18n="step2_title">Votre profil se construit</div>
+        <div class="step-text" data-i18n="step2_desc">En analysant vos échanges, Korale identifie vos compétences, vos projets, vos traits de travail — vision, technicité, créativité, leadership — et construit votre carte de contexte.</div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <div class="step-title">Les bonnes personnes apparaissent</div>
-        <div class="step-text">Korale propose des profils complémentaires au vôtre. Vous voyez leur profil contextuel, envoyez une demande, et si elle est acceptée, vous pouvez échanger directement.</div>
+        <div class="step-title" data-i18n="step3_title">Les bonnes personnes apparaissent</div>
+        <div class="step-text" data-i18n="step3_desc">Korale propose des profils complémentaires au vôtre. Vous voyez leur profil contextuel, envoyez une demande, et si elle est acceptée, vous pouvez échanger directement.</div>
       </div>
     </div>
   </div>
@@ -223,39 +232,39 @@
 <!-- FONCTIONNALITÉS -->
 <section id="fonctionnalites" class="features-bg">
   <div class="section-inner">
-    <span class="section-badge">Fonctionnalités</span>
-    <h2 class="section-title">Tout ce dont vous avez besoin</h2>
-    <p class="section-sub">Un assistant IA puissant, un système de matching intelligent, et une messagerie intégrée.</p>
+    <span class="section-badge" data-i18n="feat_label">Fonctionnalités</span>
+    <h2 class="section-title" data-i18n="feat_title">Tout ce dont vous avez besoin</h2>
+    <p class="section-sub" data-i18n="feat_sub">Un assistant IA puissant, un système de matching intelligent, et une messagerie intégrée.</p>
     <div class="features">
       <div class="feature">
         <div class="feature-icon">🧠</div>
-        <div class="feature-title">IA conversationnelle avancée</div>
-        <div class="feature-text">Powered by Claude d'Anthropic. Répond à vos questions, aide sur votre code, supporte le LaTeX et le markdown. Des réponses précises et contextuelles.</div>
+        <div class="feature-title" data-i18n="feat1_title">IA conversationnelle avancée</div>
+        <div class="feature-text" data-i18n="feat1_desc">Powered by Claude d'Anthropic. Répond à vos questions, aide sur votre code, supporte le LaTeX et le markdown. Des réponses précises et contextuelles.</div>
       </div>
       <div class="feature">
         <div class="feature-icon">✦</div>
-        <div class="feature-title">Profil latent automatique</div>
-        <div class="feature-text">Aucun formulaire. Votre profil se construit naturellement à partir de vos conversations — compétences, projets, traits de travail sur 6 dimensions.</div>
+        <div class="feature-title" data-i18n="feat2_title">Profil latent automatique</div>
+        <div class="feature-text" data-i18n="feat2_desc">Aucun formulaire. Votre profil se construit naturellement à partir de vos conversations — compétences, projets, traits de travail sur 6 dimensions.</div>
       </div>
       <div class="feature">
         <div class="feature-icon">⟳</div>
-        <div class="feature-title">Matching contextuel</div>
-        <div class="feature-text">Chaque conversation génère un profil contextuel unique. Le matching est fait sur ce que vous faites maintenant, pas sur un CV statique.</div>
+        <div class="feature-title" data-i18n="feat3_title">Matching contextuel</div>
+        <div class="feature-text" data-i18n="feat3_desc">Chaque conversation génère un profil contextuel unique. Le matching est fait sur ce que vous faites maintenant, pas sur un CV statique.</div>
       </div>
       <div class="feature">
         <div class="feature-icon">↗</div>
-        <div class="feature-title">Mise en relation directe</div>
-        <div class="feature-text">Envoyez une demande, acceptez ou refusez. Si la connexion est établie, échangez dans un espace de discussion partagé avec les profils contextuels visibles.</div>
+        <div class="feature-title" data-i18n="feat4_title">Mise en relation directe</div>
+        <div class="feature-text" data-i18n="feat4_desc">Envoyez une demande, acceptez ou refusez. Si la connexion est établie, échangez dans un espace de discussion partagé avec les profils contextuels visibles.</div>
       </div>
       <div class="feature">
         <div class="feature-icon">◎</div>
-        <div class="feature-title">Transparence totale</div>
-        <div class="feature-text">Vous voyez exactement ce que Korale a compris de vous. Le profil est visible, modifiable, et vous contrôlez avec qui vous vous connectez.</div>
+        <div class="feature-title" data-i18n="feat5_title">Transparence totale</div>
+        <div class="feature-text" data-i18n="feat5_desc">Vous voyez exactement ce que Korale a compris de vous. Le profil est visible, modifiable, et vous contrôlez avec qui vous vous connectez.</div>
       </div>
       <div class="feature">
         <div class="feature-icon">✉</div>
-        <div class="feature-title">Contact facilité</div>
-        <div class="feature-text">Email copiable en un clic, messagerie intégrée, profils partagés dans chaque conversation. Tout pour passer de la connexion à la collaboration.</div>
+        <div class="feature-title" data-i18n="feat6_title">Contact facilité</div>
+        <div class="feature-text" data-i18n="feat6_desc">Email copiable en un clic, messagerie intégrée, profils partagés dans chaque conversation. Tout pour passer de la connexion à la collaboration.</div>
       </div>
     </div>
   </div>
@@ -264,7 +273,7 @@
 <!-- QUOTE -->
 <section class="quote-section">
   <div class="section-inner" style="text-align:center">
-    <span class="section-badge">La vision</span>
+    <span class="section-badge" data-i18n="vision_label">La vision</span>
     <p class="quote">"Les meilleures collaborations naissent d'une compréhension profonde — pas d'un algorithme de filtre. Korale cherche ce que vous avez en commun avec les autres, pas ce qui vous différencie."</p>
     <p class="quote-author">— L'équipe Korale</p>
   </div>
@@ -275,16 +284,111 @@
   <div class="bd bd1" style="top:-150px;right:-150px;width:600px;height:600px"></div>
   <div class="bd bd2" style="bottom:-100px;left:-100px;width:400px;height:400px"></div>
   <div class="cta-inner">
-    <h2 class="cta-title">Prêt à rencontrer vos prochains collaborateurs ?</h2>
-    <p class="cta-sub">Rejoignez Korale gratuitement. Votre première conversation suffit pour commencer.</p>
-    <a class="btn-hero" href="/app" style="font-size:16px;padding:15px 40px">Commencer maintenant</a>
+    <h2 class="cta-title" data-i18n="cta_title">Prêt à rencontrer vos prochains collaborateurs ?</h2>
+    <p class="cta-sub" data-i18n="cta_sub">Rejoignez Korale gratuitement. Votre première conversation suffit pour commencer.</p>
+    <a class="btn-hero" href="/app" style="font-size:16px;padding:15px 40px" data-i18n="cta_btn">Commencer maintenant</a>
   </div>
 </section>
 
 <footer>
   <div class="footer-logo">Korale</div>
-  <div class="footer-text">© 2025 Korale — IA conversationnelle &amp; sociale</div>
+  <div class="footer-text" data-i18n="footer_text">© 2025 Korale — IA conversationnelle &amp; sociale</div>
 </footer>
 
+<script>
+const I18N = {
+  fr: {
+    nav_how: "Comment ça marche", nav_features: "Fonctionnalités", nav_start: "Commencer",
+    hero_understands: "comprend", hero_connects: "connecte",
+    hero_cta1: "Créer mon compte", hero_cta2: "Voir comment ça marche",
+    how_label: "Comment ça marche", how_title: "Simple comme une conversation",
+    how_sub: "Pas de formulaire, pas de profil à remplir. Korale apprend en vous écoutant.",
+    step1_title: "Parlez à Korale",
+    step1_desc: "Utilisez Korale comme votre assistant IA au quotidien — posez des questions, explorez des idées, travaillez sur vos projets. Chaque conversation est unique.",
+    step2_title: "Votre profil se construit",
+    step2_desc: "En analysant vos échanges, Korale identifie vos compétences, vos projets, vos traits de travail — vision, technicité, créativité, leadership — et construit votre carte de contexte.",
+    step3_title: "Les bonnes personnes apparaissent",
+    step3_desc: "Korale propose des profils complémentaires au vôtre. Vous voyez leur profil contextuel, envoyez une demande, et si elle est acceptée, vous pouvez échanger directement.",
+    feat_label: "Fonctionnalités", feat_title: "Tout ce dont vous avez besoin",
+    feat_sub: "Un assistant IA puissant, un système de matching intelligent, et une messagerie intégrée.",
+    feat1_title: "IA conversationnelle avancée",
+    feat1_desc: "Powered by Claude d'Anthropic. Répond à vos questions, aide sur votre code, supporte le LaTeX et le markdown. Des réponses précises et contextuelles.",
+    feat2_title: "Profil latent automatique",
+    feat2_desc: "Aucun formulaire. Votre profil se construit naturellement à partir de vos conversations — compétences, projets, traits de travail sur 6 dimensions.",
+    feat3_title: "Matching contextuel",
+    feat3_desc: "Chaque conversation génère un profil contextuel unique. Le matching est fait sur ce que vous faites maintenant, pas sur un CV statique.",
+    feat4_title: "Mise en relation directe",
+    feat4_desc: "Envoyez une demande, acceptez ou refusez. Si la connexion est établie, échangez dans un espace de discussion partagé avec les profils contextuels visibles.",
+    feat5_title: "Transparence totale",
+    feat5_desc: "Vous voyez exactement ce que Korale a compris de vous. Le profil est visible, modifiable, et vous contrôlez avec qui vous vous connectez.",
+    feat6_title: "Contact facilité",
+    feat6_desc: "Email copiable en un clic, messagerie intégrée, profils partagés dans chaque conversation. Tout pour passer de la connexion à la collaboration.",
+    vision_label: "La vision",
+    cta_title: "Prêt à rencontrer vos prochains collaborateurs ?",
+    cta_sub: "Rejoignez Korale gratuitement. Votre première conversation suffit pour commencer.",
+    cta_btn: "Commencer maintenant",
+    footer_text: "© 2025 Korale — IA conversationnelle & sociale"
+  },
+  en: {
+    nav_how: "How it works", nav_features: "Features", nav_start: "Get started",
+    hero_understands: "understands", hero_connects: "connects",
+    hero_cta1: "Create my account", hero_cta2: "See how it works",
+    how_label: "How it works", how_title: "As simple as a conversation",
+    how_sub: "No form, no profile to fill in. Korale learns by listening to you.",
+    step1_title: "Talk to Korale",
+    step1_desc: "Use Korale as your everyday AI assistant — ask questions, explore ideas, work on your projects. Every conversation is unique.",
+    step2_title: "Your profile builds itself",
+    step2_desc: "By analyzing your conversations, Korale identifies your skills, your projects, your work traits — vision, technical skill, creativity, leadership — and builds your context map.",
+    step3_title: "The right people appear",
+    step3_desc: "Korale suggests profiles that complement yours. You see their contextual profile, send a request, and once accepted, you can talk directly.",
+    feat_label: "Features", feat_title: "Everything you need",
+    feat_sub: "A powerful AI assistant, a smart matching system, and built-in messaging.",
+    feat1_title: "Advanced conversational AI",
+    feat1_desc: "Powered by Anthropic's Claude. Answers your questions, helps with your code, supports LaTeX and markdown. Precise, contextual responses.",
+    feat2_title: "Automatic latent profile",
+    feat2_desc: "No form. Your profile builds naturally from your conversations — skills, projects, work traits across 6 dimensions.",
+    feat3_title: "Contextual matching",
+    feat3_desc: "Each conversation generates a unique contextual profile. Matching is based on what you're doing now, not on a static résumé.",
+    feat4_title: "Direct connection",
+    feat4_desc: "Send a request, accept or decline. Once a connection is made, chat in a shared space with contextual profiles visible.",
+    feat5_title: "Full transparency",
+    feat5_desc: "You see exactly what Korale has understood about you. Your profile is visible, editable, and you control who you connect with.",
+    feat6_title: "Easy contact",
+    feat6_desc: "One-click copyable email, built-in messaging, shared profiles in every conversation. Everything to go from connection to collaboration.",
+    vision_label: "The vision",
+    cta_title: "Ready to meet your next collaborators?",
+    cta_sub: "Join Korale for free. Your first conversation is all it takes to begin.",
+    cta_btn: "Get started now",
+    footer_text: "© 2025 Korale — conversational & social AI"
+  }
+};
+function detectInitialLang(){
+  var saved = localStorage.getItem('korale_lang');
+  if (saved && I18N[saved]) return saved;
+  var nav = (navigator.language || 'fr').slice(0,2).toLowerCase();
+  return I18N[nav] ? nav : 'fr';
+}
+var currentLang = detectInitialLang();
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || I18N.fr[key] || key; }
+function applyTranslations(){
+  var els = document.querySelectorAll('[data-i18n]');
+  for (var i=0;i<els.length;i++){
+    var k = els[i].getAttribute('data-i18n');
+    els[i].textContent = t(k);
+  }
+  document.documentElement.setAttribute('lang', currentLang);
+  var btns = document.querySelectorAll('.lang-btn');
+  for (var j=0;j<btns.length;j++){
+    btns[j].classList.toggle('active', btns[j].getAttribute('data-lang')===currentLang);
+  }
+}
+function setLang(lang){
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('korale_lang', lang);
+  applyTranslations();
+}
+applyTranslations();
+</script>
 </body>
 </html>
