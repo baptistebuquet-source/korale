@@ -394,12 +394,12 @@
       <div class="auth-tab active" data-i18n="login" onclick="switchTab('login')">Connexion</div>
       <div class="auth-tab" data-i18n="register" onclick="switchTab('register')">Inscription</div>
     </div>
-    <div id="name-field" style="display:none"><input class="auth-input" type="text" id="auth-name" placeholder="Votre pr&#233;nom" data-i18n="ph_firstname" data-i18n-attr="placeholder"/></div>
+    <div id="name-field" style="display:none"><input class="auth-input" type="text" id="auth-name" placeholder="Votre pr&#233;nom"/></div>
     <input class="auth-input" type="email" id="auth-email" placeholder="Email" autocomplete="email"/>
-    <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password" data-i18n="ph_password" data-i18n-attr="placeholder"/>
+    <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password"/>
     <button class="auth-btn" data-i18n="continue" onclick="submitAuth()">Continuer</button>
     <div class="auth-error" id="auth-error"></div>
-    <a class="auth-back" href="/" data-i18n="back_home">&#8592; Retour &#224; l&#39;accueil</a>
+    <a class="auth-back" href="/">&#8592; Retour &#224; l&#39;accueil</a>
   </div>
 </div>
 
@@ -608,7 +608,7 @@ const I18N = {
     skills: 'compétences', work_profile: 'profil de travail', detected_projects: 'projets détectés',
     compatibilities: 'compatibilités', joined_docs: 'documents joints', summary: 'résumé',
     waiting: 'en attente…', analyzing: 'analyse en cours…', no_project: 'aucun projet identifié',
-    tokens_month: 'Tokens ce mois',
+    tokens_month: 'Tokens ce mois', plan_free: 'Essai', plan_avance: 'Avancé', plan_pro: 'Pro',
     // Traits
     vision: 'Vision', technicity: 'Technicité', entrepreneurship: 'Entrepreneuriat',
     creativity: 'Créativité', collaboration: 'Collaboration', leadership: 'Leadership',
@@ -635,7 +635,6 @@ const I18N = {
     // Auth
     login: 'Connexion', register: 'Inscription', continue: 'Continuer',
     auth_sub: 'Votre assistant IA personnel & collaboratif',
-    ph_firstname: 'Votre prénom', ph_password: 'Mot de passe', back_home: '← Retour à l\'accueil',
     ai_greeting: 'Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.',
     // Vérification email
     verify_title: 'Vérifiez votre email', verify_sub: 'Nous avons envoyé un code à 6 chiffres à',
@@ -659,7 +658,7 @@ const I18N = {
     skills: 'skills', work_profile: 'work profile', detected_projects: 'detected projects',
     compatibilities: 'compatibilities', joined_docs: 'attached documents', summary: 'summary',
     waiting: 'waiting…', analyzing: 'analyzing…', no_project: 'no project identified',
-    tokens_month: 'Tokens this month',
+    tokens_month: 'Tokens this month', plan_free: 'Trial', plan_avance: 'Advanced', plan_pro: 'Pro',
     // Traits
     vision: 'Vision', technicity: 'Technical skill', entrepreneurship: 'Entrepreneurship',
     creativity: 'Creativity', collaboration: 'Collaboration', leadership: 'Leadership',
@@ -686,7 +685,6 @@ const I18N = {
     // Auth
     login: 'Sign in', register: 'Sign up', continue: 'Continue',
     auth_sub: 'Your personal & collaborative AI assistant',
-    ph_firstname: 'Your first name', ph_password: 'Password', back_home: '← Back to home',
     ai_greeting: 'Hello, I\'m Korale, your AI assistant. Tell me about your projects, ideas, or what you\'re working on.',
     // Vérification email
     verify_title: 'Verify your email', verify_sub: 'We sent a 6-digit code to',
@@ -1066,7 +1064,7 @@ async function loadUsage() {
     const bar = document.getElementById('usage-bar');
     const badge = document.getElementById('plan-badge');
     if (badge) {
-      badge.textContent = u.planLabel || '';
+      badge.textContent = (u.plan === 'free' ? t('plan_free') : (u.plan === 'pro' ? t('plan_pro') : t('plan_avance')));
       badge.className = 'plan-badge' + (u.plan === 'free' ? ' free' : (u.plan === 'pro' ? ' pro' : ''));
       badge.style.display = 'inline-block';
     }
