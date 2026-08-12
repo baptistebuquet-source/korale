@@ -384,16 +384,20 @@
   <div class="bubble-deco bd1"></div><div class="bubble-deco bd2"></div>
   <div class="bubble-deco bd3"></div><div class="bubble-deco bd4"></div><div class="bubble-deco bd5"></div>
   <div class="auth-box">
+    <div class="lang-switch" style="position:absolute;top:16px;right:16px;">
+      <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
     <div class="auth-logo">Korale</div>
-    <div class="auth-sub">Votre assistant IA personnel &amp; collaboratif</div>
+    <div class="auth-sub" data-i18n="auth_sub">Votre assistant IA personnel &amp; collaboratif</div>
     <div class="auth-tabs">
-      <div class="auth-tab active" onclick="switchTab('login')">Connexion</div>
-      <div class="auth-tab" onclick="switchTab('register')">Inscription</div>
+      <div class="auth-tab active" data-i18n="login" onclick="switchTab('login')">Connexion</div>
+      <div class="auth-tab" data-i18n="register" onclick="switchTab('register')">Inscription</div>
     </div>
     <div id="name-field" style="display:none"><input class="auth-input" type="text" id="auth-name" placeholder="Votre pr&#233;nom"/></div>
     <input class="auth-input" type="email" id="auth-email" placeholder="Email" autocomplete="email"/>
     <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password"/>
-    <button class="auth-btn" onclick="submitAuth()">Continuer</button>
+    <button class="auth-btn" data-i18n="continue" onclick="submitAuth()">Continuer</button>
     <div class="auth-error" id="auth-error"></div>
     <a class="auth-back" href="/">&#8592; Retour &#224; l&#39;accueil</a>
   </div>
@@ -402,7 +406,7 @@
 <div id="verify-screen">
   <div class="verify-box">
     <div class="verify-logo">Korale</div>
-    <div class="verify-title">Vérifiez votre email</div>
+    <div class="verify-title" data-i18n="verify_title">Vérifiez votre email</div>
     <div class="verify-sub">Nous avons envoyé un code à 6 chiffres à<br><b id="verify-email"></b></div>
     <div class="code-inputs" id="code-inputs">
       <input type="text" inputmode="numeric" maxlength="1" data-i="0">
@@ -412,9 +416,9 @@
       <input type="text" inputmode="numeric" maxlength="1" data-i="4">
       <input type="text" inputmode="numeric" maxlength="1" data-i="5">
     </div>
-    <button class="verify-btn" id="verify-btn" onclick="submitCode()">Valider</button>
+    <button class="verify-btn" id="verify-btn" data-i18n="validate" onclick="submitCode()">Valider</button>
     <div class="verify-error" id="verify-error"></div>
-    <div class="verify-resend">Pas reçu ? <a onclick="resendCode()" id="resend-link">Renvoyer le code</a></div>
+    <div class="verify-resend"><span data-i18n="not_received">Pas reçu ?</span> <a onclick="resendCode()" id="resend-link" data-i18n="resend_code">Renvoyer le code</a></div>
   </div>
 </div>
 
@@ -430,21 +434,21 @@
     <div class="modal-body">
       <div class="modal-cols">
         <div>
-          <div class="modal-col-title">Son profil</div>
-          <div class="sec-label">comp&#233;tences</div>
+          <div class="modal-col-title" data-i18n="their_profile">Son profil</div>
+          <div class="sec-label" data-i18n="skills">comp&#233;tences</div>
           <div class="skill-grid" id="modal-skills" style="margin-bottom:14px"></div>
           <div class="sec-label">projets</div>
           <div id="modal-projects"></div>
         </div>
         <div>
-          <div class="modal-col-title">Traits de travail</div>
+          <div class="modal-col-title" data-i18n="traits">Traits de travail</div>
           <div id="modal-traits"></div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal()">Fermer</button>
-      <button class="btn-primary" id="modal-request-btn" onclick="sendRequest()">Se connecter</button>
+      <button class="btn-secondary" data-i18n="close" onclick="closeModal()">Fermer</button>
+      <button class="btn-primary" id="modal-request-btn" data-i18n="connect" onclick="sendRequest()">Se connecter</button>
       <div class="modal-compat">
         <div class="modal-compat-score" id="modal-score"></div>
         <div class="modal-compat-label">match</div>
@@ -461,7 +465,7 @@
     </div>
     <button class="panel-close" style="display:block" onclick="toggleNotifs()">&#10005;</button>
   </div>
-  <div class="notif-list" id="notif-list"><div class="notif-empty">Aucune demande en attente</div></div>
+  <div class="notif-list" id="notif-list"><div class="notif-empty" data-i18n="no_pending">Aucune demande en attente</div></div>
 </div>
 
 <div id="chat-screen">
@@ -470,8 +474,8 @@
         <button class="header-icon-btn" onclick="toggleHistory()" title="Historique">&#9776;</button>
         <div class="logo" onclick="switchView('ai')">Korale</div>
         <div class="nav-tabs">
-          <button class="nav-tab active" id="tab-ai" onclick="switchView('ai')">IA</button>
-          <button class="nav-tab" id="tab-connexions" onclick="switchView('connexions')">Réseau</button>
+          <button class="nav-tab active" id="tab-ai" data-i18n="nav_ai" onclick="switchView('ai')">IA</button>
+          <button class="nav-tab" id="tab-connexions" data-i18n="nav_network" onclick="switchView('connexions')">Réseau</button>
         </div>
         <div class="header-spacer"></div>
         <div class="header-right">
@@ -488,69 +492,69 @@
           <div class="nav-separator desktop-only"></div>
 
 
-          <button class="header-btn" onclick="logout()">Quitter</button>
+          <button class="header-btn" data-i18n="logout" onclick="logout()">Quitter</button>
         </div>
       </header>
     <div class="mobile-nav" id="mobile-nav">
-        <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')"><span class="mobile-nav-icon">&#128172;</span>IA</button>
-        <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')"><span class="mobile-nav-icon">&#129309;</span>Réseau</button>
+        <button class="mobile-nav-btn active" id="mob-tab-ai" onclick="switchView('ai')"><span class="mobile-nav-icon">&#128172;</span><span data-i18n="nav_ai">IA</span></button>
+        <button class="mobile-nav-btn" id="mob-tab-connexions" onclick="switchView('connexions')"><span class="mobile-nav-icon">&#129309;</span><span data-i18n="nav_network">Réseau</span></button>
       </div>
   <div class="main">
     <div class="history-panel collapsed" id="history-panel">
           <div class="history-header">
-            <div class="history-label" id="history-label-text">Conversations</div>
+            <div class="history-label" id="history-label-text" data-i18n="conversations">Conversations</div>
             <button class="panel-close" onclick="closeAllPanels()">&#10005;</button>
           </div>
-          <button class="side-new-btn" id="side-new-btn" onclick="newConversation()">+ Nouvelle conversation</button>
+          <button class="side-new-btn" id="side-new-btn" onclick="newConversation()" data-i18n="new_conversation">+ Nouvelle conversation</button>
           <div class="history-list" id="history-list"></div>
         </div>
         <div class="chat-area" id="chat-area">
-          <button class="fab-context" id="fab-context" onclick="toggleProfile()">Contexte</button>
+          <button class="fab-context" id="fab-context" data-i18n="ctx_context" onclick="toggleProfile()">Contexte</button>
           <div id="messages">
-        <div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>
+        <div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble" data-i18n="ai_greeting">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>
       </div>
       <footer>
         <div class="footer-attachments" id="footer-attachments" style="display:none"></div>
         <div class="footer-inner">
           <input type="file" id="file-input" multiple accept="image/*,.pdf,.txt,.md,.csv,.json,.js,.py,.html,.css" style="display:none" onchange="handleFileSelect(event)">
           <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="Joindre">&#128206;</button>
-          <input type="text" id="inp" placeholder="&#201;crivez votre message&#8230;" onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendMsg()"/>
-          <button class="send-btn" id="send-btn" onclick="sendMsg()">Envoyer</button>
+          <input type="text" id="inp" placeholder="&#201;crivez votre message&#8230;" data-i18n="write_message" data-i18n-attr="placeholder" onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendMsg()"/>
+          <button class="send-btn" id="send-btn" data-i18n="send" onclick="sendMsg()">Envoyer</button>
         </div>
       </footer>
     </div>
     <div class="profile-panel" id="profile-panel">
       <div class="profile-header">
         <div class="profile-header-text">
-          <div class="profile-label" id="profile-panel-label">analyse de cette conversation</div>
-          <div class="profile-title" id="profile-title">En construction&#8230;</div>
+          <div class="profile-label" id="profile-panel-label" data-i18n="panel_analysis">analyse de cette conversation</div>
+          <div class="profile-title" id="profile-title" data-i18n="in_construction">En construction&#8230;</div>
         </div>
         <button class="panel-close" onclick="closeAllPanels()">&#10005;</button>
       </div>
       <div class="profile-body" id="profile-body">
-        <div id="profile-summary-section" style="display:none"><div class="sec-label">r&#233;sum&#233;</div><div class="profile-summary" id="profile-summary"></div></div>
-        <div><div class="sec-label">comp&#233;tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state">en attente&#8230;</span></div></div>
+        <div id="profile-summary-section" style="display:none"><div class="sec-label" data-i18n="summary">r&#233;sum&#233;</div><div class="profile-summary" id="profile-summary"></div></div>
+        <div><div class="sec-label">comp&#233;tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state" data-i18n="waiting">en attente&#8230;</span></div></div>
         <div>
-          <div class="sec-label">profil de travail</div>
-          <div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>
-          <div class="trait"><span class="trait-name">Technicit&#233;</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>
-          <div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>
-          <div class="trait"><span class="trait-name">Cr&#233;ativit&#233;</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>
-          <div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>
-          <div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div>
+          <div class="sec-label" data-i18n="work_profile">profil de travail</div>
+          <div class="trait"><span class="trait-name" data-i18n="vision">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>
+          <div class="trait"><span class="trait-name" data-i18n="technicity">Technicit&#233;</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>
+          <div class="trait"><span class="trait-name" data-i18n="entrepreneurship">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>
+          <div class="trait"><span class="trait-name" data-i18n="creativity">Cr&#233;ativit&#233;</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>
+          <div class="trait"><span class="trait-name" data-i18n="collaboration">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>
+          <div class="trait"><span class="trait-name" data-i18n="leadership">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div>
         </div>
-        <div><div class="sec-label">projets d&#233;tect&#233;s</div><div id="proj-list"><span class="empty-state">aucun projet identifi&#233;</span></div></div>
-        <div><div class="sec-label">compatibilit&#233;s</div><div id="match-list"><span class="empty-state">analyse en cours&#8230;</span></div></div>
-        <div id="docs-section" style="display:none"><div class="sec-label">documents joints</div><div class="doc-list" id="doc-list"></div></div>
+        <div><div class="sec-label" data-i18n="detected_projects">projets d&#233;tect&#233;s</div><div id="proj-list"><span class="empty-state" data-i18n="no_project">aucun projet identifi&#233;</span></div></div>
+        <div><div class="sec-label" data-i18n="compatibilities">compatibilit&#233;s</div><div id="match-list"><span class="empty-state" data-i18n="analyzing">analyse en cours&#8230;</span></div></div>
+        <div id="docs-section" style="display:none"><div class="sec-label" data-i18n="joined_docs">documents joints</div><div class="doc-list" id="doc-list"></div></div>
       </div>
       <div class="usage-box" id="usage-box" style="display:none">
         <div class="usage-top">
-          <span class="usage-label">Tokens ce mois <span class="plan-badge" id="plan-badge" style="display:none"></span></span>
+          <span class="usage-label"><span data-i18n="tokens_month">Tokens ce mois</span> <span class="plan-badge" id="plan-badge" style="display:none"></span></span>
           <span class="usage-count" id="usage-count">— / —</span>
         </div>
         <div class="usage-bar-bg"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
       </div>
-      <div class="profile-footer"><div class="f-dot"></div><div class="f-text" id="profile-footer-text">analyse en continu</div></div>
+      <div class="profile-footer"><div class="f-dot"></div><div class="f-text" id="profile-footer-text" data-i18n="analysis_continuous">analyse en continu</div></div>
     </div>
   </div>
 </div>
@@ -591,11 +595,104 @@ const isMobile = function() { return window.innerWidth <= 768; };
 // ===== I18N =====
 const I18N = {
   fr: {
-    // (on remplira à l'étape 2 — pour l'instant quelques clés de test)
-    nav_ai: 'IA', nav_network: 'Réseau', requests: 'Demandes', logout: 'Quitter'
+    // Navigation & header
+    nav_ai: 'IA', nav_network: 'Réseau', requests: 'Demandes', logout: 'Quitter',
+    ctx_context: 'Contexte', ctx_details: 'Détails',
+    // Conversations / sidebar
+    conversations: 'Conversations', new_conversation: '+ Nouvelle conversation',
+    no_conversation: 'Aucune conversation', loading: 'Chargement…',
+    select_conversation: 'Sélectionnez une conversation dans la liste à gauche pour commencer à discuter.',
+    // Panneau profil
+    panel_analysis: 'analyse de cette conversation', panel_context: 'contexte de la conversation',
+    analysis_continuous: 'analyse en continu', in_construction: 'En construction…',
+    skills: 'compétences', work_profile: 'profil de travail', detected_projects: 'projets détectés',
+    compatibilities: 'compatibilités', joined_docs: 'documents joints', summary: 'résumé',
+    waiting: 'en attente…', analyzing: 'analyse en cours…', no_project: 'aucun projet identifié',
+    tokens_month: 'Tokens ce mois',
+    // Traits
+    vision: 'Vision', technicity: 'Technicité', entrepreneurship: 'Entrepreneuriat',
+    creativity: 'Créativité', collaboration: 'Collaboration', leadership: 'Leadership',
+    // Réseau
+    net_no_accepted: 'Aucune connexion acceptée', net_no_selected: 'Aucune connexion sélectionnée',
+    net_details: 'détails de la connexion', net_active: 'connexion active', net_you: 'Vous',
+    connections: 'connexions', net_first_msg: 'Envoyez le premier message pour démarrer la conversation.',
+    no_compatible: 'aucun nouveau profil compatible',
+    // Demandes
+    received: 'Reçues', sent: 'Envoyées', accept: 'Accepter', decline: 'Refuser',
+    no_received: 'Aucune demande reçue', no_sent: 'Aucune demande envoyée', no_pending: 'Aucune demande en attente',
+    accept_request: 'Accepter la demande',
+    // Modale profil
+    their_profile: 'Son profil', traits: 'Traits de travail', match: 'match', none_f: 'aucune', none_m: 'aucun',
+    close: 'Fermer', connect: 'Se connecter', sent_f: 'Envoyée', limit_reached: 'Limite atteinte',
+    reserved_subscribers: 'Réservé aux abonnés', unavailable: 'Non disponible',
+    // Chat
+    write_message: 'Écrivez votre message…', send: 'Envoyer', ai_writing: 'L\'IA rédige sa réponse…',
+    image_click_zoom: 'Image · cliquer pour agrandir',
+    // Edition
+    save: 'Enregistrer', cancel: 'Annuler',
+    // Copier
+    copy: 'Copier', copied: 'Copié',
+    // Auth
+    login: 'Connexion', register: 'Inscription', continue: 'Continuer',
+    auth_sub: 'Votre assistant IA personnel & collaboratif',
+    ai_greeting: 'Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.',
+    // Vérification email
+    verify_title: 'Vérifiez votre email', verify_sub: 'Nous avons envoyé un code à 6 chiffres à',
+    validate: 'Valider', verifying: 'Vérification…', not_received: 'Pas reçu ?', resend_code: 'Renvoyer le code',
+    enter_6_digits: 'Entrez les 6 chiffres.', new_code_sent: 'Nouveau code envoyé !',
+    already_verified: 'Ce compte est déjà vérifié, connectez-vous.',
+    net_error: 'Erreur réseau, réessayez.', net_error_short: 'Erreur réseau.',
+    error: 'Erreur', retry: 'Erreur — réessayer', sending: 'Envoi…'
   },
   en: {
-    nav_ai: 'AI', nav_network: 'Network', requests: 'Requests', logout: 'Sign out'
+    // Navigation & header
+    nav_ai: 'AI', nav_network: 'Network', requests: 'Requests', logout: 'Sign out',
+    ctx_context: 'Context', ctx_details: 'Details',
+    // Conversations / sidebar
+    conversations: 'Conversations', new_conversation: '+ New conversation',
+    no_conversation: 'No conversation', loading: 'Loading…',
+    select_conversation: 'Select a conversation from the list on the left to start chatting.',
+    // Panneau profil
+    panel_analysis: 'analysis of this conversation', panel_context: 'conversation context',
+    analysis_continuous: 'continuous analysis', in_construction: 'Building…',
+    skills: 'skills', work_profile: 'work profile', detected_projects: 'detected projects',
+    compatibilities: 'compatibilities', joined_docs: 'attached documents', summary: 'summary',
+    waiting: 'waiting…', analyzing: 'analyzing…', no_project: 'no project identified',
+    tokens_month: 'Tokens this month',
+    // Traits
+    vision: 'Vision', technicity: 'Technical skill', entrepreneurship: 'Entrepreneurship',
+    creativity: 'Creativity', collaboration: 'Collaboration', leadership: 'Leadership',
+    // Réseau
+    net_no_accepted: 'No accepted connection', net_no_selected: 'No connection selected',
+    net_details: 'connection details', net_active: 'active connection', net_you: 'You',
+    connections: 'connections', net_first_msg: 'Send the first message to start the conversation.',
+    no_compatible: 'no new compatible profile',
+    // Demandes
+    received: 'Received', sent: 'Sent', accept: 'Accept', decline: 'Decline',
+    no_received: 'No request received', no_sent: 'No request sent', no_pending: 'No pending request',
+    accept_request: 'Accept request',
+    // Modale profil
+    their_profile: 'Their profile', traits: 'Work traits', match: 'match', none_f: 'none', none_m: 'none',
+    close: 'Close', connect: 'Connect', sent_f: 'Sent', limit_reached: 'Limit reached',
+    reserved_subscribers: 'Subscribers only', unavailable: 'Unavailable',
+    // Chat
+    write_message: 'Write your message…', send: 'Send', ai_writing: 'Korale is writing…',
+    image_click_zoom: 'Image · click to enlarge',
+    // Edition
+    save: 'Save', cancel: 'Cancel',
+    // Copier
+    copy: 'Copy', copied: 'Copied',
+    // Auth
+    login: 'Sign in', register: 'Sign up', continue: 'Continue',
+    auth_sub: 'Your personal & collaborative AI assistant',
+    ai_greeting: 'Hello, I\'m Korale, your AI assistant. Tell me about your projects, ideas, or what you\'re working on.',
+    // Vérification email
+    verify_title: 'Verify your email', verify_sub: 'We sent a 6-digit code to',
+    validate: 'Confirm', verifying: 'Verifying…', not_received: 'Didn\'t receive it?', resend_code: 'Resend code',
+    enter_6_digits: 'Enter the 6 digits.', new_code_sent: 'New code sent!',
+    already_verified: 'This account is already verified, please sign in.',
+    net_error: 'Network error, please retry.', net_error_short: 'Network error.',
+    error: 'Error', retry: 'Error — retry', sending: 'Sending…'
   }
 };
 
@@ -718,27 +815,27 @@ function switchView(view) {
   if (sideNew) sideNew.style.display = view === 'ai' ? '' : 'none';
   const fab = document.getElementById('fab-context');
   if (view === 'ai') {
-    document.getElementById('history-label-text').textContent = 'Conversations';
-    document.getElementById('profile-panel-label').textContent = 'contexte de la conversation';
-    document.getElementById('profile-footer-text').textContent = 'analyse en continu';
-    if (fab) fab.textContent = 'Contexte';
+    document.getElementById('history-label-text').textContent = t('conversations');
+    document.getElementById('profile-panel-label').textContent = t('panel_context');
+    document.getElementById('profile-footer-text').textContent = t('analysis_continuous');
+    if (fab) fab.textContent = t('ctx_context');
     if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
     renderConversationList();
     if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
     resetProfile();
-    document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
+    document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+t('ai_greeting')+'</div></div>';
     conversationId = null; history = []; bddMessages = []; aiTurnCount = 0;
   } else {
-    document.getElementById('history-label-text').textContent = 'Réseau';
-    document.getElementById('profile-panel-label').textContent = 'détails';
-    document.getElementById('profile-title').textContent = 'Réseau';
-    document.getElementById('profile-footer-text').textContent = 'connexions';
-    if (fab) fab.textContent = 'Détails';
+    document.getElementById('history-label-text').textContent = t('nav_network');
+    document.getElementById('profile-panel-label').textContent = t('ctx_details');
+    document.getElementById('profile-title').textContent = t('nav_network');
+    document.getElementById('profile-footer-text').textContent = t('connections');
+    if (fab) fab.textContent = t('ctx_details');
     if (!isMobile()) document.getElementById('history-panel').classList.remove('collapsed');
     activeSharedConvId = null;
     // Vide immédiatement la liste (évite le flash des conversations IA pendant le chargement réseau)
-    document.getElementById('history-list').innerHTML = '<div class="empty-state" style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Chargement…</div>';
-    document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Sélectionnez une conversation dans la liste à gauche pour commencer à discuter.</div>';
+    document.getElementById('history-list').innerHTML = '<div class="empty-state" style="padding:16px;text-align:center;color:var(--muted);font-size:12px">'+t('loading')+'</div>';
+    document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">'+t('select_conversation')+'</div>';
     document.getElementById('profile-body').innerHTML = '<div class="empty-state" style="padding:8px">Sélectionnez une connexion pour voir les détails (profils, documents partagés).</div>';
     loadSharedConversations();
   }
@@ -798,9 +895,9 @@ function getEnteredCode() {
 async function submitCode() {
   const code = getEnteredCode();
   const errEl = document.getElementById('verify-error');
-  if (code.length !== 6) { errEl.textContent = 'Entrez les 6 chiffres.'; return; }
+  if (code.length !== 6) { errEl.textContent = t('enter_6_digits'); return; }
   const btn = document.getElementById('verify-btn');
-  btn.disabled = true; btn.textContent = 'Vérification…';
+  btn.disabled = true; btn.textContent = t('verifying');
   try {
     const res = await fetch('/api/verify-code', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -809,7 +906,7 @@ async function submitCode() {
     const data = await res.json();
     if (!res.ok) {
       errEl.textContent = data.message || data.error || 'Code incorrect';
-      btn.disabled = false; btn.textContent = 'Valider';
+      btn.disabled = false; btn.textContent = t('validate');
       return;
     }
     token = data.token; user = data.user;
@@ -821,15 +918,15 @@ async function submitCode() {
     
     showChat();
   } catch(e) {
-    errEl.textContent = 'Erreur réseau, réessayez.';
-    btn.disabled = false; btn.textContent = 'Valider';
+    errEl.textContent = t('net_error');
+    btn.disabled = false; btn.textContent = t('validate');
   }
 }
 
 async function resendCode() {
   const link = document.getElementById('resend-link');
   const errEl = document.getElementById('verify-error');
-  link.textContent = 'Envoi…';
+  link.textContent = t('sending');
   try {
     const res = await fetch('/api/resend-code', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -837,16 +934,16 @@ async function resendCode() {
     });
     const data = await res.json();
     if (data.alreadyVerified) {
-      errEl.textContent = 'Ce compte est déjà vérifié, connectez-vous.';
+      errEl.textContent = t('already_verified');
     } else if (res.ok) {
       errEl.style.color = 'var(--green)';
-      errEl.textContent = 'Nouveau code envoyé !';
+      errEl.textContent = t('new_code_sent');
       setTimeout(function(){ errEl.style.color = ''; errEl.textContent = ''; }, 3000);
     } else {
       errEl.textContent = data.error || 'Erreur';
     }
-  } catch(e) { errEl.textContent = 'Erreur réseau.'; }
-  link.textContent = 'Renvoyer le code';
+  } catch(e) { errEl.textContent = t('net_error_short'); }
+  link.textContent = t('resend_code');
 }
 
 // Navigation clavier entre les cases du code
@@ -1125,7 +1222,7 @@ if (conv.profile && conv.profile.skills) {
 function renderConversationList() {
   const list = document.getElementById('history-list');
   if (conversations.length === 0) {
-    list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune conversation</div>';
+    list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">'+t('no_conversation')+'</div>';
     return;
   }
   list.innerHTML = conversations.map(function(c) {
@@ -1141,7 +1238,7 @@ function renderConversationList() {
 
 async function newConversation() {
   conversationId = null; activeConvId = null; history = []; bddMessages = []; aiTurnCount = 0;
-  document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
+  document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+t('ai_greeting')+'</div></div>';
   resetProfile();
   renderConversationList();
   if (isMobile()) closeAllPanels();
@@ -1213,7 +1310,7 @@ function renderMsgInto(bubble, m) {
     }
   });
 }
-const AI_GREETING = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>';
+const AI_GREETING = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+t('ai_greeting')+'</div></div>';
 
 // Rend toute la conv IA depuis bddMessages. Si editIdx >= 0, ce message devient éditable.
 function renderAIConversation(editIdx) {
@@ -1364,7 +1461,7 @@ async function deleteSharedConversation(id, ev) {
     if (sharedPollingInterval) clearInterval(sharedPollingInterval);
     activeSharedConvId = null;
     document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;">S\u00e9lectionnez une conversation.</div>';
-    document.getElementById('profile-body').innerHTML = '<span class="empty-state">Aucune connexion s\u00e9lectionn\u00e9e</span>';
+    document.getElementById('profile-body').innerHTML = '<span class="empty-state">'+t('net_no_selected')+'</span>';
   }
   await loadSharedConversations();
   await loadSentRequests();
@@ -1417,7 +1514,7 @@ async function loadSharedConversations() {
 function renderSharedList() {
   const list = document.getElementById('history-list');
   if (sharedConversations.length === 0) {
-    list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">Aucune connexion accept&#233;e</div>';
+    list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);font-style:italic;">'+t('net_no_accepted')+'</div>';
     return;
   }
 list.innerHTML = sharedConversations.map(function(sc) {
@@ -1447,11 +1544,11 @@ async function openSharedConversation(id) {
   const myEmail = sc.user1_id === user.id ? sc.user1_email : sc.user2_email;
   const otherEmail = sc.user1_id === user.id ? sc.user2_email : sc.user1_email;
   const otherName = sc.user1_id === user.id ? sc.user2_name : sc.user1_name;
-  document.getElementById('profile-panel-label').textContent = 'd\u00e9tails de la connexion';
-  document.getElementById('profile-title').textContent = 'Vous & '+otherName;
-  document.getElementById('profile-footer-text').textContent = 'connexion active';
+  document.getElementById('profile-panel-label').textContent = t('net_details');
+  document.getElementById('profile-title').textContent = t('net_you') + ' & '+otherName;
+  document.getElementById('profile-footer-text').textContent = t('net_active');
     const fab = document.getElementById('fab-context');
-  if (fab) fab.textContent = 'D\u00e9tails';
+  if (fab) fab.textContent = t('ctx_details');
   document.getElementById('profile-body').innerHTML =
     '<div class="shared-profiles">'
     +'<div class="shared-profile-card"><div class="shared-profile-name">'+(user.name||user.email)+'<span class="shared-profile-you">Vous</span></div>'
@@ -1546,7 +1643,7 @@ function renderSharedMessages(sc, otherName) {
   const existing = msgs.querySelectorAll('.msg').length;
   if (messages.length > 0 && existing === messages.length) return;
   if (messages.length === 0) {
-    msgs.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">Vous êtes maintenant connecté avec <strong>'+escapeHtml(otherName)+'</strong>.<br>Envoyez le premier message pour démarrer la conversation.</div>';
+    msgs.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;"><strong>'+escapeHtml(otherName)+'</strong><br>'+t('net_first_msg')+'</div>';
     return;
   }
   // Rendu complet avec séparateurs de date
@@ -1975,15 +2072,15 @@ async function openMatchModal(matchName, score, reason, userId) {
     && userUsage.connectionsUsed >= userUsage.maxConnections;
 
   if (alreadySent) {
-    btn.textContent = 'Envoy\u00e9e'; btn.disabled = true;
+    btn.textContent = t('sent_f'); btn.disabled = true;
   } else if (!canConnect) {
-    btn.textContent = 'R\u00e9serv\u00e9 aux abonn\u00e9s'; btn.disabled = true;
+    btn.textContent = t('reserved_subscribers'); btn.disabled = true;
     addUpgradeNote('Le palier ' + (userUsage.planLabel || 'D\u00e9couverte') + ' vous permet de voir vos profils compatibles. Passez \u00e0 Avanc\u00e9 pour contacter ' + escapeHtml(matchName));
   } else if (limitReached) {
-    btn.textContent = 'Limite atteinte'; btn.disabled = true;
+    btn.textContent = t('limit_reached'); btn.disabled = true;
     addUpgradeNote('Vous avez utilis\u00e9 vos ' + userUsage.maxConnections + ' demandes de connexion ce mois-ci. Passez \u00e0 Pro pour des connexions illimit\u00e9es.');
   } else {
-    btn.textContent = 'Se connecter'; btn.disabled = false;
+    btn.textContent = t('connect'); btn.disabled = false;
     if (userUsage && userUsage.maxConnections !== null && userUsage.maxConnections !== undefined) {
       addUpgradeNote('Demandes de connexion ce mois : ' + userUsage.connectionsUsed + ' / ' + userUsage.maxConnections + '.');
     }
@@ -2011,7 +2108,7 @@ function openProfileModal(name, profile, opts) {
   // Bouton adapté au contexte "demande reçue" : accepter directement
   const btn = document.getElementById('modal-request-btn');
   if (opts.requestId) {
-    btn.textContent = 'Accepter la demande';
+    btn.textContent = t('accept_request');
     btn.disabled = false;
     btn.onclick = function(){ respondRequest(opts.requestId, 'accepted'); closeModal(); };
   }
@@ -2031,7 +2128,7 @@ function addUpgradeNote(html) {
 async function sendRequest() {
   if (!currentMatchData || !conversationId) return;
   const btn = document.getElementById('modal-request-btn');
-  btn.disabled = true; btn.textContent = 'Envoi\u2026';
+  btn.disabled = true; btn.textContent = t('sending');
   const res = await fetch('/api/connection-requests', {
     method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
     body: JSON.stringify({ receiverId: currentMatchData.user_id, senderConvId: conversationId, receiverConvId: currentMatchData.conv_id })
@@ -2043,7 +2140,7 @@ async function sendRequest() {
   } else if (res.status === 403) {
     let msg = "Votre palier ne permet pas d'envoyer cette demande.";
     try { const d = await res.json(); if (d.message) msg = d.message; } catch(e) {}
-    btn.textContent = 'Non disponible';
+    btn.textContent = t('unavailable');
     const oldNote = document.getElementById('modal-upgrade-note');
     if (oldNote) oldNote.remove();
     addUpgradeNote(escapeHtml(msg));
@@ -2071,7 +2168,7 @@ function switchNotifTab(tab) {
 function renderSentRequestsList() {
   const list = document.getElementById('notif-list');
   if (!sentRequests || sentRequests.length === 0) {
-    list.innerHTML = '<div class="notif-empty">Aucune demande envoy\u00e9e</div>';
+    list.innerHTML = '<div class="notif-empty">'+t('no_sent')+'</div>';
     return;
   }
   list.innerHTML = sentRequests.map(function(r) {
@@ -2094,7 +2191,7 @@ async function loadReceivedRequests() {
   if (pending.length > 0) badge.textContent = pending.length;
   if (currentNotifTab !== 'recv') return;
   if (requests.length === 0) {
-    list.innerHTML = '<div class="notif-empty">Aucune demande re\u00e7ue</div>';
+    list.innerHTML = '<div class="notif-empty">'+t('no_received')+'</div>';
     return;
   }
 
