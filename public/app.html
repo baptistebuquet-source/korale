@@ -1003,6 +1003,7 @@ function resetProfile() {
     +'<div><div class="sec-label" data-i18n="detected_projects">projets d\u00e9tect\u00e9s</div><div id="proj-list"><span class="empty-state" data-i18n="no_project">aucun projet identifi\u00e9</span></div></div>'
     +'<div><div class="sec-label" data-i18n="compatibilities">compatibilit\u00e9s</div><div id="match-list"><span class="empty-state" data-i18n="analyzing">analyse en cours\u2026</span></div></div>'
     +'<div id="docs-section" style="display:none"><div class="sec-label" data-i18n="joined_docs">documents joints</div><div class="doc-list" id="doc-list"></div></div>';
+  applyTranslations();
 }
 
 function renderProfile(profile) {
@@ -1555,8 +1556,7 @@ async function openSharedConversation(id) {
     '<div class="shared-profiles">'
     +'<div class="shared-profile-card"><div class="shared-profile-name">'+(user.name||user.email)+'<span class="shared-profile-you" data-i18n="net_you">Vous</span></div>'
     +'<div class="shared-profile-summary">'+(myProfile&&myProfile.summary?myProfile.summary:'Profil en construction')+'</div>'
-    +'<div class="skill-grid" style="margin-bottom:6px">'+((myProfile&&myProfile.skills)||[]).map(function(s){return '<span class="stag">'+s+'</span>';
-  applyTranslations();}).join('')+'</div>'
+    +'<div class="skill-grid" style="margin-bottom:6px">'+((myProfile&&myProfile.skills)||[]).map(function(s){return '<span class="stag">'+s+'</span>';}).join('')+'</div>'
     +'<div class="email-chip" onclick="copyEmail(\''+myEmail+'\')"><span class="email-chip-text">'+myEmail+'</span><span class="email-chip-copy">&#128203; Copier</span></div></div>'
     +'<div class="shared-profile-card"><div class="shared-profile-name">'+otherName+'</div>'
     +'<div class="shared-profile-summary">'+(otherProfile&&otherProfile.summary?otherProfile.summary:'Profil en construction')+'</div>'
