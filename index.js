@@ -26,44 +26,53 @@ const MAIL_FROM = process.env.MAIL_FROM || 'Korale <noreply@korale.fr>';
 function genVerifyCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
-async function sendVerificationEmail(email, name, code) {
+async function sendVerificationEmail(email, name, code, lang) {
+  const en = lang === 'en';
+  const subject = en ? 'Your Korale verification code' : 'Votre code de vérification Korale';
+  const hello = en ? ('Hello ' + (name || '') + ',') : ('Bonjour ' + (name || '') + ',');
+  const intro = en ? 'Here is your verification code to activate your account:' : 'Voici votre code de vérification pour activer votre compte :';
+  const expire = en ? "This code expires in 15 minutes. If you didn't request this, please ignore this email." : "Ce code expire dans 15 minutes. Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.";
   return resend.emails.send({
     from: MAIL_FROM,
     to: email,
-    subject: 'Votre code de vérification Korale',
+    subject: subject,
     html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:440px;margin:0 auto;padding:32px 24px;color:#1a1a2e">
-      <div style="font-size:22px;font-weight:700;color:#5b8dee;margin-bottom:8px">Korale</div>
-      <p style="font-size:15px;line-height:1.5;color:#444">Bonjour ${name || ''},</p>
-      <p style="font-size:15px;line-height:1.5;color:#444">Voici votre code de vérification pour activer votre compte :</p>
-      <div style="font-size:34px;font-weight:700;letter-spacing:8px;text-align:center;background:#eef4ff;color:#3a63c8;padding:18px;border-radius:12px;margin:20px 0">${code}</div>
-      <p style="font-size:13px;line-height:1.5;color:#888">Ce code expire dans 15 minutes. Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.</p>
+      <div style="font-size:22px;font-weight:700;color:#6d5ce7;margin-bottom:8px">Korale</div>
+      <p style="font-size:15px;line-height:1.5;color:#444">${hello}</p>
+      <p style="font-size:15px;line-height:1.5;color:#444">${intro}</p>
+      <div style="font-size:34px;font-weight:700;letter-spacing:8px;text-align:center;background:#f3f0ff;color:#5847d4;padding:18px;border-radius:12px;margin:20px 0">${code}</div>
+      <p style="font-size:13px;line-height:1.5;color:#888">${expire}</p>
     </div>`
   });
 }
 
 // Email de notification réseau (nouvelle demande reçue, ou demande acceptée)
-async function sendNotificationEmail(toEmail, toName, kind, otherName) {
+async function sendNotificationEmail(toEmail, toName, kind, otherName, lang) {
+  const en = lang === 'en';
   let subject, intro, cta;
   if (kind === 'request') {
-    subject = otherName + ' souhaite se connecter avec vous sur Korale';
-    intro = '<b>' + (otherName || 'Un membre') + '</b> a vu votre profil et souhaite se connecter avec vous pour échanger sur vos projets.';
-    cta = 'Ouvrez Korale, onglet « Demandes », pour accepter ou refuser.';
-  } else { // 'accepted'
-    subject = otherName + ' a accepté votre demande de connexion';
-    intro = '<b>' + (otherName || 'Un membre') + '</b> a accepté votre demande de connexion sur Korale. Vous pouvez maintenant discuter directement.';
-    cta = 'Ouvrez Korale, onglet « Réseau », pour démarrer la conversation.';
+    subject = en ? (otherName + ' wants to connect with you on Korale') : (otherName + ' souhaite se connecter avec vous sur Korale');
+    intro = en ? ('<b>' + (otherName || 'A member') + '</b> saw your profile and wants to connect to talk about your projects.') : ('<b>' + (otherName || 'Un membre') + '</b> a vu votre profil et souhaite se connecter avec vous pour échanger sur vos projets.');
+    cta = en ? 'Open Korale, "Requests" tab, to accept or decline.' : 'Ouvrez Korale, onglet « Demandes », pour accepter ou refuser.';
+  } else {
+    subject = en ? (otherName + ' accepted your connection request') : (otherName + ' a accepté votre demande de connexion');
+    intro = en ? ('<b>' + (otherName || 'A member') + '</b> accepted your connection request on Korale. You can now talk directly.') : ('<b>' + (otherName || 'Un membre') + '</b> a accepté votre demande de connexion sur Korale. Vous pouvez maintenant discuter directement.');
+    cta = en ? 'Open Korale, "Network" tab, to start the conversation.' : 'Ouvrez Korale, onglet « Réseau », pour démarrer la conversation.';
   }
+  const hello = en ? ('Hello ' + (toName || '') + ',') : ('Bonjour ' + (toName || '') + ',');
+  const openBtn = en ? 'Open Korale' : 'Ouvrir Korale';
+  const footer = en ? 'You are receiving this email because you are a Korale member.' : 'Vous recevez cet email car vous êtes membre de Korale.';
   return resend.emails.send({
     from: MAIL_FROM,
     to: toEmail,
     subject: subject,
     html: `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:460px;margin:0 auto;padding:32px 24px;color:#1a1a2e">
-      <div style="font-size:22px;font-weight:700;color:#5b8dee;margin-bottom:16px">Korale</div>
-      <p style="font-size:15px;line-height:1.55;color:#333">Bonjour ${toName || ''},</p>
+      <div style="font-size:22px;font-weight:700;color:#6d5ce7;margin-bottom:16px">Korale</div>
+      <p style="font-size:15px;line-height:1.55;color:#333">${hello}</p>
       <p style="font-size:15px;line-height:1.55;color:#333">${intro}</p>
-      <p style="font-size:14px;line-height:1.55;color:#666;background:#eef4ff;border-radius:10px;padding:14px 16px;margin:18px 0">${cta}</p>
-      <a href="https://korale.fr/app" style="display:inline-block;background:#5b8dee;color:#fff;text-decoration:none;font-size:14px;font-weight:500;padding:11px 22px;border-radius:10px">Ouvrir Korale</a>
-      <p style="font-size:12px;line-height:1.5;color:#aaa;margin-top:24px">Vous recevez cet email car vous êtes membre de Korale.</p>
+      <p style="font-size:14px;line-height:1.55;color:#666;background:#f3f0ff;border-radius:10px;padding:14px 16px;margin:18px 0">${cta}</p>
+      <a href="https://korale.fr/app" style="display:inline-block;background:#6d5ce7;color:#fff;text-decoration:none;font-size:14px;font-weight:500;padding:11px 22px;border-radius:10px">${openBtn}</a>
+      <p style="font-size:12px;line-height:1.5;color:#aaa;margin-top:24px">${footer}</p>
     </div>`
   }).catch(e => console.error('Notif mail error:', e.message));
 }
@@ -203,6 +212,13 @@ async function getUserPlan(userId) {
   } catch(e) { return DEFAULT_PLAN; }
 }
 
+async function getUserLang(userId) {
+  try {
+    const r = await pool.query('SELECT lang FROM users WHERE id=$1', [userId]);
+    return (r.rows[0]?.lang === 'en') ? 'en' : 'fr';
+  } catch(e) { return 'fr'; }
+}
+
 // Nombre de demandes de connexion envoyées ce mois-ci
 async function getConnectionsThisMonth(userId) {
   try {
@@ -317,13 +333,13 @@ app.post('/api/register', async (req, res) => {
     const code = genVerifyCode();
     const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
     const result = await pool.query(
-      'INSERT INTO users (email,password,name,plan,verified,verify_code,verify_expires) VALUES ($1,$2,$3,$4,false,$5,$6) RETURNING id,email,name,plan',
-      [email, hash, name, DEFAULT_PLAN, code, expires]
+      'INSERT INTO users (email,password,name,plan,verified,verify_code,verify_expires,lang) VALUES ($1,$2,$3,$4,false,$5,$6,$7) RETURNING id,email,name,plan',
+      [email, hash, name, DEFAULT_PLAN, code, expires, (req.body.lang === 'en' ? 'en' : 'fr')]
     );
     const user = result.rows[0];
     await pool.query('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
     // Envoi de l'email de vérification (non bloquant pour la réponse)
-    sendVerificationEmail(email, name, code).catch(e => console.error('Mail error:', e.message));
+    sendVerificationEmail(email, name, code, (req.body.lang === 'en' ? 'en' : 'fr')).catch(e => console.error('Mail error:', e.message));
     // On NE renvoie PAS de token : le compte doit d'abord être vérifié
     res.json({ needVerification: true, email: email });
   } catch(e) {
@@ -370,7 +386,7 @@ app.post('/api/resend-code', async (req, res) => {
     const code = genVerifyCode();
     const expires = new Date(Date.now() + 15 * 60 * 1000);
     await pool.query('UPDATE users SET verify_code=$1, verify_expires=$2 WHERE id=$3', [code, expires, user.id]);
-    sendVerificationEmail(email, user.name, code).catch(e => console.error('Mail error:', e.message));
+    sendVerificationEmail(email, user.name, code, user.lang || 'fr').catch(e => console.error('Mail error:', e.message));
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -526,6 +542,12 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     });
   }
 
+  // Langue de l'utilisateur pour adapter la réponse de l'IA
+  const userLang = await getUserLang(req.user.id);
+  const langInstruction = userLang === 'en'
+    ? "\n\nIMPORTANT: Always respond in English."
+    : "\n\nIMPORTANT : Réponds toujours en français.";
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -534,7 +556,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     const stream = client.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 3000,
-      system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile.\n\nRÉPONDS DE MANIÈRE CONCISE par défaut : va à l'essentiel, évite les répétitions et le remplissage. Une réponse courte et dense vaut mieux qu'une longue. Développe en détail UNIQUEMENT si l'utilisateur le demande, ou si le sujet (code, explication technique, raisonnement complexe) le justifie vraiment.\n\nPour les équations mathématiques, utilise LaTeX: $...$ inline et $$...$$ centré. Si l'utilisateur partage une image, décris-la et réponds en fonction. Si l'utilisateur partage un fichier, analyse-le.",
+      system: "Tu es Korale, un assistant IA personnel intelligent. Tu aides l'utilisateur dans ses projets, idées, code et réflexions. Tu es chaleureux, précis et utile.\n\nRÉPONDS DE MANIÈRE CONCISE par défaut : va à l'essentiel, évite les répétitions et le remplissage. Une réponse courte et dense vaut mieux qu'une longue. Développe en détail UNIQUEMENT si l'utilisateur le demande, ou si le sujet (code, explication technique, raisonnement complexe) le justifie vraiment.\n\nPour les équations mathématiques, utilise LaTeX: $...$ inline et $$...$$ centré. Si l'utilisateur partage une image, décris-la et réponds en fonction. Si l'utilisateur partage un fichier, analyse-le." + langInstruction,
       messages: messages,
     });
 
@@ -714,10 +736,10 @@ app.post('/api/connection-requests', authMiddleware, async (req, res) => {
         );
         // Notification email au destinataire (seulement si une nouvelle demande a bien été créée)
         if (r.rows[0]) {
-          pool.query('SELECT email, name FROM users WHERE id=$1', [receiverId]).then(function(u) {
+          pool.query('SELECT email, name, lang FROM users WHERE id=$1', [receiverId]).then(function(u) {
             const dest = u.rows[0];
             if (dest && dest.email) {
-              sendNotificationEmail(dest.email, dest.name, 'request', req.user.name || req.user.email);
+              sendNotificationEmail(dest.email, dest.name, 'request', req.user.name || req.user.email, dest.lang || 'fr');
             }
           }).catch(()=>{});
         }
@@ -759,13 +781,13 @@ app.patch('/api/connection-requests/:id', authMiddleware, async (req, res) => {
       [request.id, request.sender_id, request.receiver_id, request.sender_conv_id, request.receiver_conv_id]
     );
     // Notification email à l'expéditeur d'origine : sa demande a été acceptée
-    pool.query('SELECT email, name FROM users WHERE id=$1', [request.sender_id]).then(function(u) {
+    pool.query('SELECT email, name, lang FROM users WHERE id=$1', [request.sender_id]).then(function(u) {
       const sender = u.rows[0];
       if (sender && sender.email) {
         // Nom de celui qui accepte (le receiver = l'utilisateur courant)
         pool.query('SELECT name FROM users WHERE id=$1', [request.receiver_id]).then(function(rc) {
           const accepterName = rc.rows[0]?.name || 'Un membre';
-          sendNotificationEmail(sender.email, sender.name, 'accepted', accepterName);
+          sendNotificationEmail(sender.email, sender.name, 'accepted', accepterName, sender.lang || 'fr');
         }).catch(()=>{});
       }
     }).catch(()=>{});
