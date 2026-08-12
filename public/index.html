@@ -155,14 +155,14 @@
   <div class="hero-content">
     <div class="hero-badge">
       <span class="hero-badge-dot"></span>
-      Intelligence artificielle conversationnelle &amp; sociale
+      <span data-i18n="hero_badge">Intelligence artificielle conversationnelle &amp; sociale</span>
     </div>
-    <h1 class="hero-title">
+    <h1 class="hero-title" data-i18n-html="hero_title">
       Votre IA qui vous<br>
-      <em data-i18n="hero_understands">comprend</em> et vous<br>
-      <em data-i18n="hero_connects">connecte</em>
+      <em>comprend</em> et vous<br>
+      <em>connecte</em>
     </h1>
-    <p class="hero-sub">
+    <p class="hero-sub" data-i18n="hero_sub">
       Korale apprend qui vous êtes à travers vos conversations, construit votre profil en silence, et vous met en relation avec les personnes les plus compatibles avec vos projets.
     </p>
     <div class="hero-actions">
@@ -181,20 +181,20 @@
           <div class="mockup-av">&#10022;</div>
           <div>
             <div class="mockup-bubble">
-              J'ai analysé votre conversation sur la <strong>biologie synthétique</strong> et vos projets de <strong>thérapie génique</strong>. Voici votre profil contextuel et les collaborateurs les plus compatibles avec votre démarche.
+              <span data-i18n="mockup_text">J'ai analysé votre conversation sur la biologie synthétique et vos projets de thérapie génique. Voici votre profil contextuel et les collaborateurs les plus compatibles avec votre démarche.</span>
             </div>
             <div class="mockup-tags">
-              <span class="mockup-tag">biologie moléculaire</span>
-              <span class="mockup-tag">CRISPR</span>
-              <span class="mockup-tag">bioinformatique</span>
+              <span class="mockup-tag" data-i18n="mockup_tag1">biologie moléculaire</span>
+              <span class="mockup-tag" data-i18n="mockup_tag2">CRISPR</span>
+              <span class="mockup-tag" data-i18n="mockup_tag3">bioinformatique</span>
             </div>
             <div class="mockup-match">
               <div class="mockup-match-score">94%</div>
               <div class="mockup-match-info">
-                <div class="mockup-match-name">Thomas W. — Chercheur NLP & IA souveraine</div>
-                <div class="mockup-match-reason">Complémentarité tech & vision scientifique</div>
+                <div class="mockup-match-name" data-i18n="mockup_match_name">Thomas W. — Chercheur NLP & IA souveraine</div>
+                <div class="mockup-match-reason" data-i18n="mockup_match_reason">Complémentarité tech & vision scientifique</div>
               </div>
-              <div style="font-size:11px;color:var(--accent2);font-weight:500;cursor:pointer">Voir →</div>
+              <div style="font-size:11px;color:var(--accent2);font-weight:500;cursor:pointer" data-i18n="mockup_see">Voir →</div>
             </div>
           </div>
         </div>
@@ -274,8 +274,8 @@
 <section class="quote-section">
   <div class="section-inner" style="text-align:center">
     <span class="section-badge" data-i18n="vision_label">La vision</span>
-    <p class="quote">"Les meilleures collaborations naissent d'une compréhension profonde — pas d'un algorithme de filtre. Korale cherche ce que vous avez en commun avec les autres, pas ce qui vous différencie."</p>
-    <p class="quote-author">— L'équipe Korale</p>
+    <p class="quote" data-i18n="vision_quote">"Les meilleures collaborations naissent d'une compréhension profonde — pas d'un algorithme de filtre. Korale cherche ce que vous avez en commun avec les autres, pas ce qui vous différencie."</p>
+    <p class="quote-author" data-i18n="vision_signature">— L'équipe Korale</p>
   </div>
 </section>
 
@@ -299,6 +299,16 @@
 const I18N = {
   fr: {
     nav_how: "Comment ça marche", nav_features: "Fonctionnalités", nav_start: "Commencer",
+    hero_badge: "Intelligence artificielle conversationnelle & sociale",
+    hero_title: "Votre IA qui vous<br><em>comprend</em> et vous<br><em>connecte</em>",
+    hero_sub: "Korale apprend qui vous êtes à travers vos conversations, construit votre profil en silence, et vous met en relation avec les personnes les plus compatibles avec vos projets.",
+    mockup_text: "J'ai analysé votre conversation sur la biologie synthétique et vos projets de thérapie génique. Voici votre profil contextuel et les collaborateurs les plus compatibles avec votre démarche.",
+    mockup_tag1: "biologie moléculaire", mockup_tag2: "CRISPR", mockup_tag3: "bioinformatique",
+    mockup_match_name: "Thomas W. — Chercheur NLP & IA souveraine",
+    mockup_match_reason: "Complémentarité tech & vision scientifique",
+    mockup_see: "Voir →",
+    vision_quote: "\"Les meilleures collaborations naissent d'une compréhension profonde — pas d'un algorithme de filtre. Korale cherche ce que vous avez en commun avec les autres, pas ce qui vous différencie.\"",
+    vision_signature: "— L'équipe Korale",
     hero_understands: "comprend", hero_connects: "connecte",
     hero_cta1: "Créer mon compte", hero_cta2: "Voir comment ça marche",
     how_label: "Comment ça marche", how_title: "Simple comme une conversation",
@@ -331,6 +341,16 @@ const I18N = {
   },
   en: {
     nav_how: "How it works", nav_features: "Features", nav_start: "Get started",
+    hero_badge: "Conversational & social artificial intelligence",
+    hero_title: "Your AI that<br><em>understands</em> you<br>and <em>connects</em> you",
+    hero_sub: "Korale learns who you are through your conversations, builds your profile quietly, and connects you with the people most compatible with your projects.",
+    mockup_text: "I analyzed your conversation about synthetic biology and your gene therapy projects. Here is your contextual profile and the collaborators most compatible with your approach.",
+    mockup_tag1: "molecular biology", mockup_tag2: "CRISPR", mockup_tag3: "bioinformatics",
+    mockup_match_name: "Thomas W. — NLP & sovereign AI researcher",
+    mockup_match_reason: "Complementary tech & scientific vision",
+    mockup_see: "View →",
+    vision_quote: "\"The best collaborations are born from deep understanding — not from a filtering algorithm. Korale looks for what you have in common with others, not what sets you apart.\"",
+    vision_signature: "— The Korale team",
     hero_understands: "understands", hero_connects: "connects",
     hero_cta1: "Create my account", hero_cta2: "See how it works",
     how_label: "How it works", how_title: "As simple as a conversation",
@@ -375,6 +395,11 @@ function applyTranslations(){
   for (var i=0;i<els.length;i++){
     var k = els[i].getAttribute('data-i18n');
     els[i].textContent = t(k);
+  }
+  var elsH = document.querySelectorAll('[data-i18n-html]');
+  for (var h=0;h<elsH.length;h++){
+    var kh = elsH[h].getAttribute('data-i18n-html');
+    elsH[h].innerHTML = t(kh);
   }
   document.documentElement.setAttribute('lang', currentLang);
   var btns = document.querySelectorAll('.lang-btn');
