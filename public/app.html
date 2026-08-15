@@ -343,14 +343,6 @@
       .auth-box{width:calc(100% - 32px);padding:36px 24px;border-radius:20px;}
       .auth-logo{font-size:26px;}.bd1,.bd3{display:none;}
       header{padding:0 12px;height:52px;gap:6px;}
-
-      .lang-switch{padding:1px;gap:1px;}
-      .lang-btn{padding:2px 5px;font-size:10px;}
-      .header-right{gap:5px;}
-      .user-badge{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-      .header-btn{padding:6px 9px;font-size:12px;}
-      .plan-badge{font-size:8px;padding:1px 5px;}
-      .usage-label{font-size:10px;}
       .logo{font-size:18px;margin-right:0;}.nav-tabs{display:none;}.new-conv-btn{display:none;}
       .user-badge{display:block;max-width:80px;font-size:11px;}.desktop-only{display:none;}.nav-separator{display:none;}
       .mobile-nav{display:flex;align-items:center;justify-content:space-around;height:58px;background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);flex-shrink:0;padding:0 4px;position:relative;z-index:10;}
@@ -500,7 +492,7 @@
           <div class="nav-separator desktop-only"></div>
 
 
-          <button class="header-btn" data-i18n="logout" onclick="logout()">Quitter</button>
+          <button class="header-btn desktop-only" data-i18n="logout" onclick="logout()">Quitter</button>
         </div>
       </header>
     <div class="mobile-nav" id="mobile-nav">
@@ -739,6 +731,7 @@ async function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('korale_lang', lang);
   applyTranslations();
+  if (typeof loadUsage === 'function' && token) { try { loadUsage(); } catch(e){} }
   if (token) {
     try {
       await fetch('/api/set-lang', {
@@ -999,7 +992,7 @@ function logout() {
 function resetProfile() {
   document.getElementById('profile-title').textContent = 'En construction\u2026';
   const body = document.getElementById('profile-body');
-  body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
+  body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label" data-i18n="summary">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
     +'<div><div class="sec-label" data-i18n="skills">comp\u00e9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state" data-i18n="waiting">en attente\u2026</span></div></div>'
     +'<div><div class="sec-label" data-i18n="work_profile">profil de travail</div>'
     +'<div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>'
