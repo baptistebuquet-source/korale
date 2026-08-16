@@ -729,6 +729,7 @@ function applyTranslations() {
   });
   document.documentElement.setAttribute('lang', currentLang);
   var gb = document.getElementById('greeting-bubble'); if (gb) gb.innerHTML = getGreetingText();
+  var scm = document.getElementById('select-conv-msg'); if (scm) scm.textContent = t('select_conversation');
   updateLangButtons();
 }
 
@@ -831,7 +832,7 @@ function switchView(view) {
     renderConversationList();
     if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
     resetProfile();
-    document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+getGreetingText()+'</div></div>';
+    document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble" id="greeting-bubble">'+getGreetingText()+'</div></div>';
     conversationId = null; history = []; bddMessages = []; aiTurnCount = 0;
   } else {
     document.getElementById('history-label-text').textContent = t('nav_network');
@@ -843,7 +844,7 @@ function switchView(view) {
     activeSharedConvId = null;
     // Vide immédiatement la liste (évite le flash des conversations IA pendant le chargement réseau)
     document.getElementById('history-list').innerHTML = '<div class="empty-state" style="padding:16px;text-align:center;color:var(--muted);font-size:12px">'+t('loading')+'</div>';
-    document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">'+t('select_conversation')+'</div>';
+    document.getElementById('messages').innerHTML = '<div id="select-conv-msg" style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">'+t('select_conversation')+'</div>';
     document.getElementById('profile-body').innerHTML = '<div class="empty-state" style="padding:8px">'+t('select_connection')+'</div>';
     loadSharedConversations();
   }
@@ -1249,7 +1250,7 @@ function renderConversationList() {
 
 async function newConversation() {
   conversationId = null; activeConvId = null; history = []; bddMessages = []; aiTurnCount = 0;
-  document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+getGreetingText()+'</div></div>';
+  document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble" id="greeting-bubble">'+getGreetingText()+'</div></div>';
   resetProfile();
   renderConversationList();
   if (isMobile()) closeAllPanels();
@@ -1321,7 +1322,7 @@ function renderMsgInto(bubble, m) {
     }
   });
 }
-const AI_GREETING = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+getGreetingText()+'</div></div>';
+const AI_GREETING = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble" id="greeting-bubble">'+getGreetingText()+'</div></div>';
 
 // Rend toute la conv IA depuis bddMessages. Si editIdx >= 0, ce message devient éditable.
 function renderAIConversation(editIdx) {
