@@ -995,12 +995,12 @@ function resetProfile() {
   body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label" data-i18n="summary">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
     +'<div><div class="sec-label" data-i18n="skills">comp\u00e9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state" data-i18n="waiting">en attente\u2026</span></div></div>'
     +'<div><div class="sec-label" data-i18n="work_profile">profil de travail</div>'
-    +'<div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>'
-    +'<div class="trait"><span class="trait-name">Technicit\u00e9</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>'
-    +'<div class="trait"><span class="trait-name">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>'
-    +'<div class="trait"><span class="trait-name">Cr\u00e9ativit\u00e9</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>'
-    +'<div class="trait"><span class="trait-name">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>'
-    +'<div class="trait"><span class="trait-name">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div>'
+    +'<div class="trait"><span class="trait-name" data-i18n="vision">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>'
+    +'<div class="trait"><span class="trait-name" data-i18n="technicity">Technicit\u00e9</span><div class="bar-bg"><div class="bar-fill t" id="bt" style="width:0%"></div></div><span class="trait-pct" id="pt">0%</span></div>'
+    +'<div class="trait"><span class="trait-name" data-i18n="entrepreneurship">Entrepreneuriat</span><div class="bar-bg"><div class="bar-fill e" id="be" style="width:0%"></div></div><span class="trait-pct" id="pe">0%</span></div>'
+    +'<div class="trait"><span class="trait-name" data-i18n="creativity">Cr\u00e9ativit\u00e9</span><div class="bar-bg"><div class="bar-fill c" id="bc" style="width:0%"></div></div><span class="trait-pct" id="pc">0%</span></div>'
+    +'<div class="trait"><span class="trait-name" data-i18n="collaboration">Collaboration</span><div class="bar-bg"><div class="bar-fill col" id="bcol" style="width:0%"></div></div><span class="trait-pct" id="pcol">0%</span></div>'
+    +'<div class="trait"><span class="trait-name" data-i18n="leadership">Leadership</span><div class="bar-bg"><div class="bar-fill l" id="bl" style="width:0%"></div></div><span class="trait-pct" id="pl">0%</span></div></div>'
     +'<div><div class="sec-label" data-i18n="detected_projects">projets d\u00e9tect\u00e9s</div><div id="proj-list"><span class="empty-state" data-i18n="no_project">aucun projet identifi\u00e9</span></div></div>'
     +'<div><div class="sec-label" data-i18n="compatibilities">compatibilit\u00e9s</div><div id="match-list"><span class="empty-state" data-i18n="analyzing">analyse en cours\u2026</span></div></div>'
     +'<div id="docs-section" style="display:none"><div class="sec-label" data-i18n="joined_docs">documents joints</div><div class="doc-list" id="doc-list"></div></div>';
@@ -2062,7 +2062,7 @@ async function openMatchModal(matchName, score, reason, userId) {
   document.getElementById('modal-score').textContent = score+'%';
   document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+s+'</span>';}).join('') : '<span class="empty-state">'+t('none_f')+'</span>';
   document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+p+'</div>';}).join('') : '<span class="empty-state">'+t('none_m')+'</span>';
-  const tl = [['vision','Vision','v'],['technicite','Technicit\u00e9','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Cr\u00e9ativit\u00e9','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
+  const tl = [['vision',t('vision'),'v'],['technicite',t('technicity'),'t'],['entrepreneuriat',t('entrepreneurship'),'e'],['creativite',t('creativity'),'c'],['collaboration',t('collaboration'),'col'],['leadership',t('leadership'),'l']];
   document.getElementById('modal-traits').innerHTML = tl.map(function(arr){return '<div class="trait"><span class="trait-name">'+arr[1]+'</span><div class="bar-bg"><div class="bar-fill '+arr[2]+'" style="width:'+(traits[arr[0]]||0)+'%"></div></div><span class="trait-pct">'+(traits[arr[0]]||0)+'%</span></div>';}).join('');
 
   // Ancienne note d'upgrade éventuelle : on la retire avant de recalculer
@@ -2105,7 +2105,7 @@ function openProfileModal(name, profile, opts) {
   document.getElementById('modal-score').textContent = opts.score ? opts.score+'%' : '';
   document.getElementById('modal-skills').innerHTML = skills.length ? skills.map(function(s){return '<span class="stag">'+escapeHtml(s)+'</span>';}).join('') : '<span class="empty-state">'+t('none_f')+'</span>';
   document.getElementById('modal-projects').innerHTML = projects.length ? projects.map(function(p){return '<div class="proj-tag"><div class="proj-dot"></div>'+escapeHtml(p)+'</div>';}).join('') : '<span class="empty-state">'+t('none_m')+'</span>';
-  const tl = [['vision','Vision','v'],['technicite','Technicit\u00e9','t'],['entrepreneuriat','Entrepreneuriat','e'],['creativite','Cr\u00e9ativit\u00e9','c'],['collaboration','Collaboration','col'],['leadership','Leadership','l']];
+  const tl = [['vision',t('vision'),'v'],['technicite',t('technicity'),'t'],['entrepreneuriat',t('entrepreneurship'),'e'],['creativite',t('creativity'),'c'],['collaboration',t('collaboration'),'col'],['leadership',t('leadership'),'l']];
   document.getElementById('modal-traits').innerHTML = tl.map(function(a){return '<div class="trait"><span class="trait-name">'+a[1]+'</span><div class="bar-bg"><div class="bar-fill '+a[2]+'" style="width:'+(traits[a[0]]||0)+'%"></div></div><span class="trait-pct">'+(traits[a[0]]||0)+'%</span></div>';}).join('');
   const oldNote = document.getElementById('modal-upgrade-note');
   if (oldNote) oldNote.remove();
