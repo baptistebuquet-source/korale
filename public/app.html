@@ -613,7 +613,7 @@ const I18N = {
     vision: 'Vision', technicity: 'Technicité', entrepreneurship: 'Entrepreneuriat',
     creativity: 'Créativité', collaboration: 'Collaboration', leadership: 'Leadership',
     // Réseau
-    net_no_accepted: 'Aucune connexion acceptée', net_no_selected: 'Aucune connexion sélectionnée',
+    net_no_accepted: 'Aucune connexion acceptée', net_no_selected: 'Aucune connexion sélectionnée', select_connection: 'Sélectionnez une connexion pour voir les détails (profils, documents partagés).',
     net_details: 'détails de la connexion', net_active: 'connexion active', net_you: 'Vous',
     connections: 'connexions', net_first_msg: 'Envoyez le premier message pour démarrer la conversation.',
     no_compatible: 'aucun nouveau profil compatible',
@@ -663,7 +663,7 @@ const I18N = {
     vision: 'Vision', technicity: 'Technical skill', entrepreneurship: 'Entrepreneurship',
     creativity: 'Creativity', collaboration: 'Collaboration', leadership: 'Leadership',
     // Réseau
-    net_no_accepted: 'No accepted connection', net_no_selected: 'No connection selected',
+    net_no_accepted: 'No accepted connection', net_no_selected: 'No connection selected', select_connection: 'Select a connection to see the details (profiles, shared documents).',
     net_details: 'connection details', net_active: 'active connection', net_you: 'You',
     connections: 'connections', net_first_msg: 'Send the first message to start the conversation.',
     no_compatible: 'no new compatible profile',
@@ -837,7 +837,7 @@ function switchView(view) {
     // Vide immédiatement la liste (évite le flash des conversations IA pendant le chargement réseau)
     document.getElementById('history-list').innerHTML = '<div class="empty-state" style="padding:16px;text-align:center;color:var(--muted);font-size:12px">'+t('loading')+'</div>';
     document.getElementById('messages').innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-style:italic;line-height:1.6;">'+t('select_conversation')+'</div>';
-    document.getElementById('profile-body').innerHTML = '<div class="empty-state" style="padding:8px">Sélectionnez une connexion pour voir les détails (profils, documents partagés).</div>';
+    document.getElementById('profile-body').innerHTML = '<div class="empty-state" style="padding:8px">'+t('select_connection')+'</div>';
     loadSharedConversations();
   }
   applyTranslations();
@@ -1338,7 +1338,7 @@ function renderAIConversation(editIdx) {
       ta.value = extractMsgText(m);
       const actions = document.createElement('div');
       actions.className = 'edit-actions';
-      actions.innerHTML = '<button class="edit-save">Enregistrer</button><button class="edit-cancel">Annuler</button>';
+      actions.innerHTML = '<button class="edit-save">'+t('save')+'</button><button class="edit-cancel">'+t('cancel')+'</button>';
       bubble.appendChild(ta); bubble.appendChild(actions);
       actions.querySelector('.edit-save').onclick = function(){ saveEditedMessage(idx, ta.value); };
       actions.querySelector('.edit-cancel').onclick = function(){ renderAIConversation(-1); };
