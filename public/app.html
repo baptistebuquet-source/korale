@@ -344,7 +344,7 @@
       .auth-logo{font-size:26px;}.bd1,.bd3{display:none;}
       header{padding:0 12px;height:52px;gap:6px;}
       .logo{font-size:18px;margin-right:0;}.nav-tabs{display:none;}.new-conv-btn{display:none;}
-      .user-badge{display:none;}.desktop-only{display:none;}.nav-separator{display:none;}
+      .user-badge{display:block;max-width:80px;font-size:11px;}.desktop-only{display:none;}.nav-separator{display:none;}
       .mobile-nav{display:flex;align-items:center;justify-content:space-around;height:58px;background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);flex-shrink:0;padding:0 4px;position:relative;z-index:10;}
       .mobile-nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 10px;border-radius:10px;transition:all 0.2s;color:var(--muted);font-size:10px;font-weight:500;flex:1;}
       .mobile-nav-btn.active{color:var(--accent);background:var(--accent-soft);}
@@ -394,12 +394,12 @@
       <div class="auth-tab active" data-i18n="login" onclick="switchTab('login')">Connexion</div>
       <div class="auth-tab" data-i18n="register" onclick="switchTab('register')">Inscription</div>
     </div>
-    <div id="name-field" style="display:none"><input class="auth-input" type="text" id="auth-name" placeholder="Votre pr&#233;nom"/></div>
+    <div id="name-field" style="display:none"><input class="auth-input" type="text" id="auth-name" placeholder="Votre pr&#233;nom" data-i18n="ph_firstname" data-i18n-attr="placeholder"/></div>
     <input class="auth-input" type="email" id="auth-email" placeholder="Email" autocomplete="email"/>
-    <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password"/>
+    <input class="auth-input" type="password" id="auth-password" placeholder="Mot de passe" autocomplete="current-password" data-i18n="ph_password" data-i18n-attr="placeholder"/>
     <button class="auth-btn" data-i18n="continue" onclick="submitAuth()">Continuer</button>
     <div class="auth-error" id="auth-error"></div>
-    <a class="auth-back" href="/">&#8592; Retour &#224; l&#39;accueil</a>
+    <a class="auth-back" href="/" data-i18n="back_home">&#8592; Retour &#224; l&#39;accueil</a>
   </div>
 </div>
 
@@ -511,7 +511,7 @@
         <div class="chat-area" id="chat-area">
           <button class="fab-context" id="fab-context" data-i18n="ctx_context" onclick="toggleProfile()">Contexte</button>
           <div id="messages">
-        <div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble" id="greeting-bubble">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>
+        <div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble" data-i18n="ai_greeting">Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, id&#233;es ou de ce sur quoi vous travaillez.</div></div>
       </div>
       <footer>
         <div class="footer-attachments" id="footer-attachments" style="display:none"></div>
@@ -634,8 +634,8 @@ const I18N = {
     copy: 'Copier', copied: 'Copié',
     // Auth
     login: 'Connexion', register: 'Inscription', continue: 'Continuer',
-    auth_sub: 'Votre assistant IA personnel & collaboratif',
-    ai_greeting: 'Bonjour{name}. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.',
+    auth_sub: 'Votre assistant IA personnel & collaboratif', ph_firstname: 'Votre prénom', ph_password: 'Mot de passe', back_home: '← Retour à l\'accueil', plan_free: 'Essai', plan_avance: 'Avancé', plan_pro: 'Pro',
+    ai_greeting: 'Bonjour. Je suis Korale, votre assistant IA. Parlez-moi de vos projets, idées ou de ce sur quoi vous travaillez.',
     // Vérification email
     verify_title: 'Vérifiez votre email', verify_sub: 'Nous avons envoyé un code à 6 chiffres à',
     validate: 'Valider', verifying: 'Vérification…', not_received: 'Pas reçu ?', resend_code: 'Renvoyer le code',
@@ -684,8 +684,8 @@ const I18N = {
     copy: 'Copy', copied: 'Copied',
     // Auth
     login: 'Sign in', register: 'Sign up', continue: 'Continue',
-    auth_sub: 'Your personal & collaborative AI assistant',
-    ai_greeting: 'Hello{name}, I\'m Korale, your AI assistant. Tell me about your projects, ideas, or what you\'re working on.',
+    auth_sub: 'Your personal & collaborative AI assistant', ph_firstname: 'Your first name', ph_password: 'Password', back_home: '← Back to home', plan_free: 'Trial', plan_avance: 'Advanced', plan_pro: 'Pro',
+    ai_greeting: 'Hello, I\'m Korale, your AI assistant. Tell me about your projects, ideas, or what you\'re working on.',
     // Vérification email
     verify_title: 'Verify your email', verify_sub: 'We sent a 6-digit code to',
     validate: 'Confirm', verifying: 'Verifying…', not_received: 'Didn\'t receive it?', resend_code: 'Resend code',
@@ -709,12 +709,6 @@ function t(key) {
   return (I18N[currentLang] && I18N[currentLang][key]) || I18N.fr[key] || key;
 }
 
-function getGreetingText() {
-  var fn = '';
-  try { if (typeof user !== 'undefined' && user && user.name) { fn = ' ' + user.name.split(' ')[0]; } } catch(e) {}
-  return t('ai_greeting').replace('{name}', fn);
-}
-
 // Applique les traductions à tout élément portant data-i18n
 function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(function(el) {
@@ -728,7 +722,6 @@ function applyTranslations() {
     }
   });
   document.documentElement.setAttribute('lang', currentLang);
-  var gb = document.getElementById('greeting-bubble'); if (gb) gb.innerHTML = getGreetingText();
   updateLangButtons();
 }
 
@@ -738,6 +731,7 @@ async function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('korale_lang', lang);
   applyTranslations();
+  if (typeof loadUsage === 'function' && typeof token !== 'undefined' && token) { try { loadUsage(); } catch(e){} }
   if (token) {
     try {
       await fetch('/api/set-lang', {
@@ -830,7 +824,7 @@ function switchView(view) {
     renderConversationList();
     if (activeSharedConvId) { clearInterval(sharedPollingInterval); activeSharedConvId = null; }
     resetProfile();
-    document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+getGreetingText()+'</div></div>';
+    document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+t('ai_greeting')+'</div></div>';
     conversationId = null; history = []; bddMessages = []; aiTurnCount = 0;
   } else {
     document.getElementById('history-label-text').textContent = t('nav_network');
@@ -998,7 +992,7 @@ function logout() {
 function resetProfile() {
   document.getElementById('profile-title').textContent = 'En construction\u2026';
   const body = document.getElementById('profile-body');
-  body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
+  body.innerHTML = '<div id="profile-summary-section" style="display:none"><div class="sec-label" data-i18n="summary">r\u00e9sum\u00e9</div><div class="profile-summary" id="profile-summary"></div></div>'
     +'<div><div class="sec-label" data-i18n="skills">comp\u00e9tences</div><div class="skill-grid" id="skill-grid"><span class="empty-state" data-i18n="waiting">en attente\u2026</span></div></div>'
     +'<div><div class="sec-label" data-i18n="work_profile">profil de travail</div>'
     +'<div class="trait"><span class="trait-name">Vision</span><div class="bar-bg"><div class="bar-fill v" id="bv" style="width:0%"></div></div><span class="trait-pct" id="pv">0%</span></div>'
@@ -1071,7 +1065,7 @@ async function loadUsage() {
     const bar = document.getElementById('usage-bar');
     const badge = document.getElementById('plan-badge');
     if (badge) {
-      badge.textContent = u.planLabel || '';
+      badge.textContent = (u.plan === 'free' ? t('plan_free') : (u.plan === 'pro' ? t('plan_pro') : t('plan_avance')));
       badge.className = 'plan-badge' + (u.plan === 'free' ? ' free' : (u.plan === 'pro' ? ' pro' : ''));
       badge.style.display = 'inline-block';
     }
@@ -1248,7 +1242,7 @@ function renderConversationList() {
 
 async function newConversation() {
   conversationId = null; activeConvId = null; history = []; bddMessages = []; aiTurnCount = 0;
-  document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+getGreetingText()+'</div></div>';
+  document.getElementById('messages').innerHTML = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+t('ai_greeting')+'</div></div>';
   resetProfile();
   renderConversationList();
   if (isMobile()) closeAllPanels();
@@ -1320,7 +1314,7 @@ function renderMsgInto(bubble, m) {
     }
   });
 }
-const AI_GREETING = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+getGreetingText()+'</div></div>';
+const AI_GREETING = '<div class="msg ai"><div class="av ai">&#10022;</div><div class="bubble">'+t('ai_greeting')+'</div></div>';
 
 // Rend toute la conv IA depuis bddMessages. Si editIdx >= 0, ce message devient éditable.
 function renderAIConversation(editIdx) {
